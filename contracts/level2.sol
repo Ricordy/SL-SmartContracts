@@ -56,7 +56,8 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
     */
    
     event UserInfo(
-        uint256[]
+        uint256 amount,
+        uint256[] ids
 
     );
 
@@ -75,8 +76,8 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
     function burnIf() public nonReentrant {
         (uint256 _userAmount, uint256[] memory userTokenIndexes) = getAddressInfo();
         require(checkDifferents(10000,_userAmount,userTokenIndexes),"Not all NFTPuzzle are different");
-        require(_NFTPuzzle.burnForClaim(userTokenIndexes), "Not able to burn tokens");
-        require(addressToTokenId[msg.sender]< maxUserAmount, "Address cannot mint more than maxPerUser");
+        require(INFTPuzzle(nftPuzzleContractAddress).burnForClaim(userTokenIndexes), "Not able to burn tokens");
+        require(addressToTokenId[msg.sender] < maxUserAmount, "Address cannot mint more than maxPerUser");
         _mint(msg.sender, tokenID);
         addressToTokenId[msg.sender] = tokenID;
         tokenID++;
@@ -132,8 +133,9 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
         }
       }
 
-    function getAddressInfo() public view returns(uint256, uint256[] memory){
-        (uint256 _userAmount, uint256[] memory userTokenIndexes) = _NFTPuzzle.addressInfo(msg.sender);
+    function getAddressInfo() public returns(uint256, uint256[] memory){
+        (uint256 _userAmount, uint256[] memory userTokenIndexes) = INFTPuzzle(nftPuzzleContractAddress).addressInfo(msg.sender);
+        emit UserInfo(_userAmount, userTokenIndexes);
         return(_userAmount, userTokenIndexes);
     }
 
@@ -143,11 +145,15 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
 
     */
 
+   /*
+
    function getUserAmount(address _address) public returns(uint256[] memory ){
     (uint256[] memory _userAmount) = INFTPuzzle(nftPuzzleContractAddress).getBalnceUser(_address, 10);
     emit UserInfo(_userAmount);
     return _userAmount;
    } 
+
+   */
 
 }
 

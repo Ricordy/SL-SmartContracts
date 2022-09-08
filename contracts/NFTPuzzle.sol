@@ -34,7 +34,7 @@ contract NFTPuzzle is ERC721Enumerable, Ownable, ReentrancyGuard {
        string base_uri;
        bool isRevealed = false;
        address currentUser;
-       address[] whiteListContracts;
+       
 
 
       uint256[] randomNumber;
@@ -44,6 +44,9 @@ contract NFTPuzzle is ERC721Enumerable, Ownable, ReentrancyGuard {
       uint32 numWords;
       bytes32 internal keyHash = 0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc;
       uint16 requestConfirmations = 3;
+
+
+      mapping(address => bool) public contractWhitelist;
 
 
    
@@ -212,7 +215,7 @@ COMUNICATION FUNCTIONS
   function addressInfo(address _address) external _onlyWhiteListContracts returns(uint256 _amount /* Address total tokens amount*/, uint256[] memory _tokenIds /*All address token ids sotred in array */){
     _amount = balanceOf(_address);
     
-  //return (_amount,getBalnceUser(_address,_amount));
+  return (_amount,getBalnceUser(_address,_amount));
   }
 
 
@@ -228,11 +231,8 @@ MODIFIERS
 
 
   modifier  _onlyWhiteListContracts {
-    for(uint i = 0; i < whiteListContracts.length; i++){
-      if(msg.sender == whiteListContracts[i]){
-        _;
-      }
-    }
+    require(contractWhitelist[msg.sender] == true, "contract not allowed to interact");
+    _;
   }
 
 
@@ -243,11 +243,11 @@ MODIFIERS
   */
 
  function addContractToWhitelist(address _address) public onlyOwner {
-  whiteListContracts.push(_address);
+    contractWhitelist[_address] = true;
  }
 
 
- function getBalnceUser(address _address, uint256 _amount) external returns(uint256[] memory){
+ function getBalnceUser(address _address, uint256 _amount) internal returns(uint256[] memory){
 
   for(uint i = 0; i < _amount; i++){
     randomNumber.push(tokenOfOwnerByIndex(_address, i));
