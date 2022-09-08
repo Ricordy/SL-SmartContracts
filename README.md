@@ -1,13 +1,20 @@
-# Sample Hardhat Project
+# Run instructions
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+## To deploy and verify NFTEntry just run this on terminal point to ./
 
-Try running some of the following tasks:
+  ```shell
+  npx hardhat run scripts/deployEntry.js --network rinkeby
+  ```
+## To deploy and verify both NFTPieces and NFTLevel2 run this on terminal point to ./
 
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+  ```shell
+  npx hardhat run scripts/deploySync.js --network rinkeby
+  ```
+ 
+  1. Then go to [EtherScan](https://rinkeby.etherscan.io//) and search for NFTPieces.
+  1. Contract -> Write Contract
+  1. Execute addContractToWhitelist(address from NFTLvl2)
+  
+## Ready to use
+  
+
