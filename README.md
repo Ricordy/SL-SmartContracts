@@ -15,6 +15,9 @@
   1. Contract -> Write Contract
   1. Execute addContractToWhitelist(address from NFTLvl2)
   
-## Ready to use
+  ## Ready to use
+  
+# TODO: 
+  1. Burn/Claim
   
 
