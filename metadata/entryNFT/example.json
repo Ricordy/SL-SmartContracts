@@ -1,0 +1,14 @@
+{
+    "image": "ipfs://bafkreigjj73bspq5l7kgcsfgzlateiaj45jmbhl5ri4didhqicdnislx34",
+    "name": "keep waiting",
+    "description": "Useless questionmark",
+    "attributes": [{
+            "trait_type": "Useless",
+            "value": "99"
+        },
+        {
+            "trait_type": "Access Level",
+            "value": "2"
+        }
+    ]
+}
