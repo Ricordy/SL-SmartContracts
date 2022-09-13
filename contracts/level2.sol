@@ -11,7 +11,7 @@ interface INFTPuzzle{
 
     function getUserTokenIds(address _address) external returns(uint256[] memory);
 
-    function burn(uint256 tokenIds) external returns (bool);
+    function burn(uint256[] calldata tokenIds) external returns (bool);
 
     
 }
@@ -61,7 +61,7 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
 
     event TokenBurned
     (
-        uint256 tokenID
+        uint256[] tokenID
     );
 
 
@@ -73,7 +73,9 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
 
     function claim() public nonReentrant 
     {
-        require(INFTPuzzle(nftPuzzleContractAddress).burn(1), "Not able to burn");
+        uint256[] memory tokenIds = getUserAmount(msg.sender);
+        require(INFTPuzzle(nftPuzzleContractAddress).burn(tokenIds), "Not able to burn");
+        emit TokenBurned(tokenIds);
         tokenID++;
         _mint(msg.sender ,tokenID);
         
