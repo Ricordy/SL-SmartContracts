@@ -11,6 +11,8 @@ interface INFTPuzzle{
 
     function getUserTokenIds(address _address) external returns(uint256[] memory);
 
+    function burn(uint256 tokenIds) external returns (bool);
+
     
 }
 
@@ -54,7 +56,12 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
    
     event UserInfo
     (
-        uint256[]
+        uint256[] tokenIDs
+    );
+
+    event TokenBurned
+    (
+        uint256 tokenID
     );
 
 
@@ -64,18 +71,18 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
 
     */
 
-    function claim() public nonReentrant {
-        //(uint256 _userAmount, uint256[] memory userTokenIndexes);
-        //require(checkDifferents(10000,_userAmount,userTokenIndexes),"Not all NFTPuzzle are different");
-        //require(_NFTPuzzle.burnForClaim(userTokenIndexes), "Not able to burn tokens");
-        require(balanceOf(msg.sender)< maxUserAmount, "Address cannot mint more than maxPerUser");
-        _mint(msg.sender, tokenID);
+    function claim() public nonReentrant 
+    {
+        require(INFTPuzzle(nftPuzzleContractAddress).burn(1), "Not able to burn");
         tokenID++;
+        _mint(msg.sender ,tokenID);
+        
 
     }
 
 
-    function checkDifferents(uint256 _coleectionTotal, uint256 _userAmount, uint256[] memory userTokenIndexes) internal pure returns(bool){
+    function checkDifferents(uint256 _coleectionTotal, uint256 _userAmount, uint256[] memory userTokenIndexes) internal pure returns(bool)
+    {
         uint[] memory checked;
         
         require(_userAmount == 10, "Not exactly 10 tokens.");

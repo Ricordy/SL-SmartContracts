@@ -129,6 +129,12 @@ contract NFTPuzzle is ERC721Enumerable, Ownable, ReentrancyGuard {
         emit UserBalance(randomNumber);
         return (randomNumber);
     }
+    
+    function burn(uint256 tokenIds) external returns (bool) 
+    {
+        _burn(tokenIds);
+        return true;
+    }
 
     /*
 
