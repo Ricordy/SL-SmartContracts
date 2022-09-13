@@ -121,7 +121,7 @@ contract NFTPuzzle is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     */
 
-    function getUserTokenIds(address _address) external returns (uint256[] memory)
+    function getUserTokenIds(address _address) external _onlyWhiteListContracts nonReentrant returns (uint256[] memory)
     {
         for (uint i = 0; i < balanceOf(_address); i++) {
             randomNumber.push(tokenOfOwnerByIndex(_address, i));
@@ -130,9 +130,9 @@ contract NFTPuzzle is ERC721Enumerable, Ownable, ReentrancyGuard {
         return (randomNumber);
     }
     
-    function burn(uint256[] calldata tokenIds) external returns (bool) 
+    function burn(uint256[] calldata tokenIds) external _onlyWhiteListContracts nonReentrant returns (bool) 
     {
-        for(uint i = 1; i < tokenIds.length; i++){
+        for(uint i = 1; i <= tokenIds.length; i++){
             _burn(i);
         }
         

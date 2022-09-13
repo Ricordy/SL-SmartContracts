@@ -26,7 +26,7 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
     uint256 maxAmount;
     uint256 maxUserAmount;
     uint256 reservedForOwner;
-    uint256 internal tokenID;
+    uint256 internal tokenID = 0;
 
 
     string private base_uri;
@@ -64,6 +64,7 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
         uint256[] tokenID
     );
 
+    
 
     /*
 
@@ -88,14 +89,11 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
         uint[] memory checked;
         
         require(_userAmount == 10, "Not exactly 10 tokens.");
-        
         for(uint i = 0; i<_userAmount; i++)
         {
             checked[i] = (userTokenIndexes[i] % _coleectionTotal + 1);
-            
             for(uint _i = 0; _i<i; _i++)
             {
-                
                 if(checked[i] == checked[_i])
                 {
                     return false;
