@@ -31,6 +31,8 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
 
     string private base_uri;
     bool isRevealed;
+    
+    mapping(address => mapping(uint256 => bool)) checked;
 
 
     address nftPuzzleContractAddress;
@@ -63,6 +65,9 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
     (
         uint256[] tokenID
     );
+    event NummberChecked(
+        uint number
+    );
 
     
 
@@ -75,7 +80,12 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
     function claim() public nonReentrant 
     {
         uint256[] memory tokenIds = getUserAmount(msg.sender);
+        
+        require(checkDifferents(tokenIds), "Not differents");
         require(INFTPuzzle(nftPuzzleContractAddress).burn(tokenIds), "Not able to burn");
+        
+        
+        
         emit TokenBurned(tokenIds);
         tokenID++;
         _mint(msg.sender ,tokenID);
@@ -84,22 +94,23 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
     }
 
 
-    function checkDifferents(uint256 _coleectionTotal, uint256 _userAmount, uint256[] memory userTokenIndexes) internal pure returns(bool)
+    function checkDifferents(uint256[] memory userTokenIndexes) internal  returns(bool)
     {
-        uint[] memory checked;
         
-        require(_userAmount == 10, "Not exactly 10 tokens.");
-        for(uint i = 0; i<_userAmount; i++)
+        //require(_userAmount == 10, "Not exactly 10 tokens.");
+        for(uint i = 0; i < userTokenIndexes.length; i++)
         {
-            checked[i] = (userTokenIndexes[i] % _coleectionTotal + 1);
-            for(uint _i = 0; _i<i; _i++)
+            uint checking = userTokenIndexes[i] % 10 + 1;
+            emit NummberChecked(checking);
+            if(checked[msg.sender][checking] == true)
             {
-                if(checked[i] == checked[_i])
-                {
-                    return false;
-                }
+                return false;
             }
+            checked[msg.sender][checking] = true;
+
+  
         }
+
 
         return true;
 
