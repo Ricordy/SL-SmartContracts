@@ -54,8 +54,7 @@ contract NFT is ERC721 , Ownable , ReentrancyGuard{
       base_uri_not_revealed = _base_uri;
     }
 
-
-
+    ///@notice will mint '_amount' of tokens
     function mintForAll(uint256 _amount) external payable nonReentrant {
         require (maxAmount >= (_amount + reservedForOwner + tokenID),"Collection mint ended");
        
