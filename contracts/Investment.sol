@@ -13,6 +13,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     uint256 totalInvestment;
     uint256 returnProfit;
 
+
     event UserInvest (
         address user,
         uint256 amount,
@@ -32,6 +33,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     event ContractRefilled (
         uint256 amount,
+        uint256 profit,
         uint256 time
     );
 
@@ -44,40 +46,53 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function invest(uint256 _amount) public nonReentrant{
+        require(_amount >= 100, "Error");
+        require(_amount <= totalInvestment / 10 , "Error");
+        
         IERC20 _token = IERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
+        require(_token.balanceOf(address(this)) < totalInvestment, "Total reached");
+        
         _token.approve(msg.sender, _amount);
-        require(_token.allowance(msg.sender, address(this)) >= 100, "Error");
-        require(_token.allowance(msg.sender, address(this)) <= totalInvestment /10 , "Error");
+        require(_token.allowance(msg.sender, address(this)) == _amount, "Not correct allowance");
+        
         _token.transferFrom(msg.sender, address(this), _amount);
         _mint(msg.sender, _amount);
-        totalInvestment += _amount;
+        
         emit UserInvest(msg.sender, _amount, block.timestamp);
 
     }
 
     function withdraw() public nonReentrant {
-        require(balanceOf(msg.sender) > 0, "not invested");
+        uint256 balance = balanceOf(msg.sender);
+        require(balance > 0, "not invested");
+        
+        _burn(msg.sender, balance);
+        
         IERC20 _token = IERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
-        _token.transferFrom(address(this), msg.sender, calculateFinalAmount(balanceOf(msg.sender)));
+        _token.transferFrom(address(this), msg.sender, calculateFinalAmount(balance));
 
-
+        emit Withdraw(msg.sender, calculateFinalAmount(balance), block.timestamp);
         
     }
 
     function withdrawSL() public onlyOwner {
         IERC20 _token = IERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
-        uint256 totalBalance = totalContractBalanceStable(_token);
-        _token.transferFrom(address(this), msg.sender, totalBalance);
+        
+        require(_token.balanceOf(address(this)) >= totalInvestment, "Total not reached");
+        _token.transferFrom(address(this), msg.sender, totalContractBalanceStable(_token));
+
+        emit SLWithdraw(totalInvestment, block.timestamp);
 
     }
 
     function refill(uint256 _amount, uint256 profitRate) public onlyOwner {
-        //require(condition); state
         IERC20 _token = IERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
         require(totalContractBalanceStable(_token) == 0);
         require(totalInvestment + (totalInvestment * profitRate /100) == _amount); //Implementar com taxa de retorno
         _token.approve(msg.sender, _amount);
         _token.transferFrom(msg.sender, address(this), _amount);
+
+        emit ContractRefilled(_amount, profitRate, block.timestamp);
 
     }
 
