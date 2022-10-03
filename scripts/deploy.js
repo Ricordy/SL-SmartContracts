@@ -17,11 +17,7 @@ async function main() {
 
     console.log(
         `Deployed Puzzle NFT at:  ${PuzzleDeployed.address}`
-
-
     );
-
-
 
 
     const PuzzleAddress = PuzzleDeployed.address;

@@ -4,14 +4,14 @@ require("dotenv").config({ path: ".env" });
 async function main() {
 
     //contract factory
-    const Contract = await hre.ethers.getContractFactory("Investment");
+    const Contract = await hre.ethers.getContractFactory("CoinTest");
 
     console.log(
         `Deploying contract`
     );
 
     //deploy
-    const deployed = await Contract.deploy("100000");
+    const deployed = await Contract.deploy();
     await deployed.deployed();
 
 
@@ -32,7 +32,7 @@ async function main() {
 
     await hre.run("verify:verify", {
         address: deployed.address,
-        constructorArguments: ["100000"],
+
     });
 
 }

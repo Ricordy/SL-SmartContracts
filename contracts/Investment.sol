@@ -37,9 +37,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         uint256 time
     );
 
-
-
-
     constructor(uint256 _totalInvestment) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
 
@@ -49,13 +46,12 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(_amount >= 100, "Error");
         require(_amount <= totalInvestment / 10 , "Error");
         
-        IERC20 _token = IERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
-        require(_token.balanceOf(address(this)) < totalInvestment, "Total reached");
+        //ERC20 _token = ERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
+        //require(_token.balanceOf(address(this)) < totalInvestment, "Total reached");
         
-        _token.approve(msg.sender, _amount);
-        require(_token.allowance(msg.sender, address(this)) == _amount, "Not correct allowance");
+        //require(_token.allowance(msg.sender, address(this)) >= _amount, "Not correct allowance");
+        ERC20(0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27).transferFrom(msg.sender, address(this), _amount);
         
-        _token.transferFrom(msg.sender, address(this), _amount);
         _mint(msg.sender, _amount);
         
         emit UserInvest(msg.sender, _amount, block.timestamp);
@@ -95,7 +91,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         emit ContractRefilled(_amount, profitRate, block.timestamp);
 
     }
-
 
     function totalContractBalanceStable(IERC20 _token) public view returns(uint256 totalBalance) {
         totalBalance = _token.balanceOf(address(this));
