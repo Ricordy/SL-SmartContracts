@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -12,6 +12,11 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     uint256 totalInvestment;
     uint256 returnProfit;
+    address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
+
+    //-----Stages------
+
+
 
 
     event UserInvest (
@@ -46,11 +51,11 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(_amount >= 100, "Error");
         require(_amount <= totalInvestment / 10 , "Error");
         
-        //ERC20 _token = ERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
-        //require(_token.balanceOf(address(this)) < totalInvestment, "Total reached");
+        ERC20 _token = ERC20(stable);
+        require(_token.balanceOf(address(this)) < totalInvestment, "Total reached");
         
-        //require(_token.allowance(msg.sender, address(this)) >= _amount, "Not correct allowance");
-        ERC20(0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27).transferFrom(msg.sender, address(this), _amount);
+        require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
+        _token.transferFrom(msg.sender, address(this), _amount);
         
         _mint(msg.sender, _amount);
         
@@ -64,7 +69,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         
         _burn(msg.sender, balance);
         
-        IERC20 _token = IERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
+        ERC20 _token = ERC20(stable);
         _token.transferFrom(address(this), msg.sender, calculateFinalAmount(balance));
 
         emit Withdraw(msg.sender, calculateFinalAmount(balance), block.timestamp);
@@ -72,9 +77,9 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function withdrawSL() public onlyOwner {
-        IERC20 _token = IERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
+        ERC20 _token = ERC20(stable);
         
-        require(_token.balanceOf(address(this)) >= totalInvestment, "Total not reached");
+        require(_token.balanceOf(address(this)) >= totalInvestment, "Total not reached"); // TODO: fazer para 80%
         _token.transferFrom(address(this), msg.sender, totalContractBalanceStable(_token));
 
         emit SLWithdraw(totalInvestment, block.timestamp);
@@ -82,17 +87,17 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function refill(uint256 _amount, uint256 profitRate) public onlyOwner {
-        IERC20 _token = IERC20(0x2f3A40A3db8a7e3D09B0adfEfbCe4f6F81927557);
-        require(totalContractBalanceStable(_token) == 0);
+        ERC20 _token = ERC20(stable);
+        require(totalContractBalanceStable(_token) == 0); //Verificar com mercado secundário
         require(totalInvestment + (totalInvestment * profitRate /100) == _amount); //Implementar com taxa de retorno
-        _token.approve(msg.sender, _amount);
         _token.transferFrom(msg.sender, address(this), _amount);
+        returnProfit = profitRate;
 
         emit ContractRefilled(_amount, profitRate, block.timestamp);
 
     }
 
-    function totalContractBalanceStable(IERC20 _token) public view returns(uint256 totalBalance) {
+    function totalContractBalanceStable(ERC20 _token) public view returns(uint256 totalBalance) {
         totalBalance = _token.balanceOf(address(this));
 
     }
