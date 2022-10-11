@@ -14,8 +14,16 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     uint256 returnProfit;
     address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
 
+    ///
     //-----Stages------
-
+    ///
+    bool paused;
+    bool progress;
+    bool process;
+    bool withdrawB;
+    bool refunding;
+    
+    
 
 
 
@@ -47,7 +55,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function invest(uint256 _amount) public nonReentrant{
+    function invest(uint256 _amount) public nonReentrant isProgress isPaused{
         require(_amount >= 100, "Error");
         require(_amount <= totalInvestment / 10 , "Error");
         
@@ -63,7 +71,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function withdraw() public nonReentrant {
+    function withdraw() public nonReentrant isPaused isWithdraw{
         uint256 balance = balanceOf(msg.sender);
         require(balance > 0, "not invested");
         
@@ -76,7 +84,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         
     }
 
-    function withdrawSL() public onlyOwner {
+    function withdrawSL() public onlyOwner isProcess isPaused {
         ERC20 _token = ERC20(stable);
         
         require(_token.balanceOf(address(this)) >= totalInvestment, "Total not reached"); // TODO: fazer para 80%
@@ -86,7 +94,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function refill(uint256 _amount, uint256 profitRate) public onlyOwner {
+    function refill(uint256 _amount, uint256 profitRate) public onlyOwner isProcess isPaused {
         ERC20 _token = ERC20(stable);
         require(totalContractBalanceStable(_token) == 0); //Verificar com mercado secundário
         require(totalInvestment + (totalInvestment * profitRate /100) == _amount); //Implementar com taxa de retorno
@@ -105,4 +113,73 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     function calculateFinalAmount(uint256 _amount) internal view returns(uint256 totalAmount){
         totalAmount = _amount + (_amount * returnProfit / 100);
     }
+
+    /// 
+    //---- MODIFIERS------
+    /// 
+    modifier isPaused() {
+        require(paused == false);
+        _;
+    }
+    modifier isProgress() {
+        require(progress == true);
+        _;
+    }
+    modifier isProcess() {
+        require(process == true);
+        _;
+    }
+    modifier isWithdraw() {
+        require(withdrawB == true);
+        _;
+    }
+    modifier isRefunding() {
+        require(refunding == true);
+        _;
+    }
+
+     /// 
+    //----STAGES FUNCTIONS------
+    /// 
+
+    function flipPause() public onlyOwner {
+        paused = true;
+        progress = false;
+        process = false;
+        withdrawB = false;
+        refunding = false;
+    }
+
+    function flipProgress() public onlyOwner {
+        paused = false;
+        progress = true;
+        process = false;
+        withdrawB = false;
+        refunding = false;
+    }
+
+        function flipProcess() public onlyOwner {
+        paused = false;
+        progress = false;
+        process = true;
+        withdrawB = false;
+        refunding = false;
+    }
+
+        function flipWithdraw() public onlyOwner {
+        paused = false;
+        progress = false;
+        process = false;
+        withdrawB = true;
+        refunding = false;
+    }
+
+        function flipRefunding() public onlyOwner {
+        paused = false;
+        progress = false;
+        process = false;
+        withdrawB = false;
+        refunding = true;
+    }
+
 }
