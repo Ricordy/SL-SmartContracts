@@ -15,17 +15,15 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
 
     ///
-    //-----Stages------
+    //-----STATUS------
     ///
     bool paused;
     bool progress;
     bool process;
-    bool withdrawB;
+    bool withdrawStatus;
     bool refunding;
-    
-    
 
-
+    
 
     event UserInvest (
         address user,
@@ -71,18 +69,20 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function withdraw() public nonReentrant isPaused isWithdraw{
+    function withdraw() public nonReentrant isPaused isWithdraw isRefunding{
+        
         uint256 balance = balanceOf(msg.sender);
         require(balance > 0, "not invested");
         
         _burn(msg.sender, balance);
-        
+
         ERC20 _token = ERC20(stable);
         _token.transferFrom(address(this), msg.sender, calculateFinalAmount(balance));
 
         emit Withdraw(msg.sender, calculateFinalAmount(balance), block.timestamp);
         
     }
+
 
     function withdrawSL() public onlyOwner isProcess isPaused {
         ERC20 _token = ERC20(stable);
@@ -130,7 +130,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         _;
     }
     modifier isWithdraw() {
-        require(withdrawB == true);
+        require(withdrawStatus == true);
         _;
     }
     modifier isRefunding() {
@@ -139,14 +139,14 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
      /// 
-    //----STAGES FUNCTIONS------
+    //----STATUS FUNCTIONS------
     /// 
 
     function flipPause() public onlyOwner {
         paused = true;
         progress = false;
         process = false;
-        withdrawB = false;
+        withdrawStatus = false;
         refunding = false;
     }
 
@@ -154,31 +154,31 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         paused = false;
         progress = true;
         process = false;
-        withdrawB = false;
+        withdrawStatus = false;
         refunding = false;
     }
 
-        function flipProcess() public onlyOwner {
+    function flipProcess() public onlyOwner {
         paused = false;
         progress = false;
         process = true;
-        withdrawB = false;
+        withdrawStatus = false;
         refunding = false;
     }
 
-        function flipWithdraw() public onlyOwner {
+    function flipWithdraw() public onlyOwner {
         paused = false;
         progress = false;
         process = false;
-        withdrawB = true;
+        withdrawStatus = true;
         refunding = false;
     }
-
-        function flipRefunding() public onlyOwner {
+1
+    function flipRefunding() public onlyOwner {
         paused = false;
         progress = false;
         process = false;
-        withdrawB = false;
+        withdrawStatus = false;
         refunding = true;
     }
 
