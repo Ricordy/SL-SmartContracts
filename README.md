@@ -1,13 +1,11 @@
-# Sample Hardhat Project
+# Contains all smart contracts and all versions of them.    
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+## Branches and material:     
 
-Try running some of the following tasks:
+***Main:*** Proctected!     
+***CleanWorkspace:*** Development branch, most of the new features will be coded or merged in this branch.    
+***VBool:*** Clean version of Investment.sol with boolean for controlling access.     
+***VEnum:*** Clean version of Investment.sol with enum for controlling access.      
 
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+
+
