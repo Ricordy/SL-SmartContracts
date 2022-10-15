@@ -10,18 +10,29 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract Investment is ERC20, Ownable, ReentrancyGuard {
 
-    uint256 totalInvestment;
-    uint256 returnProfit;
-    address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
 
     ///
     //-----STATUS------
     ///
-    bool paused;
-    bool progress;
-    bool process;
-    bool withdrawStatus;
-    bool refunding;
+    enum Status {
+        Pause,
+        Progress,
+        Process,
+        Wtihdraw,
+        Refunding
+
+    }
+
+
+    ///
+    //-----STATE VARIABLES------
+    ///
+    Status public state;
+    uint256 totalInvestment;
+    uint256 returnProfit;
+    address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
+
+
 
     
 
@@ -50,6 +61,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     constructor(uint256 _totalInvestment) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
+        flipProgress();
 
     }
 
@@ -118,23 +130,23 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //---- MODIFIERS------
     /// 
     modifier isPaused() {
-        require(paused == false);
+        require(state != Status.Pause);
         _;
     }
     modifier isProgress() {
-        require(progress == true);
+        require(state == Status.Progress);
         _;
     }
     modifier isProcess() {
-        require(process == true);
+        require(state == Status.Progress);
         _;
     }
     modifier isWithdraw() {
-        require(withdrawStatus == true);
+        require(state == Status.Wtihdraw);
         _;
     }
     modifier isRefunding() {
-        require(refunding == true);
+        require(state == Status.Refunding);
         _;
     }
 
@@ -143,43 +155,23 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     /// 
 
     function flipPause() public onlyOwner {
-        paused = true;
-        progress = false;
-        process = false;
-        withdrawStatus = false;
-        refunding = false;
+        state = Status.Pause;
     }
 
     function flipProgress() public onlyOwner {
-        paused = false;
-        progress = true;
-        process = false;
-        withdrawStatus = false;
-        refunding = false;
+        state = Status.Progress;
     }
 
     function flipProcess() public onlyOwner {
-        paused = false;
-        progress = false;
-        process = true;
-        withdrawStatus = false;
-        refunding = false;
+        state = Status.Process;
     }
 
     function flipWithdraw() public onlyOwner {
-        paused = false;
-        progress = false;
-        process = false;
-        withdrawStatus = true;
-        refunding = false;
+        state = Status.Wtihdraw;
     }
-1
+
     function flipRefunding() public onlyOwner {
-        paused = false;
-        progress = false;
-        process = false;
-        withdrawStatus = false;
-        refunding = true;
+        state = Status.Refunding;
     }
 
 }
