@@ -1,3 +1,2 @@
-# Clean Branch with Enum to control access
+# Branch with all contracts clean for WED19/Oct/2022
 
-Documentation for this option cand be foun in ***SomethingLegendary/docs/README.md***

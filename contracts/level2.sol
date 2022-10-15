@@ -19,26 +19,33 @@ interface INFTPuzzle{
 contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
 
 
+    
+    
+    ///
+    //-----STATE VARIABLES------
+    ///
+            //-----INTERFACE------
     INFTPuzzle _NFTPuzzle;
-
-
-
+            //-----GENERAL------
     uint256 maxAmount;
     uint256 maxUserAmount;
+    uint256 maxPerTransaction = 1;
+            //-----RESERVED------
     uint256 reservedForOwner;
+            //-----CURRENTID------
     uint256 internal tokenID = 0;
-
-
+            //-----URI------
     string private base_uri;
     bool isRevealed;
-    
+            //-----CHHECKER FOR EACH ADDRESS------
     mapping(address => mapping(uint256 => bool)) checked;
-
-
+            //-----COMUNICATION ADDRESS------
     address nftPuzzleContractAddress;
-    uint8 maxPerTransaction = 1;
     
-
+    
+    ///
+    //-----CONSTRUCTOR------
+    ///
     constructor(uint256 _maxAmount, uint256 _maxUserAmount ,uint256 _reservedForOwner, string memory _baseURI, address _nftPuzzleContractAddress) 
     ERC721("Level2Legendary", "LVL2")
     {
@@ -49,13 +56,9 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
         base_uri = _baseURI;
     }
 
-
-    /*
-
-    EVENTS FOR TESTING
-
-    */
-   
+    ///
+    //-----EVENTS------
+    ///
     event UserInfo
     (
         uint256[] tokenIDs
@@ -65,18 +68,15 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
     (
         uint256[] tokenID
     );
-    event NummberChecked(
+
+    event NummberChecked
+    (
         uint number
     );
 
-    
-
-    /*
-
-    LOGICAL FUNCTIONS
-
-    */
-
+    ///
+    //-----LOGIC------
+    ///
     function claim() public nonReentrant 
     {
         uint256[] memory tokenIds = getUserAmount(msg.sender);
@@ -92,7 +92,6 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
         
 
     }
-
 
     function checkDifferents(uint256[] memory userTokenIndexes) internal  returns(bool)
     {
@@ -116,12 +115,9 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
 
     }
 
-    /*
-
-    FOR TESTS
-
-    */
-
+    ///
+    //-----FOR TESTS------
+    ///
     function getUserAmount(address _address) public returns(uint256[] memory) 
     {
         (uint256[] memory _userTokenIds) = INFTPuzzle(nftPuzzleContractAddress).getUserTokenIds(_address);
@@ -130,14 +126,9 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
         return _userTokenIds;
     } 
 
-
-    /*
-
-    METADATA
-
-    */
-
-
+    ///
+    //-----URI------
+    ///
     function reveal(string memory _base_uri) external onlyOwner 
     {
         base_uri = _base_uri;

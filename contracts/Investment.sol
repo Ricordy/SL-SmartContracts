@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract Investment is ERC20, Ownable, ReentrancyGuard {
 
-
     ///
     //-----STATUS------
     ///
@@ -23,7 +22,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-
     ///
     //-----STATE VARIABLES------
     ///
@@ -32,10 +30,9 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     uint256 returnProfit;
     address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
 
-
-
-    
-
+    ///
+    //-----EVENTS------
+    ///
     event UserInvest (
         address user,
         uint256 amount,
@@ -59,12 +56,18 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         uint256 time
     );
 
+    ///
+    //-----CONSTRUCTOR------
+    ///
     constructor(uint256 _totalInvestment) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
         flipProgress();
 
     }
 
+    ///
+    //-----MAIN FUNCTIONS------
+    ///
     function invest(uint256 _amount) public nonReentrant isProgress isPaused{
         require(_amount >= 100, "Error");
         require(_amount <= totalInvestment / 10 , "Error");
@@ -95,7 +98,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         
     }
 
-
     function withdrawSL() public onlyOwner isProcess isPaused {
         ERC20 _token = ERC20(stable);
         
@@ -117,6 +119,9 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
+    ///
+    //-----GETTERS------
+    ///
     function totalContractBalanceStable(ERC20 _token) public view returns(uint256 totalBalance) {
         totalBalance = _token.balanceOf(address(this));
 
@@ -133,27 +138,30 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(state != Status.Pause);
         _;
     }
+
     modifier isProgress() {
         require(state == Status.Progress);
         _;
     }
+
     modifier isProcess() {
         require(state == Status.Progress);
         _;
     }
+
     modifier isWithdraw() {
         require(state == Status.Wtihdraw);
         _;
     }
+
     modifier isRefunding() {
         require(state == Status.Refunding);
         _;
     }
 
-     /// 
+    /// 
     //----STATUS FUNCTIONS------
     /// 
-
     function flipPause() public onlyOwner {
         state = Status.Pause;
     }

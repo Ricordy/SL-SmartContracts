@@ -10,51 +10,44 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
 contract NFTPuzzle is ERC721Enumerable, Ownable, ReentrancyGuard {
-    /*
-        
-      GLOBAL VARIABLES 
 
-    */
+    ///
+    //-----STATE VARIABLES------
+    ///
+            //-----GENERAL------
     uint256 MAX_LOT = 10000;
+    uint256 max_per_mint = 100;
+    uint256 price = 0.0001 ether;
+            //-----CURRENTID------
+    uint256 private tokenID = 0;
+            //-----RESERVED------
     uint256 reserved_owner = 10;
     uint256 reservedForFree = 100;
-    uint256 max_per_mint = 100;
-
-    uint256 private tokenID = 0;
-    uint256 price = 0.0001 ether;
-
+            //-----URI------
     bool isRevealed = false;
     string base_uri;
 
+
     mapping(address => bool) whiteListContracts;
-
     uint256[] randomNumber;
-    uint256[] userTokenIds;
 
-    /*
 
-      EVENTS
-
-    */
+    ///
+    //-----EVENTS------
+    ///
     event UserBalance(uint256[]);
 
-    /*
-
-      CONSTRUCTOR
-
-    */
-
+    ///
+    //-----CONSTRUCTOR------
+    ///
     constructor(string memory _base_uri) ERC721("Legendary Puzzle", "LGP") 
     {
         base_uri = _base_uri;
     }
 
-    /*
-
-      MINT FUNCTIONS
-
-    */
-
+    ///
+    //-----MINT------
+    ///
     function mintForAll(uint256 _amount) external payable nonReentrant 
     {
         require(
@@ -84,12 +77,9 @@ contract NFTPuzzle is ERC721Enumerable, Ownable, ReentrancyGuard {
         }
     }
 
-    /*
-
-      URI FUNCTIONS
-
-    */
-
+    ///
+    //-----URI------
+    ///
     function reveal(string memory _base_uri) external onlyOwner 
     {
         base_uri = _base_uri;
@@ -113,14 +103,9 @@ contract NFTPuzzle is ERC721Enumerable, Ownable, ReentrancyGuard {
         }
     }
 
-
-
-    /*
-
-      COMUNICATION FUNCTIONS
-
-    */
-
+    ///
+    //-----COMUNICATION------
+    ///
     function getUserTokenIds(address _address) external _onlyWhiteListContracts nonReentrant returns (uint256[] memory)
     {
         for (uint i = 0; i < balanceOf(_address); i++) {
@@ -135,27 +120,20 @@ contract NFTPuzzle is ERC721Enumerable, Ownable, ReentrancyGuard {
         for(uint i = 1; i <= tokenIds.length; i++){
             _burn(i);
         }
-        
         return true;
     }
 
-    /*
-
-      CONTRACTS WHITELIST FUNCTIONS
-
-    */
-
+    ///
+    //-----WHITELIST CONTRACTS------
+    ///
     function addContractToWhitelist(address _address) public onlyOwner 
     {
         whiteListContracts[_address] = true;
     }
 
-    /*
-
-      MODIFIERS
-
-    */
-
+    /// 
+    //---- MODIFIERS------
+    /// 
     modifier _onlyWhiteListContracts() 
     {
         require(whiteListContracts[msg.sender] == true);
