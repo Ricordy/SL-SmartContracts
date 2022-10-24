@@ -16,26 +16,25 @@ contract Puzzle is ERC1155{
     uint8 public constant GLASS = 2;
     uint8 public constant CHASIS = 3;
     uint8 public constant BREAK = 4;
-    uint256[]  IDS = [0,1,2,3,4,5];
+    uint256[]  IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK];
             //-----GENERAL------
     mapping(uint8 => uint256) MAX_LOT;
     uint256 max_per_mint = 100;
     uint256 price = 0.0001 ether;
             //-----CURRENTID------
-    mapping(uint8 => uint256) private tokenID ;
-    mapping(uint8 => mapping(uint256 => bool)) private tracer; // To implement
+    mapping(uint8 => uint256) private tokenID ; //CURRENT TOKEN ID FOR EACH COLLECTION
             //-----RESERVED------               TO BE IMPLEMENTED
     //uint256 reserved_owner = 10;        
     //uint256 reservedForFree = 100;
             //-----URI------
     bool isRevealed = false;
     string base_uri;
-            //-----Verification------
+            //-----VERIFICATION------
     address[] userAddress ;
 
 
     constructor() ERC1155(""){
-        for(uint8 i; i < BREAK ; i++){
+        for(uint8 i; i < IDS.length ; i++){
             MAX_LOT[i] = 1000;
             _mint(msg.sender, i, 1, "");
             tokenID[i]++;
@@ -112,6 +111,8 @@ contract Puzzle is ERC1155{
             }
             idsForBurn[i] = balance[i];
         }
+
+        return(true, idsForBurn);
         
         
     }
