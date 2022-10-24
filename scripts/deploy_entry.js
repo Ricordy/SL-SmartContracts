@@ -19,7 +19,29 @@ async function main() {
     console.log(
         `Deployed at:  ${ContractDeployed.address}`
     );
+
+
+    console.log(
+        "Verifying contract... "
+
+    );
+
+
+    await sleep(20000);
+
+
+
+    await hre.run("verify:verify", {
+        address: ContractDeployed.address,
+        constructorArguments: [ethers.utils.parseEther('0.01'), 1, 1000, 50, 100, 1, "ipfs://bafkreidiopk3fpkkbwce5qaof5dfosit7k57jubwav5ttysjdc2ljcfkeq"],
+    });
 }
+
+
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.

@@ -26,7 +26,7 @@ async function main() {
     );
 
 
-    await sleep(10000);
+    await sleep(20000);
 
 
 
