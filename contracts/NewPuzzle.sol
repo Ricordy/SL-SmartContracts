@@ -35,6 +35,7 @@ contract Puzzle is ERC1155{
         for(uint8 i; i < BREAK ; i++){
             MAX_LOT[i] = 1000;
             _mint(msg.sender, i, 1, "");
+            tokenID[i]++;
         }
 
 
@@ -54,16 +55,16 @@ contract Puzzle is ERC1155{
 
     function mint() public {
         uint8 ID = tRandom();
-        _mint(msg.sender, ID, iRandom(MAX_LOT[ID]), "");
+        _mint(msg.sender, ID, nextID(ID), "");
 
         
 
     }
 
-    function iRandom(uint _max) private returns(uint256) {
-        uint rnd = (uint256(keccak256(abi.encodePacked(block.timestamp,block.difficulty,  
-        msg.sender)) ) % _max) ;
-        return rnd;
+    function nextID(uint8 _ID) private returns(uint256) {
+        uint idToToken = tokenID[_ID];
+        tokenID[_ID]++;
+        return idToToken;
 
     }
     function tRandom() private returns(uint8) {
