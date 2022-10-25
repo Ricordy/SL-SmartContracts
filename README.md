@@ -1,2 +1,9 @@
-# Branch with all contracts clean for WED19/Oct/2022
+# Branch with X contracts 
+---
+
+## Implementation:
+
+- NFTPuzzle and NFT Level2 are implemented in ERC1155
+- NFTPuzzle is randomic but calculatable
+- Checking differents will now be on this contract (also because 2 → 1 contracts)
 

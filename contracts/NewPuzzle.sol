@@ -36,7 +36,7 @@ contract Puzzle is ERC1155{
     constructor() ERC1155(""){
         for(uint8 i; i < IDS.length ; i++){
             MAX_LOT[i] = 1000;
-            _mint(msg.sender, i, 1, "");
+            _mint(msg.sender, i, tokenID[i], "");
             tokenID[i]++;
         }
 
@@ -80,7 +80,7 @@ contract Puzzle is ERC1155{
     ///
     //-----GET RANDOM ID------
     ///
-    function tRandom() private returns(uint8) {
+    function tRandom() private view returns(uint8) {
         uint rnd = (uint256(keccak256(abi.encodePacked(block.timestamp,block.difficulty,  
         msg.sender)) ) % BREAK) ;
         return uint8(rnd);
@@ -101,7 +101,7 @@ contract Puzzle is ERC1155{
     ///
     function verifyBurn(address user) public returns(bool, uint256[] memory){
         uint256[] memory idsForBurn;
-        for(uint i; i < BREAK; i++){
+        for(uint i; i < IDS.length; i++){
             userAddress[i] = user;
         }
         uint256[] memory balance = balanceOfBatch(userAddress, IDS);
