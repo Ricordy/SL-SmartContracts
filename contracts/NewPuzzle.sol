@@ -2,8 +2,10 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
 
-contract Puzzle is ERC1155{
+contract Puzzle is ERC1155, Ownable{
 
 
 
@@ -16,7 +18,12 @@ contract Puzzle is ERC1155{
     uint8 public constant GLASS = 2;
     uint8 public constant CHASIS = 3;
     uint8 public constant BREAK = 4;
-    uint256[]  IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK];
+    uint8 public constant DOOR = 5;
+    uint8 public constant LIGHT = 6;
+    uint8 public constant AC = 7;
+    uint8 public constant CHAIR = 8;
+    uint8 public constant MOTOR = 9;
+    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR];
             //-----GENERAL------
     mapping(uint8 => uint256) MAX_LOT;
     uint256 max_per_mint = 100;
@@ -30,14 +37,28 @@ contract Puzzle is ERC1155{
     bool isRevealed = false;
     string base_uri;
             //-----VERIFICATION------
-    address[] userAddress ;
+    address[] userAddress = new address[](10);
+
+    ///
+    //------EVENTS--------
+    /// 
+
+    event Minted(
+        uint8 collection,
+        uint256 id
+    );
+    event Burned(
+        bool 
+    );
 
 
     constructor() ERC1155(""){
         for(uint8 i; i < IDS.length ; i++){
+            tokenID[i]++;
             MAX_LOT[i] = 1000;
             _mint(msg.sender, i, tokenID[i], "");
-            tokenID[i]++;
+            
+
         }
 
 
@@ -61,6 +82,7 @@ contract Puzzle is ERC1155{
     function mint() public {
         uint8 ID = tRandom();
         _mint(msg.sender, ID, nextID(ID), "");
+        emit Minted(ID, tokenID[ID]);
 
         
 
@@ -94,14 +116,16 @@ contract Puzzle is ERC1155{
         (bool burnable, uint256[] memory _idsToBurn)=verifyBurn(msg.sender);
         require(burnable, "Not able to burn");
         _burnBatch(msg.sender, IDS, _idsToBurn);
+        emit Burned(true);
+        
     }
 
     ///
     //-----VERIFY USER ABILITY TO BURN------
     ///
     function verifyBurn(address user) public returns(bool, uint256[] memory){
-        uint256[] memory idsForBurn;
-        for(uint i; i < IDS.length; i++){
+        uint256[] memory idsForBurn = new uint256[](10);
+        for(uint i = 0; i < IDS.length; i++){
             userAddress[i] = user;
         }
         uint256[] memory balance = balanceOfBatch(userAddress, IDS);
@@ -110,12 +134,15 @@ contract Puzzle is ERC1155{
                 return(false, idsForBurn);
             }
             idsForBurn[i] = balance[i];
+            console.log(idsForBurn[i]);
         }
 
         return(true, idsForBurn);
         
         
     }
+
+
 
     
 
