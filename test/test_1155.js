@@ -75,6 +75,16 @@ const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
                 const {owner, PuzzleContract} = await loadFixture(deployContract)
                 expect(await PuzzleContract.burn()).to.emit(true)
             })
+            it('User should be able to claim', async () => {
+                const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
+                await PuzzleContract.connect(addr1).mintTest()
+                expect(await PuzzleContract.verifyBurn(addr1.address)).to.emit(true)
+            })
+            it('User should be able to burn', async () => {
+                const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
+                await PuzzleContract.connect(addr1).mintTest()
+                expect(await PuzzleContract.connect(addr1).burn()).to.emit(true)
+            })
 
 
 

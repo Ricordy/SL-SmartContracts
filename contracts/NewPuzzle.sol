@@ -23,7 +23,8 @@ contract Puzzle is ERC1155, Ownable{
     uint8 public constant AC = 7;
     uint8 public constant CHAIR = 8;
     uint8 public constant MOTOR = 9;
-    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR];
+    uint8 public constant LEVEL2 = 10;
+    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR,LEVEL2];
             //-----GENERAL------
     mapping(uint8 => uint256) MAX_LOT;
     uint256 max_per_mint = 100;
@@ -57,21 +58,10 @@ contract Puzzle is ERC1155, Ownable{
             tokenID[i]++;
             MAX_LOT[i] = 1000;
             _mint(msg.sender, i, tokenID[i], "");
+
             
 
         }
-
-
-        /*
-        OpenZeppelin's Example, may be needed. 
-
-        _mint(msg.sender, WHEEL, 1, "");
-        _mint(msg.sender, STEERING, 1, "");
-        _mint(msg.sender, GLASS, 1, "");
-        _mint(msg.sender, CHASIS, 1, "");
-        _mint(msg.sender, BREAK, 1, "");
-        */
-
 
     }
 
@@ -84,9 +74,9 @@ contract Puzzle is ERC1155, Ownable{
         _mint(msg.sender, ID, nextID(ID), "");
         emit Minted(ID, tokenID[ID]);
 
-        
-
     }
+
+
 
     ///
     //-----GET NEXT TOKENID------
@@ -113,38 +103,49 @@ contract Puzzle is ERC1155, Ownable{
     //-----BURNBATCH------
     ///
     function burn() public {
-        (bool burnable, uint256[] memory _idsToBurn)=verifyBurn(msg.sender);
+        (bool burnable, uint256[] memory _idsToBurn, uint256[] memory newIDS)=verifyBurn(msg.sender);
         require(burnable, "Not able to burn");
-        _burnBatch(msg.sender, IDS, _idsToBurn);
+        _burnBatch(msg.sender, newIDS, _idsToBurn);
         emit Burned(true);
+        _mint(msg.sender, LEVEL2, nextID(LEVEL2), "");
         
     }
 
     ///
     //-----VERIFY USER ABILITY TO BURN------
     ///
-    function verifyBurn(address user) public returns(bool, uint256[] memory){
+    function verifyBurn(address user) public returns(bool, uint256[] memory, uint256[] memory){
         uint256[] memory idsForBurn = new uint256[](10);
-        for(uint i = 0; i < IDS.length; i++){
+        uint256[] memory newIDS = new uint256[](10);
+        for(uint i = 0; i < newIDS.length; i++){
             userAddress[i] = user;
+            newIDS[i] = IDS[i];
         }
-        uint256[] memory balance = balanceOfBatch(userAddress, IDS);
+        uint256[] memory balance = balanceOfBatch(userAddress, newIDS);
         for(uint i; i< balance.length; i++){
             if(balance[i] == 0){
-                return(false, idsForBurn);
+                return(false, idsForBurn, newIDS);
             }
             idsForBurn[i] = balance[i];
-            console.log(idsForBurn[i]);
         }
 
-        return(true, idsForBurn);
+        return(true, idsForBurn, newIDS);
         
         
     }
 
 
+    ///
+    //-----TESTING FUNCTIONS------
+    ///
+    function mintTest() public {
+        for(uint8 i; i < IDS.length - 1; i++){
+            tokenID[i]++;
+            _mint(msg.sender, i, tokenID[i], "");
 
-    
+
+        }
+    }
 
 
 
