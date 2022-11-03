@@ -85,6 +85,22 @@ const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
                 await PuzzleContract.connect(addr1).mintTest()
                 expect(await PuzzleContract.connect(addr1).burn()).to.emit(true)
             })
+            it('User should be able to claim having 11+ tokens', async () => {
+                const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
+                await PuzzleContract.connect(addr1).mint()
+                await PuzzleContract.connect(addr1).mintTest()
+                expect(await PuzzleContract.verifyBurn(addr1.address)).to.emit(true)
+            })
+            it('User should be able to burn having 11+ tokens', async () => {
+                const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
+                await PuzzleContract.connect(addr1).mint()
+                await PuzzleContract.connect(addr1).mintTest()
+                expect(await PuzzleContract.connect(addr1).burn()).to.emit(true)
+            })
+            it('Get the right metadata', async () => {
+                const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
+                expect(await PuzzleContract.tokenURI(1)).to.equal("ipfs://bafybeidtqcijajia3af4evji3tnax5kwsqjcp2pejhmm52a4kfagtcpze4/1.json")
+            })
 
 
 

@@ -2,6 +2,8 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
@@ -23,8 +25,9 @@ contract Puzzle is ERC1155, Ownable{
     uint8 public constant AC = 7;
     uint8 public constant CHAIR = 8;
     uint8 public constant MOTOR = 9;
-    uint8 public constant LEVEL2 = 10;
-    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR,LEVEL2];
+    //uint8 public constant LEVEL1 = 10;
+    uint8 public constant LEVEL2 = 11;
+    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR/*,LEVEL1*/,LEVEL2];
             //-----GENERAL------
     mapping(uint8 => uint256) MAX_LOT;
     uint256 max_per_mint = 100;
@@ -35,10 +38,16 @@ contract Puzzle is ERC1155, Ownable{
     //uint256 reserved_owner = 10;        
     //uint256 reservedForFree = 100;
             //-----URI------
-    bool isRevealed = false;
-    string base_uri;
+    string private base_uri_not_revealed;
+    string private base_uri = "ipfs://bafybeidtqcijajia3af4evji3tnax5kwsqjcp2pejhmm52a4kfagtcpze4";
+    bool isReaveled = false;
             //-----VERIFICATION------
     address[] userAddress = new address[](10);
+            //-----LGENTRY ADDRESS-----
+    address private entryAdd;
+
+
+
 
     ///
     //------EVENTS--------
@@ -53,15 +62,13 @@ contract Puzzle is ERC1155, Ownable{
     );
 
 
-    constructor() ERC1155(""){
+    constructor(/*address lgentry*/) ERC1155(""){
         for(uint8 i; i < IDS.length ; i++){
             tokenID[i]++;
             MAX_LOT[i] = 1000;
             _mint(msg.sender, i, tokenID[i], "");
-
-            
-
         }
+        //entryAdd = lgentry;
 
     }
 
@@ -69,7 +76,7 @@ contract Puzzle is ERC1155, Ownable{
     //-----MINT------
     ///
 
-    function mint() public {
+    function mint() public isAllowed{
         uint8 ID = tRandom();
         _mint(msg.sender, ID, nextID(ID), "");
         emit Minted(ID, tokenID[ID]);
@@ -82,7 +89,7 @@ contract Puzzle is ERC1155, Ownable{
     //-----GET NEXT TOKENID------
     ///
 
-    function nextID(uint8 _ID) private returns(uint256) {
+    function nextID(uint8 _ID) private isAllowed returns(uint256) {
         uint idToToken = tokenID[_ID];
         tokenID[_ID]++;
         return idToToken;
@@ -92,17 +99,16 @@ contract Puzzle is ERC1155, Ownable{
     ///
     //-----GET RANDOM ID------
     ///
-    function tRandom() private view returns(uint8) {
+    function tRandom() private view isAllowed returns(uint8) {
         uint rnd = (uint256(keccak256(abi.encodePacked(block.timestamp,block.difficulty,  
-        msg.sender)) ) % BREAK) ;
+        msg.sender)) ) % IDS.length) ;
         return uint8(rnd);
-
     }
 
     ///
     //-----BURNBATCH------
     ///
-    function burn() public {
+    function burn() public isAllowed {
         (bool burnable, uint256[] memory _idsToBurn, uint256[] memory newIDS)=verifyBurn(msg.sender);
         require(burnable, "Not able to burn");
         _burnBatch(msg.sender, newIDS, _idsToBurn);
@@ -114,7 +120,7 @@ contract Puzzle is ERC1155, Ownable{
     ///
     //-----VERIFY USER ABILITY TO BURN------
     ///
-    function verifyBurn(address user) public returns(bool, uint256[] memory, uint256[] memory){
+    function verifyBurn(address user) public isAllowed returns(bool, uint256[] memory, uint256[] memory) {
         uint256[] memory idsForBurn = new uint256[](10);
         uint256[] memory newIDS = new uint256[](10);
         for(uint i = 0; i < newIDS.length; i++){
@@ -147,8 +153,37 @@ contract Puzzle is ERC1155, Ownable{
         }
     }
 
+    
+
+    function tokenURI(uint256 tokenId) public view returns (string memory)
+    {
+      if(/*isReaveled*/ true)
+      {
+        string memory _post_uri = string(abi.encodePacked(base_uri ,'/', Strings.toString(tokenId),".json"));
+        return _post_uri ;
+      } else 
+      {
+        return base_uri_not_revealed;
+      }
+    }
+
+    function uri(uint256 tokenId) public view virtual override returns (string memory) {
+    return tokenURI(tokenId);
+    }
+
+    function reveal() external onlyOwner 
+    {
+      isReaveled = true;
+    }
 
 
+    
+
+
+   modifier isAllowed() {
+        //require(ERC721(entryAdd).balanceOf(msg.sender) > 0, "Not accessible");
+            _;
+   }
 
 }
 

@@ -2,8 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -29,6 +28,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     uint256 totalInvestment;
     uint256 returnProfit;
     address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
+               //-----LGENTRY ADDRESS-----
+    address private entryAdd;
 
     ///
     //-----EVENTS------
@@ -59,8 +60,9 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    constructor(uint256 _totalInvestment) ERC20("InvestmentCurrency", "IC"){
+    constructor(uint256 _totalInvestment, address lgentry) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
+        entryAdd = lgentry;
         flipProgress();
 
     }
@@ -68,7 +70,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----MAIN FUNCTIONS------
     ///
-    function invest(uint256 _amount) public nonReentrant isProgress isPaused{
+    function invest(uint256 _amount) public nonReentrant isAllowed isProgress isPaused {
         require(_amount >= 100, "Error");
         require(_amount <= totalInvestment / 10 , "Error");
         
@@ -84,7 +86,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function withdraw() public nonReentrant isPaused isWithdraw isRefunding{
+    function withdraw() public nonReentrant isPaused isAllowed isWithdraw isRefunding{
         
         uint256 balance = balanceOf(msg.sender);
         require(balance > 0, "not invested");
@@ -98,7 +100,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         
     }
 
-    function withdrawSL() public onlyOwner isProcess isPaused {
+    function withdrawSL() public onlyOwner isAllowed isProcess isPaused {
         ERC20 _token = ERC20(stable);
         
         require(_token.balanceOf(address(this)) >= totalInvestment, "Total not reached"); // TODO: fazer para 80%
@@ -108,7 +110,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function refill(uint256 _amount, uint256 profitRate) public onlyOwner isProcess isPaused {
+    function refill(uint256 _amount, uint256 profitRate) public onlyOwner isAllowed isProcess isPaused {
         ERC20 _token = ERC20(stable);
         require(totalContractBalanceStable(_token) == 0); //Verificar com mercado secundário
         require(totalInvestment + (totalInvestment * profitRate /100) == _amount); //Implementar com taxa de retorno
@@ -127,7 +129,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function calculateFinalAmount(uint256 _amount) internal view returns(uint256 totalAmount){
+    function calculateFinalAmount(uint256 _amount) internal view returns(uint256 totalAmount) {
         totalAmount = _amount + (_amount * returnProfit / 100);
     }
 
@@ -156,6 +158,11 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     modifier isRefunding() {
         require(state == Status.Refunding);
+        _;
+    }
+
+    modifier isAllowed() {
+        require(ERC721(entryAdd).balanceOf(msg.sender) > 0, "Not accessible");
         _;
     }
 
