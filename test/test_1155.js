@@ -101,6 +101,10 @@ const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
                 const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
                 expect(await PuzzleContract.tokenURI(1)).to.equal("ipfs://bafybeidtqcijajia3af4evji3tnax5kwsqjcp2pejhmm52a4kfagtcpze4/1.json")
             })
+            it('Get the right metadata via uri() function', async () => {
+                const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
+                expect(await PuzzleContract.uri(1)).to.equal("ipfs://bafybeidtqcijajia3af4evji3tnax5kwsqjcp2pejhmm52a4kfagtcpze4/1.json")
+            })
 
 
 
