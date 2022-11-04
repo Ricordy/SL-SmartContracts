@@ -25,9 +25,8 @@ contract Puzzle is ERC1155, Ownable{
     uint8 public constant AC = 7;
     uint8 public constant CHAIR = 8;
     uint8 public constant MOTOR = 9;
-    uint8 public constant LEVEL1 = 10;
-    uint8 public constant LEVEL2 = 11;
-    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR,LEVEL1,LEVEL2];
+    uint8 public constant LEVEL2 = 10;
+    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR,LEVEL2];
             //-----GENERAL------
     mapping(uint8 => uint256) MAX_LOT;
     uint256 max_per_mint = 100;
@@ -189,9 +188,6 @@ contract Puzzle is ERC1155, Ownable{
 
    */
 
-    modifier isAllowed() {
-        require(balanceOf(msg.sender, LEVEL1) > 0, "Not accessible");
-            _;
-   }
+
 
 }
