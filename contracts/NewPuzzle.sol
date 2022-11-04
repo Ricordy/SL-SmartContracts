@@ -179,14 +179,13 @@ contract Puzzle is ERC1155, Ownable{
 
 
     
-    /*
-
+    
    modifier isAllowed() {
         //require(ERC721(entryAdd).balanceOf(msg.sender) > 0, "Not accessible");
             _;
    }
 
-   */
+
 
 
 

@@ -167,7 +167,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(ERC721(entryAdd).balanceOf(msg.sender) > 0, "Not accessible");
         _;
     }
-        modifier isAllowed2() {
+    
+    modifier isAllowed2() {
         require(ERC1155(combinedAdd).balanceOf(msg.sender, 10) > 0, "Not accessible");
         _;
     }
