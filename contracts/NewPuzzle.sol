@@ -25,9 +25,8 @@ contract Puzzle is ERC1155, Ownable{
     uint8 public constant AC = 7;
     uint8 public constant CHAIR = 8;
     uint8 public constant MOTOR = 9;
-    //uint8 public constant LEVEL1 = 10;
-    uint8 public constant LEVEL2 = 11;
-    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR/*,LEVEL1*/,LEVEL2];
+    uint8 public constant LEVEL2 = 10;
+    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR,LEVEL2];
             //-----GENERAL------
     mapping(uint8 => uint256) MAX_LOT;
     uint256 max_per_mint = 100;
@@ -39,7 +38,8 @@ contract Puzzle is ERC1155, Ownable{
     //uint256 reservedForFree = 100;
             //-----URI------
     string private base_uri_not_revealed;
-    string private base_uri = "ipfs://bafybeidtqcijajia3af4evji3tnax5kwsqjcp2pejhmm52a4kfagtcpze4";
+    string private base_uri = "ipfs://bafybeibs2wctspbnprvyuye62ddondu2rxjvpqxpskx2dzymzewbrxhzqi";
+    //string private base_uri = "ipfs://bafybeidtqcijajia3af4evji3tnax5kwsqjcp2pejhmm52a4kfagtcpze4";
     bool isReaveled = false;
             //-----VERIFICATION------
     address[] userAddress = new address[](10);
@@ -64,9 +64,10 @@ contract Puzzle is ERC1155, Ownable{
 
     constructor(/*address lgentry*/) ERC1155(""){
         for(uint8 i; i < IDS.length ; i++){
-            tokenID[i]++;
             MAX_LOT[i] = 1000;
+            tokenID[i]++;
             _mint(msg.sender, i, tokenID[i], "");
+
         }
         //entryAdd = lgentry;
 
@@ -178,12 +179,14 @@ contract Puzzle is ERC1155, Ownable{
 
 
     
-
-
+    
    modifier isAllowed() {
         //require(ERC721(entryAdd).balanceOf(msg.sender) > 0, "Not accessible");
             _;
    }
 
-}
 
+
+
+
+}

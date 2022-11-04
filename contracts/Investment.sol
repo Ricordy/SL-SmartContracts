@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -30,6 +31,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
                //-----LGENTRY ADDRESS-----
     address private entryAdd;
+    address private combinedAdd;
 
     ///
     //-----EVENTS------
@@ -163,6 +165,11 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     modifier isAllowed() {
         require(ERC721(entryAdd).balanceOf(msg.sender) > 0, "Not accessible");
+        _;
+    }
+    
+    modifier isAllowed2() {
+        require(ERC1155(combinedAdd).balanceOf(msg.sender, 10) > 0, "Not accessible");
         _;
     }
 
