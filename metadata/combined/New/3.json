@@ -1,14 +1,14 @@
 {
-    "image": "ipfs://bafybeiaexldbgestnlvom4fs35ydioc6bnibtdwnb3pqwyl5eju77o5usa/3.png",
+    "image": "ipfs://bafybeiaexldbgestnlvom4fs35ydioc6bnibtdwnb3pqwyl5eju77o5usa/23.png",
     "name": "SEMI-FRONT #1",
     "description": "SUPPORTS THE MOTOR",
     "attributes": [{
             "trait_type": "COLOUR",
-            "value": "GREEN "
+            "value": "GREEN"
         },
         {
             "trait_type": "UPLIFT",
-            "value": "NO"
+            "value": "YES"
         }
     ]
 }
