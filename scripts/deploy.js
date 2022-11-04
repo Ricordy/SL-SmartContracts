@@ -11,17 +11,13 @@ async function main() {
 
 
 
-    const PuzzleDeployed = await NFTPuzzleContract.deploy("ipfs://bafkreidiopk3fpkkbwce5qaof5dfosit7k57jubwav5ttysjdc2ljcfkeq", "0x6168499c0cffcacd319c818142124b7a15e857ab");
+    const PuzzleDeployed = await NFTPuzzleContract.deploy("ipfs://bafkreidiopk3fpkkbwce5qaof5dfosit7k57jubwav5ttysjdc2ljcfkeq");
     await PuzzleDeployed.deployed();
 
 
     console.log(
         `Deployed Puzzle NFT at:  ${PuzzleDeployed.address}`
-
-
     );
-
-
 
 
     const PuzzleAddress = PuzzleDeployed.address;
@@ -34,8 +30,37 @@ async function main() {
 
     );
 
+    console.log(
+        "Both contracts successfully deployed"
+    );
+
+    console.log(
+        "Verifying contracts... (Puzzle Pieces)"
+
+    );
+
+    await sleep(10000);
 
 
+
+    await hre.run("verify:verify", {
+        address: PuzzleDeployed.address,
+        constructorArguments: ["ipfs://bafkreidiopk3fpkkbwce5qaof5dfosit7k57jubwav5ttysjdc2ljcfkeq"],
+    });
+    console.log(
+        "Verifying contracts... (Level 2)"
+    );
+    await hre.run("verify:verify", {
+        address: Level2Deployed.address,
+        constructorArguments: ["1000", "1", "50", "ipfs://bafkreigjj73bspq5l7kgcsfgzlateiaj45jmbhl5ri4didhqicdnislx34", PuzzleAddress],
+    });
+
+
+
+}
+
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // We recommend this pattern to be able to use async/await everywhere

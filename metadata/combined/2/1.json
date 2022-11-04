@@ -1,0 +1,14 @@
+{
+    "image": "ipfs://bafybeiaexldbgestnlvom4fs35ydioc6bnibtdwnb3pqwyl5eju77o5usa/12.png",
+    "name": "CARBORATOR #2",
+    "description": "FEELS YOUR EMPTY SPACE ;)",
+    "attributes": [{
+            "trait_type": "SOUND",
+            "value": "VIVID"
+        },
+        {
+            "trait_type": "CYLINDERS",
+            "value": "2"
+        }
+    ]
+}

@@ -7,15 +7,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-interface INFTPuzzle {
+interface INFTPuzzle{
 
+    function getUserTokenIds(address _address) external returns(uint256[] memory);
 
-    function burnForClaim(uint256[] memory tokenIds) external returns(bool/* Operations is sucesselful */);
-
-
-    function addressInfo(address _address) external view returns(uint256 _amount /* Address total tokens amount*/, uint256[] memory _tokenIds /*All address token ids sotred in array */);
-
-    function getBalnceUser(address _address, uint256 _amount) external returns(uint256[] memory);
+    function burn(uint256[] calldata tokenIds) external returns (bool);
 
     
 }
@@ -23,24 +19,36 @@ interface INFTPuzzle {
 contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
 
 
+    
+    
+    ///
+    //-----STATE VARIABLES------
+    ///
+            //-----INTERFACE------
     INFTPuzzle _NFTPuzzle;
-
-
-
+            //-----GENERAL------
     uint256 maxAmount;
     uint256 maxUserAmount;
+    uint256 maxPerTransaction = 1;
+            //-----RESERVED------
     uint256 reservedForOwner;
-    uint256 internal tokenID;
-
-
+            //-----CURRENTID------
+    uint256 internal tokenID = 0;
+            //-----URI------
     string private base_uri;
     bool isRevealed;
-
-    mapping(address => uint256) addressToTokenId;
-    uint8 maxPerTransaction = 1;
+            //-----CHHECKER FOR EACH ADDRESS------
+    mapping(address => mapping(uint256 => bool)) checked;
+            //-----COMUNICATION ADDRESS------
     address nftPuzzleContractAddress;
-
-    constructor(uint256 _maxAmount, uint256 _maxUserAmount ,uint256 _reservedForOwner, string memory _baseURI, address _nftPuzzleContractAddress) ERC721("Level2Legendary", "LVL2"){
+    
+    
+    ///
+    //-----CONSTRUCTOR------
+    ///
+    constructor(uint256 _maxAmount, uint256 _maxUserAmount ,uint256 _reservedForOwner, string memory _baseURI, address _nftPuzzleContractAddress) 
+    ERC721("Level2Legendary", "LVL2")
+    {
         nftPuzzleContractAddress = _nftPuzzleContractAddress;
         maxAmount = _maxAmount;
         maxUserAmount = _maxUserAmount;
@@ -48,71 +56,79 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
         base_uri = _baseURI;
     }
 
-
-    /*
-
-    EVENTS FOR TESTING
-
-    */
-   
-    event UserInfo(
-        uint256[]
-
+    ///
+    //-----EVENTS------
+    ///
+    event UserInfo
+    (
+        uint256[] tokenIDs
     );
 
+    event TokenBurned
+    (
+        uint256[] tokenID
+    );
 
+    event NummberChecked
+    (
+        uint number
+    );
 
-
-
-
-
-    /*
-
-    LOGICAL FUNCTIONS
-
-    */
-
-    function burnIf() public nonReentrant {
-        (uint256 _userAmount, uint256[] memory userTokenIndexes) = getAddressInfo();
-        require(checkDifferents(10000,_userAmount,userTokenIndexes),"Not all NFTPuzzle are different");
-        require(_NFTPuzzle.burnForClaim(userTokenIndexes), "Not able to burn tokens");
-        require(addressToTokenId[msg.sender]< maxUserAmount, "Address cannot mint more than maxPerUser");
-        _mint(msg.sender, tokenID);
-        addressToTokenId[msg.sender] = tokenID;
+    ///
+    //-----LOGIC------
+    ///
+    function claim() public nonReentrant 
+    {
+        uint256[] memory tokenIds = getUserAmount(msg.sender);
+        
+        require(checkDifferents(tokenIds), "Not differents");
+        require(INFTPuzzle(nftPuzzleContractAddress).burn(tokenIds), "Not able to burn");
+        
+        
+        
+        emit TokenBurned(tokenIds);
         tokenID++;
+        _mint(msg.sender ,tokenID);
+        
 
     }
 
-
-    function checkDifferents(uint256 _coleectionTotal, uint256 _userAmount, uint256[] memory userTokenIndexes) internal pure returns(bool){
-        uint[] memory checked;
+    function checkDifferents(uint256[] memory userTokenIndexes) internal  returns(bool)
+    {
         
-        require(_userAmount == 10, "Not exactly 10 tokens.");
-        for(uint i = 0; i<_userAmount; i++){
-            checked[i] = (userTokenIndexes[i] % _coleectionTotal + 1);
-            for(uint _i = 0; _i<i; _i++){
-                if(checked[i] == checked[_i]){
-                    return false;
-                }
+        //require(_userAmount == 10, "Not exactly 10 tokens.");
+        for(uint i = 0; i < userTokenIndexes.length; i++)
+        {
+            uint checking = userTokenIndexes[i] % 10 + 1;
+            emit NummberChecked(checking);
+            if(checked[msg.sender][checking] == true)
+            {
+                return false;
             }
+            checked[msg.sender][checking] = true;
+
+  
         }
+
 
         return true;
 
     }
 
+    ///
+    //-----FOR TESTS------
+    ///
+    function getUserAmount(address _address) public returns(uint256[] memory) 
+    {
+        (uint256[] memory _userTokenIds) = INFTPuzzle(nftPuzzleContractAddress).getUserTokenIds(_address);
+        emit UserInfo(_userTokenIds);
 
+        return _userTokenIds;
+    } 
 
-
-    /*
-
-    METADATA
-
-    */
-
-
-
-
+    ///
+    //-----URI------
+    ///
     function reveal(string memory _base_uri) external onlyOwner 
     {
         base_uri = _base_uri;
@@ -121,33 +137,24 @@ contract Level2Legendary is  Ownable, ReentrancyGuard, ERC721Enumerable{
 
     function tokenURI(uint256 tokenId) public view override returns (string memory)
     {
-        if(isRevealed)
+        if (isRevealed) 
         {
-            string memory _post_uri = string(abi.encodePacked(base_uri ,'/', Strings.toString(tokenId),".json"));
-            return _post_uri ;
+            string memory _post_uri = string(
+                abi.encodePacked(
+                    base_uri,
+                    "/",
+                    Strings.toString(tokenId),
+                    ".json"
+                )
+            );
+            return _post_uri;
         } 
         else 
         {
             return base_uri;
         }
-      }
-
-    function getAddressInfo() public view returns(uint256, uint256[] memory){
-        (uint256 _userAmount, uint256[] memory userTokenIndexes) = _NFTPuzzle.addressInfo(msg.sender);
-        return(_userAmount, userTokenIndexes);
     }
 
-    /*
-
-    FOR TESTS
-
-    */
-
-   function getUserAmount(address _address) public returns(uint256[] memory ){
-    (uint256[] memory _userAmount) = INFTPuzzle(nftPuzzleContractAddress).getBalnceUser(_address, 10);
-    emit UserInfo(_userAmount);
-    return _userAmount;
-   } 
 
 }
 

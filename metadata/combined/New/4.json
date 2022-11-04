@@ -1,0 +1,14 @@
+{
+    "image": "ipfs://bafybeiaexldbgestnlvom4fs35ydioc6bnibtdwnb3pqwyl5eju77o5usa/4.png",
+    "name": "MAIN LIGHT #1",
+    "description": "SUPPORTS THE MOTOR",
+    "attributes": [{
+            "trait_type": "COLOUR",
+            "value": "GREEN "
+        },
+        {
+            "trait_type": "UPLIFT",
+            "value": "NO"
+        }
+    ]
+}

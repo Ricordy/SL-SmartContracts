@@ -1,0 +1,14 @@
+{
+    "image": "ipfs://bafybeiaexldbgestnlvom4fs35ydioc6bnibtdwnb3pqwyl5eju77o5usa/25.png",
+    "name": "FRONT GLASS #3",
+    "description": "PROTECTS USER",
+    "attributes": [{
+            "trait_type": "COLOUR",
+            "value": "GREEN "
+        },
+        {
+            "trait_type": "UPLIFT",
+            "value": "NO"
+        }
+    ]
+}
