@@ -38,8 +38,7 @@ contract Puzzle is ERC1155, Ownable{
     //uint256 reservedForFree = 100;
             //-----URI------
     string private base_uri_not_revealed;
-    string private base_uri = "ipfs://bafybeibs2wctspbnprvyuye62ddondu2rxjvpqxpskx2dzymzewbrxhzqi";
-    //string private base_uri = "ipfs://bafybeidtqcijajia3af4evji3tnax5kwsqjcp2pejhmm52a4kfagtcpze4";
+    string private base_uri = "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm";
     bool isReaveled = false;
             //-----VERIFICATION------
     address[] userAddress = new address[](10);
@@ -79,8 +78,8 @@ contract Puzzle is ERC1155, Ownable{
 
     function mint() public isAllowed{
         uint8 ID = tRandom();
-        _mint(msg.sender, ID, nextID(ID), "");
-        emit Minted(ID, tokenID[ID]);
+        _mint(msg.sender, ID, 1, "");
+        emit Minted(ID, 1);
 
     }
 
@@ -148,7 +147,7 @@ contract Puzzle is ERC1155, Ownable{
     function mintTest() public {
         for(uint8 i; i < IDS.length - 1; i++){
             tokenID[i]++;
-            _mint(msg.sender, i, tokenID[i], "");
+            _mint(msg.sender, i, 1, "");
 
 
         }

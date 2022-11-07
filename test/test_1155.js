@@ -99,11 +99,11 @@ const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
             })
             it('Get the right metadata', async () => {
                 const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
-                expect(await PuzzleContract.tokenURI(1)).to.equal("ipfs://bafybeibs2wctspbnprvyuye62ddondu2rxjvpqxpskx2dzymzewbrxhzqi/1.json")
+                expect(await PuzzleContract.tokenURI(1)).to.equal("ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm/1.json")
             })
             it('Get the right metadata via uri() function', async () => {
                 const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
-                expect(await PuzzleContract.uri(1)).to.equal("ipfs://bafybeibs2wctspbnprvyuye62ddondu2rxjvpqxpskx2dzymzewbrxhzqi/1.json")
+                expect(await PuzzleContract.uri(1)).to.equal("ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm/1.json")
             })
             it('Owner should be able to burn having 20 tokens and still have 10', async () => {
                 const {owner, addr1 ,PuzzleContract} = await loadFixture(deployContract)
