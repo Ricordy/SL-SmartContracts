@@ -31,7 +31,7 @@ contract Puzzle is ERC1155, Ownable{
     mapping(uint8 => uint256) MAX_LOT;
     uint256 max_per_mint = 100;
     uint256 price = 0.0001 ether;
-            //-----CURRENTID------
+            //-----CURRENTTOTAL------
     mapping(uint8 => uint256) private tokenID ; //CURRENT TOKEN ID FOR EACH COLLECTION
             //-----RESERVED------               TO BE IMPLEMENTED
     //uint256 reserved_owner = 10;        
@@ -62,10 +62,10 @@ contract Puzzle is ERC1155, Ownable{
 
 
     constructor(/*address lgentry*/) ERC1155(""){
-        for(uint8 i; i < IDS.length ; i++){
+        for(uint8 i; i < IDS.length - 1; i++){
             MAX_LOT[i] = 1000;
+            _mint(msg.sender, i, 1, "");
             tokenID[i]++;
-            _mint(msg.sender, i, tokenID[i], "");
 
         }
         //entryAdd = lgentry;
@@ -79,22 +79,11 @@ contract Puzzle is ERC1155, Ownable{
     function mint() public isAllowed{
         uint8 ID = tRandom();
         _mint(msg.sender, ID, 1, "");
+        tokenID[ID]++;
         emit Minted(ID, 1);
 
     }
 
-
-
-    ///
-    //-----GET NEXT TOKENID------
-    ///
-
-    function nextID(uint8 _ID) private isAllowed returns(uint256) {
-        uint idToToken = tokenID[_ID];
-        tokenID[_ID]++;
-        return idToToken;
-
-    }
 
     ///
     //-----GET RANDOM ID------
@@ -113,7 +102,8 @@ contract Puzzle is ERC1155, Ownable{
         require(burnable, "Not able to burn");
         _burnBatch(msg.sender, newIDS, _idsToBurn);
         emit Burned(true);
-        _mint(msg.sender, LEVEL2, nextID(LEVEL2), "");
+        _mint(msg.sender, LEVEL2, 1, "");
+        tokenID[LEVEL2]++;
         
     }
 
@@ -146,9 +136,8 @@ contract Puzzle is ERC1155, Ownable{
     ///
     function mintTest() public {
         for(uint8 i; i < IDS.length - 1; i++){
-            tokenID[i]++;
             _mint(msg.sender, i, 1, "");
-
+            tokenID[i]++;
 
         }
     }
