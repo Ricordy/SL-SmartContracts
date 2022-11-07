@@ -133,7 +133,7 @@ contract Puzzle is ERC1155, Ownable{
             if(balance[i] == 0){
                 return(false, idsForBurn, newIDS);
             }
-            idsForBurn[i] = balance[i];
+            idsForBurn[i] = 1;
         }
 
         return(true, idsForBurn, newIDS);
