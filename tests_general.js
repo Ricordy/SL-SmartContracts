@@ -74,11 +74,27 @@ describe('NFT LegendaryEntry', function() {
     /**
      * Tests on communication
      */
-    describe('Get user total amount from level 2 contract', function() {
+    describe('Get user info from level 2 contract', function() {
         /**
          * If the contracts owner is rightly set
          */
         it('Should get user amount from lvl2 contract', async function() {
+            const { PuzzleUse, Level2Use, addr1 } = await loadFixture(deployTokenFixture)
+            await PuzzleUse.connect(addr1).mintForAll(
+                11, {
+                    value: ethers.utils.parseEther('0')
+                });
+            await PuzzleUse.addContractToWhitelist(Level2Use.address)
+
+
+
+
+            expect(await Level2Use.getUserAmount(addr1.address)).to.emit(10)
+                //expect(await PuzzleUse).to.emit(10)
+        })
+
+
+        it('Should get user token ids from lvl2 contract', async function() {
             const { PuzzleUse, Level2Use, addr1 } = await loadFixture(deployTokenFixture)
             await PuzzleUse.connect(addr1).mintForAll(
                 10, {

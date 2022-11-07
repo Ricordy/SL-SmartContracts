@@ -1,0 +1,14 @@
+{
+    "image": "ipfs://bafybeiaexldbgestnlvom4fs35ydioc6bnibtdwnb3pqwyl5eju77o5usa/13.png",
+    "name": "SEMI-FRONT #2",
+    "description": "SUPPORTS THE MOTOR",
+    "attributes": [{
+            "trait_type": "COLOUR",
+            "value": "BLUE"
+        },
+        {
+            "trait_type": "UPLIFT",
+            "value": "NO"
+        }
+    ]
+}

@@ -1,11 +1,13 @@
-# Contains all smart contracts and all versions of them.    
+# Branch with X contracts 
+---
 
-## Branches and material:     
+## Implementation:
 
-***Main:*** Proctected!     
-***CleanWorkspace:*** Development branch, most of the new features will be coded or merged in this branch.    
-***VBool:*** Clean version of Investment.sol with boolean for controlling access.     
-***VEnum:*** Clean version of Investment.sol with enum for controlling access.      
+- NFTPuzzle and NFT Level2 are implemented in ERC1155
+- NFTPuzzle is randomic but calculatable
+- Checking differents will now be on this contract (also because 2 → 1 contracts)
 
+## IPFS Link:     
 
-
+- (IPFS)[ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm]         
+- ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm 
