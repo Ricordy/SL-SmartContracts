@@ -2,8 +2,8 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -29,9 +29,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     uint256 totalInvestment;
     uint256 returnProfit;
     address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
-               //-----LGENTRY ADDRESS-----
-    address private entryAdd;
-    address private combinedAdd;
+    address entryAdd;
 
     ///
     //-----EVENTS------
@@ -62,7 +60,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    constructor(uint256 _totalInvestment, address lgentry) ERC20("InvestmentCurrency", "IC"){
+    constructor(uint256 _totalInvestment, address lgentry, uint256 number) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
         entryAdd = lgentry;
         flipProgress();
@@ -72,7 +70,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----MAIN FUNCTIONS------
     ///
-    function invest(uint256 _amount) public nonReentrant isAllowed isProgress isPaused {
+    function invest(uint256 _amount) public nonReentrant isAllowed isProgress isPaused{
         require(_amount >= 100, "Error");
         require(_amount <= totalInvestment / 10 , "Error");
         
@@ -89,7 +87,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function withdraw() public nonReentrant isPaused isAllowed isWithdraw isRefunding{
-        
         uint256 balance = balanceOf(msg.sender);
         require(balance > 0, "not invested");
         
@@ -164,12 +161,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     modifier isAllowed() {
-        require(ERC721(entryAdd).balanceOf(msg.sender) > 0, "Not accessible");
-        _;
-    }
-    
-    modifier isAllowed2() {
-        require(ERC1155(combinedAdd).balanceOf(msg.sender, 10) > 0, "Not accessible");
+        require(ERC1155(entryAdd).balanceOf(msg.sender, 10) > 0, "Not accessible");
         _;
     }
 

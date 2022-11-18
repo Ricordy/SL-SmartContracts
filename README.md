@@ -1,13 +1,13 @@
-# Branch with X contracts 
----
+# Sample Hardhat Project
 
-## Implementation:
+This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
 
-- NFTPuzzle and NFT Level2 are implemented in ERC1155
-- NFTPuzzle is randomic but calculatable
-- Checking differents will now be on this contract (also because 2 → 1 contracts)
+Try running some of the following tasks:
 
-## IPFS Link:     
-
-- (IPFS)[ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm]         
-- ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm 
+```shell
+npx hardhat help
+npx hardhat test
+REPORT_GAS=true npx hardhat test
+npx hardhat node
+npx hardhat run scripts/deploy.ts
+```

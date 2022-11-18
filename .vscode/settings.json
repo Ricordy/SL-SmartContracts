@@ -1,7 +1,0 @@
-{
-    "solidity-va.hover": true,
-    "solidity-va.uml.actors.enable": false,
-    "solidity-va.preview.markdown": false,
-    "solidity-va.debug.parser.showExceptions": true,
-    "solidity-va.diagnostics.cdili_json.import": true
-}
