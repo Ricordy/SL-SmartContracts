@@ -60,9 +60,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    constructor(uint256 _totalInvestment, address lgentry, uint256 number) ERC20("InvestmentCurrency", "IC"){
+    constructor(uint256 _totalInvestment, address lgentry, address stableContractAddress) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
         entryAdd = lgentry;
+        stable = stableContractAddress;
         flipProgress();
 
     }

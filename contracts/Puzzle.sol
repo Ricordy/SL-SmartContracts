@@ -14,8 +14,6 @@ interface IFactory {
 
 contract Puzzle is ERC1155, Ownable{
 
-
-
     ///
     //-----STATE VARIABLES------
     ///
@@ -36,6 +34,7 @@ contract Puzzle is ERC1155, Ownable{
             //-----GENERAL------
     mapping(uint8 => uint256) MAX_LOT;
     uint256 constant MAX_PER_COLLECTION = 5;
+    uint256 constant ENTRY_NFT_PRICE = 100;
     uint256 max_per_mint = 100;
             //-----CURRENTTOTAL------
     mapping(uint8 => uint256) private tokenID; //CURRENT TOKEN ID FOR EACH COLLECTION
@@ -49,12 +48,9 @@ contract Puzzle is ERC1155, Ownable{
     string private base_uri = "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm";
     bool isReaveled = false;
             //-----ADDRESSES OF COMMUNICATIONS-----
-    address private factoryAdd;
-    address private stableAddress;
+    address public factoryAddress;
+    address public paymentTokenAddress;
             //------VALUES-------
-
-
-
 
 
     ///
@@ -77,16 +73,13 @@ contract Puzzle is ERC1155, Ownable{
         uint256 max_amount
     );
 
-
-
-    constructor(address _factoryAddress,address _stableAddress) ERC1155(""){
+    constructor(address _factoryAddress,address _paymentTokenAddress) ERC1155(""){
         for(uint8 i; i < IDS.length; i++){
             MAX_LOT[i] = MAX_PER_COLLECTION; 
             tokenID[i]++;
         }
-        factoryAdd = _factoryAddress;
-        stableAddress = _stableAddress;
-
+        factoryAddress = _factoryAddress;
+        paymentTokenAddress = _paymentTokenAddress;
     }
 
     ///
@@ -101,19 +94,16 @@ contract Puzzle is ERC1155, Ownable{
         userPTotal[msg.sender]++;
         tokenID[ID]++;
         emit Minted(ID, 1/*, msg.sender*/);
-
     }
 
     function mintEntry() public  {
-
         require(balanceOf(msg.sender, LEVEL1) < 1, "Cannot have more than 1");
         require(tokenID[LEVEL1] <= MAX_LOT[LEVEL1], "Collection limit reached");
-        ERC20 _token = ERC20(stableAddress);
-        _token.transferFrom(msg.sender, address(this), 100);
+        ERC20 _token = ERC20(paymentTokenAddress);
+        _token.transferFrom(msg.sender, address(this), ENTRY_NFT_PRICE);
         tokenID[LEVEL1]++;
         _mint(msg.sender, LEVEL1, 1, "");
         emit Minted(LEVEL1, 1/*, msg.sender*/);
-
     }
   
 
@@ -166,7 +156,7 @@ contract Puzzle is ERC1155, Ownable{
     }
 
     function verifyClaim(address user) public view isAllowed returns(bool){
-        IFactory factory = IFactory(factoryAdd);
+        IFactory factory = IFactory(factoryAddress);
         uint256 allowedToMint = factory.getAddressTotal(user) / 5000;
         if(userPTotal[user] + 1 > allowedToMint){
             return false;
@@ -204,7 +194,6 @@ contract Puzzle is ERC1155, Ownable{
         for(uint8 i; i < IDS.length - 2; i++){
             _mint(msg.sender, i, 1, "");
             tokenID[i]++;
-
         }
     }
     function getMaxCollection(uint8 collection) public view returns(uint256 max){
