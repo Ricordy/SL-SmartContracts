@@ -135,7 +135,6 @@ describe("Something Legendary", async function () {
           .to.emit(puzzleContract, "Minted")
           .withArgs(10, 1);
       });
-
       it("User with enough funds should be able to mint", async () => {
         await expect(await puzzleContract.connect(investor1).mintEntry())
           .to.emit(puzzleContract, "Minted")
@@ -146,7 +145,6 @@ describe("Something Legendary", async function () {
         );
         expect(investor1HasEntryNFT).to.be.eq(1);
       });
-
       it("User without allowing to spend funds should not be able to mint", async () => {
         await expect(
           puzzleContract.connect(investor3).mintEntry()
@@ -194,16 +192,39 @@ describe("Something Legendary", async function () {
         // Call mint test for investor1
         await puzzleContract.connect(investor1).mintTest();
       });
-
       it("User should pass on verifyClaim if they have invested enough", async () => {
-        return true;
-
-        // console.log(await InvestmentContract.balanceOf(owner.address));
-        // expect(
-        //   await PuzzleContract.verifyClaim(owner.address)
-        // ).to.be.eq(true);
+        await puzzleContract.connect(investor1).mintTest();
+        expect(
+          await puzzleContract.verifyBurn(investor1.address)
+        ).to.deep.equal([
+          true,
+          [
+            BigNumber.from(1),
+            BigNumber.from(1),
+            BigNumber.from(1),
+            BigNumber.from(1),
+            BigNumber.from(1),
+            BigNumber.from(1),
+            BigNumber.from(1),
+            BigNumber.from(1),
+            BigNumber.from(1),
+            BigNumber.from(1),
+          ],
+          [
+            BigNumber.from(0),
+            BigNumber.from(1),
+            BigNumber.from(2),
+            BigNumber.from(3),
+            BigNumber.from(4),
+            BigNumber.from(5),
+            BigNumber.from(6),
+            BigNumber.from(7),
+            BigNumber.from(8),
+            BigNumber.from(9),
+          ],
+        ]);
       });
-      it("owner should be able to claim", async () => {
+      it("Owner should pass on verifyClaim if they have invested enough", async () => {
         await puzzleContract.mintTest();
         expect(await puzzleContract.verifyBurn(owner.address)).to.deep.equal([
           true,
@@ -238,38 +259,6 @@ describe("Something Legendary", async function () {
         await expect(await puzzleContract.burn())
           .to.emit(puzzleContract, "Burned")
           .withArgs(true);
-      });
-      it("User should be able to claim", async () => {
-        await puzzleContract.connect(investor1).mintTest();
-        expect(
-          await puzzleContract.verifyBurn(investor1.address)
-        ).to.deep.equal([
-          true,
-          [
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-          ],
-          [
-            BigNumber.from(0),
-            BigNumber.from(1),
-            BigNumber.from(2),
-            BigNumber.from(3),
-            BigNumber.from(4),
-            BigNumber.from(5),
-            BigNumber.from(6),
-            BigNumber.from(7),
-            BigNumber.from(8),
-            BigNumber.from(9),
-          ],
-        ]);
       });
       it("User should be able to burn", async () => {
         await puzzleContract.connect(investor1).mintTest();
@@ -317,14 +306,12 @@ describe("Something Legendary", async function () {
       });
       it("Owner should be able to burn having 20 tokens and still have 10", async () => {
         await puzzleContract.mintTest();
-        await puzzleContract.mintTest();
         expect(await puzzleContract.burn())
           .to.emit(puzzleContract, "Burned")
           .withArgs(true);
         expect(await puzzleContract.balanceOf(owner.address, 1)).to.equal(1);
       });
       it("User should be able to burn having 20 tokens and still have 10", async () => {
-        await puzzleContract.connect(investor1).mintTest();
         await puzzleContract.connect(investor1).mintTest();
         expect(await puzzleContract.connect(investor1).burn()).to.emit(true);
         expect(await puzzleContract.balanceOf(investor1.address, 0)).to.equal(
@@ -358,6 +345,17 @@ describe("Something Legendary", async function () {
           1
         );
       });
+      it("User should not be allowed to burn twice (have more than 1 NFTLevel2)", async () => {
+        await puzzleContract.connect(owner).mintTest();
+        await puzzleContract.connect(owner).mintTest();
+        await puzzleContract.connect(owner).burn();
+        await expect(puzzleContract.connect(owner).burn())
+        .to.be.revertedWith(
+          "Cannot have more than 1"
+          );
+      });
+
+
     });
     describe("Metadata", () => {
       it("Get the right metadata", async () => {
@@ -382,7 +380,7 @@ describe("Something Legendary", async function () {
           await factoryContract.deployNew(100000, paymentTokenContract.address)
         )
           .to.emit(factoryContract, "ContractCreated")
-          .withArgs(1);
+          .withArgs(2); //Chenged to 2 beacuse beforeEach creates a investment contract. Change: 1 -> 2
       });
       it("Factory should be able to deploy 2 contracts", async () => {
         // const currentCounter = await factoryContract.co
