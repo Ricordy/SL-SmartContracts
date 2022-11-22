@@ -185,7 +185,6 @@ describe("Something Legendary", async function () {
       });
     });
     describe("Burn", () => {
-   
       beforeEach(async () => {
         // PuzzleContract.burn
         
