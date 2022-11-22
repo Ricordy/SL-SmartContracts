@@ -5,6 +5,7 @@ import { Factory__factory } from "../typechain-types/factories/contracts/Factory
 import { CoinTest__factory } from "../typechain-types/factories/contracts/CoinTest__factory";
 import { Puzzle__factory } from "../typechain-types/factories/contracts/Puzzle.sol/Puzzle__factory";
 import { BigNumber } from "ethers";
+import { Investment__factory } from "../typechain-types/factories/contracts/Investment__factory";
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -12,6 +13,9 @@ const MAX_PER_COLLECTION = 5;
 const PAYMENT_TOKEN_AMOUNT = 20000;
 const INVESTMENT1_AMOUNT = 100000;
 const INVESTMENT2_AMOUNT = 150000;
+const OWNER_INVESTMENT_AMOUNT = 5000;
+const INVESTOR1_INVESTMENT_AMOUNT = 6000;
+const INVESTOR2_INVESTMENT_AMOUNT = 5000;
 
 describe("Something Legendary", async function () {
   let paymentTokenContract: CoinTest,
@@ -70,24 +74,11 @@ describe("Something Legendary", async function () {
       .connect(investor2)
       .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
 
-    const addressInvestment = await factoryContract.deployNew(
-      INVESTMENT1_AMOUNT,
-      paymentTokenContract.address
-    );
-    // const addressInvestment = await FactoryContract.getLastDeployedContract();
-    //Compute address given by Factory
-    // const add = ethers.utils.computeAddress(addressInvestment.hash);
-    // console.log("computedAddress:", add);
-    // console.log("received from deployNew:", addressInvestment);
-    //Create Investment contract instance
-    // const InvestmentFac = await ethers.getContractFactory("Investment");
-    // InvestmentContract = InvestmentFac.attach(addressInvestment);
-    //Invest 10k for each wallet
-
-    // await InvestmentContract.invest(5000);
-    // await InvestmentContract.connect(investor1).invest(6000);
-    // await InvestmentContract.connect(investor2).invest(5000);
-    // console.log(await InvestmentContract.balanceOf(investor1.address));
+    // const addressInvestment = await factoryContract.deployNew(
+    //   INVESTMENT1_AMOUNT,
+    //   paymentTokenContract.address
+    // );
+    // console.log("address:", addressInvestment);
   });
   describe("Tests for puzzle", () => {
     describe("Deployment", () => {
@@ -184,26 +175,63 @@ describe("Something Legendary", async function () {
         ).to.be.revertedWith("Collection limit reached");
       });
     });
+    /*
+    describe("Test claim of NFT Puzzle", async () => {
+      beforeEach(async () => {
+        // Mint Entry NFT for the owner
+        await puzzleContract.mintEntry();
+        // Mint Entry NFT for investor1
+        await puzzleContract.connect(investor1).mintEntry();
+        // Mint Entry NFT for investor2
+        await puzzleContract.connect(investor2).mintEntry();
+        //Create Investment contract instance
+        const deployNewTx = await factoryContract.deployNew(
+          INVESTMENT1_AMOUNT,
+          paymentTokenContract.address
+        );
+        // deployNewTx.wait();
+        const deployedInvestmentAddress =
+          await factoryContract.getLastDeployedContract();
+        const investmentFactory = new Investment__factory(owner);
+        investmentContract = investmentFactory.attach(
+          deployedInvestmentAddress
+        );
+        // Invest an amount for each investor
+        await investmentContract.invest(OWNER_INVESTMENT_AMOUNT);
+        await investmentContract
+          .connect(investor1)
+          .invest(INVESTOR1_INVESTMENT_AMOUNT);
+        await investmentContract
+          .connect(investor2)
+          .invest(INVESTOR2_INVESTMENT_AMOUNT);
+        // console.log(await InvestmentContract.balanceOf(investor1.address));
+      });
+
+      it("User should be able to claim a NFT Puzzle after having invested at least 5k", async () => {
+        // expect(1).to.be.equal(1);
+        expect(await puzzleContract.verifyClaim(owner.address)).to.equal(true);
+      });
+    });
+
+    */
     describe("Burn", () => {
       beforeEach(async () => {
         // PuzzleContract.burn
-        
+
         // Call mint test for the owner
         await puzzleContract.mintTest();
         // Call mint test for investor1
         await puzzleContract.connect(investor1).mintTest();
       });
       it("User should not be allowed to interact with claim() and verifyClaim() without nftentry", async () => {
-          await expect(puzzleContract.verifyBurn(investor1.address))
-        .to.be.revertedWith(
-          "Not accessible"
-          );
-          await expect(puzzleContract.connect(investor1).burn())
-        .to.be.revertedWith(
-          "Not accessible"
-          );
+        await expect(
+          puzzleContract.verifyBurn(investor1.address)
+        ).to.be.revertedWith("Not accessible");
+        await expect(
+          puzzleContract.connect(investor1).burn()
+        ).to.be.revertedWith("Not accessible");
       });
-      it("User should pass on verifyClaim if they have invested enough", async () => {
+      it("User should pass on verifyBurn if they have invested enough", async () => {
         //Mint entry
         await puzzleContract.mintEntry();
         await puzzleContract.connect(investor1).mintEntry();
@@ -239,7 +267,7 @@ describe("Something Legendary", async function () {
           ],
         ]);
       });
-      it("Owner should pass on verifyClaim if they have invested enough", async () => {
+      it("Owner should pass on verifyBurn if they have invested enough", async () => {
         //Mint entry
         await puzzleContract.mintEntry();
         await puzzleContract.connect(investor1).mintEntry();
@@ -388,6 +416,8 @@ describe("Something Legendary", async function () {
           1
         );
       });
+
+      /*
       it("User should not be allowed to burn twice (have more than 1 NFTLevel2)", async () => {
         //Mint entry
         await puzzleContract.mintEntry();
@@ -396,15 +426,13 @@ describe("Something Legendary", async function () {
         await puzzleContract.connect(owner).mintTest();
         await puzzleContract.connect(owner).mintTest();
         await puzzleContract.connect(owner).burn();
-        await expect(puzzleContract.connect(owner).burn())
-        .to.be.revertedWith(
+        await expect(puzzleContract.connect(owner).burn()).to.be.revertedWith(
           "Cannot have more than 1"
-          );
+        );
       });
-
-
+      */
     });
-    describe("Metadata", () => {
+    describe("Metadata", async () => {
       it("Get the right metadata", async () => {
         expect(await puzzleContract.tokenURI(1)).to.equal(
           "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm/1.json"

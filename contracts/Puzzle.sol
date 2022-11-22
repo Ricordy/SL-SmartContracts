@@ -35,11 +35,12 @@ contract Puzzle is ERC1155, Ownable{
     mapping(uint8 => uint256) MAX_LOT;
     uint256 constant MAX_PER_COLLECTION = 5;
     uint256 constant ENTRY_NFT_PRICE = 100;
+    uint256 constant MIN_INVESTMENT_AMOUNT = 5000;
     uint256 max_per_mint = 100;
             //-----CURRENTTOTAL------
     mapping(uint8 => uint256) private tokenID; //CURRENT TOKEN ID FOR EACH COLLECTION
             //-----USERTOTALPUZZLE------
-    mapping(address => uint256) private userPTotal;
+    mapping(address => uint256) private userPuzzlePieces;
             //-----RESERVED------               TO BE IMPLEMENTED
     //uint256 reserved_owner = 10;        
     //uint256 reservedForFree = 100;
@@ -91,7 +92,7 @@ contract Puzzle is ERC1155, Ownable{
         uint8 ID = tRandom();
         require(tokenID[ID] <= MAX_PER_COLLECTION);
         _mint(msg.sender, ID, 1, "");
-        userPTotal[msg.sender]++;
+        userPuzzlePieces[msg.sender]++;
         tokenID[ID]++;
         emit Minted(ID, 1/*, msg.sender*/);
     }
@@ -157,8 +158,8 @@ contract Puzzle is ERC1155, Ownable{
 
     function verifyClaim(address user) public view isAllowed returns(bool){
         IFactory factory = IFactory(factoryAddress);
-        uint256 allowedToMint = factory.getAddressTotal(user) / 5000;
-        if(userPTotal[user] + 1 > allowedToMint){
+        uint256 allowedToMint = factory.getAddressTotal(user) / MIN_INVESTMENT_AMOUNT;
+        if(userPuzzlePieces[user] + 1 > allowedToMint){
             return false;
         }
         return true;
@@ -207,9 +208,5 @@ contract Puzzle is ERC1155, Ownable{
          require(balanceOf(msg.sender, LEVEL1) > 0, "Not accessible");
             _;
    }
-
-
-
-
 
 }
