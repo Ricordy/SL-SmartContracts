@@ -33,10 +33,9 @@ contract Puzzle is ERC1155, Ownable{
     uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR,LEVEL1,LEVEL2];
             //-----GENERAL------
     mapping(uint8 => uint256) MAX_LOT;
-    uint256 constant MAX_PER_COLLECTION = 5;
-    uint256 constant ENTRY_NFT_PRICE = 100;
-    uint256 constant MIN_INVESTMENT_AMOUNT = 5000;
-    uint256 max_per_mint = 100;
+    uint256 public constant MAX_PER_COLLECTION = 5;
+    uint256 public constant ENTRY_NFT_PRICE = 100;
+    uint256 public constant MIN_INVESTMENT_AMOUNT = 5000;
             //-----CURRENTTOTAL------
     mapping(uint8 => uint256) private tokenID; //CURRENT TOKEN ID FOR EACH COLLECTION
             //-----USERTOTALPUZZLE------

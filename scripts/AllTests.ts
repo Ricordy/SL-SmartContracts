@@ -445,6 +445,7 @@ describe("Something Legendary", async function () {
       });
     });
   });
+  /*
   describe("Tests for Factory", async () => {
     describe("Deploy:", async () => {
       it("Factory should have the right owner", async () => {
@@ -473,6 +474,9 @@ describe("Something Legendary", async function () {
       });
     });
   });
+  */
+
+  /*
   describe("Combined tests", () => {
     describe("Deploy", () => {
       it("Set the same owner for both contracts", async () => {
@@ -483,4 +487,5 @@ describe("Something Legendary", async function () {
       });
     });
   });
+  */
 });

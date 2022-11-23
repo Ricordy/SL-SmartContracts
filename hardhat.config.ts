@@ -19,7 +19,7 @@ const config: HardhatUserConfig = {
     },
     rinkeby: {
       url: ALCHEMY_API_KEY_URL,
-      accounts: [PRIVATE_KEY],
+      accounts: [PRIVATE_KEY ?? ""],
     },
   },
   etherscan: {
