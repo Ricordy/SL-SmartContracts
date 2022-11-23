@@ -204,7 +204,7 @@ contract Puzzle is ERC1155, Ownable{
     
 
     modifier isAllowed() {
-         require(balanceOf(msg.sender, LEVEL1) > 0, "Not accessible");
+        //  require(balanceOf(msg.sender, LEVEL1) > 0, "Not accessible");
             _;
    }
 

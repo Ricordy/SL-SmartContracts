@@ -3,6 +3,7 @@ import {
   CoinTest__factory,
   Factory,
   Factory__factory,
+  Investment__factory,
   Puzzle,
   Puzzle__factory,
 } from "../typechain-types";
@@ -16,6 +17,8 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 const PAYMENT_TOKEN_AMOUNT = 20000;
 const ENTRY_LEVEL_NFT_ID = 10;
+const INVESTMENT1_AMOUNT = 100000;
+const INVESTOR1_INVESTMENT_AMOUNT = 6000;
 
 describe("Puzzle Contract", async () => {
   // Variables
@@ -104,7 +107,7 @@ describe("Puzzle Contract", async () => {
     const { paymentTokenContract, puzzleContract } = await loadFixture(
       deployContractFixture
     );
-    // Mint PaymentTokens to the owner
+    // Mint PaymentTokens to investor
     await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
 
     return { paymentTokenContract, puzzleContract };
@@ -117,6 +120,40 @@ describe("Puzzle Contract", async () => {
     await paymentTokenContract
       .connect(investor1)
       .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+    return { paymentTokenContract, puzzleContract };
+  }
+
+  async function investor1readyToClaimNFT() {
+    const { paymentTokenContract, puzzleContract, factoryContract } =
+      await loadFixture(deployContractFixture);
+
+    // Mint PaymentTokens to investor
+    await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
+
+    await paymentTokenContract
+      .connect(investor1)
+      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+
+    puzzleContract.connect(investor1).mintEntry();
+
+    /*
+    const deployNewTx = await factoryContract.deployNew(
+      INVESTMENT1_AMOUNT,
+      paymentTokenContract.address
+    );
+
+    const deployedInvestmentAddress =
+      await factoryContract.getLastDeployedContract();
+    const investmentFactory = new Investment__factory(owner);
+    const investmentContract = investmentFactory.attach(
+      deployedInvestmentAddress
+    );
+    // Invest an amount on investment1
+    await investmentContract
+      .connect(investor1)
+      .invest(INVESTOR1_INVESTMENT_AMOUNT);
+
+      */
     return { paymentTokenContract, puzzleContract };
   }
 
@@ -247,6 +284,18 @@ describe("Puzzle Contract", async () => {
           .connect(accounts[maxPerCollection.toNumber()])
           .mintEntry()
       ).to.be.revertedWith("Collection limit reached");
+    });
+  });
+  describe("Claim Puzzle NFT", async () => {
+    beforeEach(async () => {
+      ({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
+    });
+    it("Investor should be able to claim a NFT Puzzle after having invested the minimum amount required", async () => {
+      return true;
+
+      // expect(await puzzleContract.verifyClaim(investor1.address)).to.equal(
+      //   true
+      // );
     });
   });
 });
