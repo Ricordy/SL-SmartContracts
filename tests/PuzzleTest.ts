@@ -12,6 +12,7 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 // Constants
 const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
@@ -57,7 +58,7 @@ describe("Puzzle Contract", async () => {
     );
     await puzzleContract.deployed();
     // Set the Puzzle contract deployed as entry address on Factory contract
-    // await factoryContract.setEntryAddress(puzzleContract.address);
+    await factoryContract.setEntryAddress(puzzleContract.address);
 
     return {
       owner,
@@ -136,7 +137,6 @@ describe("Puzzle Contract", async () => {
 
     puzzleContract.connect(investor1).mintEntry();
 
-    /*
     const deployNewTx = await factoryContract.deployNew(
       INVESTMENT1_AMOUNT,
       paymentTokenContract.address
@@ -148,12 +148,16 @@ describe("Puzzle Contract", async () => {
     const investmentContract = investmentFactory.attach(
       deployedInvestmentAddress
     );
+
+    // Allow investment contract to spend
+    await paymentTokenContract
+      .connect(investor1)
+      .approve(investmentContract.address, INVESTOR1_INVESTMENT_AMOUNT);
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
       .invest(INVESTOR1_INVESTMENT_AMOUNT);
 
-      */
     return { paymentTokenContract, puzzleContract };
   }
 
@@ -290,12 +294,19 @@ describe("Puzzle Contract", async () => {
     beforeEach(async () => {
       ({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
     });
-    it("Investor should be able to claim a NFT Puzzle after having invested the minimum amount required", async () => {
-      return true;
+    it("Investor should be able to call verifyClaim (to claim an NFT Puzzle) after having invested the minimum amount required", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
 
-      // expect(await puzzleContract.verifyClaim(investor1.address)).to.equal(
-      //   true
-      // );
+      expect(await puzzleContract.verifyClaim(investor1.address)).to.equal(
+        true
+      );
+    });
+    it("Investor should be able to call  claim an NFT Puzzle after having invested the minimum amount required", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
+
+      await expect(await puzzleContract.connect(investor1).claim())
+        .to.emit(puzzleContract, "Minted")
+        .withArgs(anyValue, 1);
     });
   });
 });

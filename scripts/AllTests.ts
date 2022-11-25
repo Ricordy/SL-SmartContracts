@@ -82,22 +82,22 @@ describe("Something Legendary", async function () {
   });
   describe("Tests for puzzle", () => {
     describe("Deployment", () => {
-      it("Should set the right owner", async () => {
-        const contractOwner = await puzzleContract.owner();
-        await expect(contractOwner).to.eq(owner.address);
-      });
+      // it("Should set the right owner", async () => {
+      //   const contractOwner = await puzzleContract.owner();
+      //   await expect(contractOwner).to.eq(owner.address);
+      // });
       /**
        * If the owner has the ability to claim
        */
-      it("Sets the right max amount for each collection", async () => {
-        const collections = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-        collections.forEach(
-          async (collection) =>
-            await expect(
-              await puzzleContract.getMaxCollection(collection)
-            ).to.equal(MAX_PER_COLLECTION)
-        );
-      });
+      // it("Sets the right max amount for each collection", async () => {
+      //   const collections = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+      //   collections.forEach(
+      //     async (collection) =>
+      //       await expect(
+      //         await puzzleContract.getMaxCollection(collection)
+      //       ).to.equal(MAX_PER_COLLECTION)
+      //   );
+      // });
       it("Set the factory address", async () => {
         const factoryAddressFromContract =
           await puzzleContract.factoryAddress();
