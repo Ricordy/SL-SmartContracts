@@ -98,82 +98,81 @@ describe("Something Legendary", async function () {
       //       ).to.equal(MAX_PER_COLLECTION)
       //   );
       // });
-      it("Set the factory address", async () => {
-        const factoryAddressFromContract =
-          await puzzleContract.factoryAddress();
-        expect(factoryAddressFromContract).to.be.eq(factoryContract.address);
-      });
-      it("Set the payment token address", async () => {
-        const paymentTokenAddressFromContract =
-          await puzzleContract.paymentTokenAddress();
-        expect(paymentTokenAddressFromContract).to.be.eq(
-          paymentTokenContract.address
-        );
-      });
+      // it("Set the factory address", async () => {
+      //   const factoryAddressFromContract =
+      //     await puzzleContract.factoryAddress();
+      //   expect(factoryAddressFromContract).to.be.eq(factoryContract.address);
+      // });
+      // it("Set the payment token address", async () => {
+      //   const paymentTokenAddressFromContract =
+      //     await puzzleContract.paymentTokenAddress();
+      //   expect(paymentTokenAddressFromContract).to.be.eq(
+      //     paymentTokenContract.address
+      //   );
+      // });
     });
     describe("Mint the entry NFT", async () => {
-      it("Owner should have enough payment token to be able to mint", async () => {
-        const expectedOwnerTokenAmount = await paymentTokenContract.balanceOf(
-          owner.address
-        );
-
-        expect(expectedOwnerTokenAmount).to.be.eq(
-          ownerBalanceBefore.add(PAYMENT_TOKEN_AMOUNT)
-        );
-      });
-      it("Owner should be able to mint", async () => {
-        await expect(await puzzleContract.mintEntry())
-          .to.emit(puzzleContract, "Minted")
-          .withArgs(10, 1);
-      });
-      it("User with enough funds should be able to mint", async () => {
-        await expect(await puzzleContract.connect(investor1).mintEntry())
-          .to.emit(puzzleContract, "Minted")
-          .withArgs(10, 1);
-        const investor1HasEntryNFT = await puzzleContract.balanceOf(
-          investor1.address,
-          10
-        );
-        expect(investor1HasEntryNFT).to.be.eq(1);
-      });
-      it("User without allowing to spend funds should not be able to mint", async () => {
-        await expect(
-          puzzleContract.connect(investor3).mintEntry()
-        ).to.be.revertedWith("ERC20: insufficient allowance");
-      });
-      it("User without enough funds should not be able to mint", async () => {
-        await paymentTokenContract
-          .connect(investor3)
-          .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
-        await expect(
-          puzzleContract.connect(investor3).mintEntry()
-        ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
-      });
-      it("User should not be able to have more than 1 NFTEntry", async () => {
-        await expect(await puzzleContract.connect(investor2).mintEntry()).to.not
-          .be.reverted;
-        await expect(
-          puzzleContract.connect(investor2).mintEntry()
-        ).to.be.revertedWith("Cannot have more than 1");
-      });
-      it("Should not be able to mint more than collection limit", async () => {
-        accounts.map(async (account, i) => {
-          if (i >= 3) {
-            await paymentTokenContract
-              .connect(account)
-              .mint(PAYMENT_TOKEN_AMOUNT);
-            await paymentTokenContract
-              .connect(account)
-              .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
-          }
-        });
-        for (let i = 0; i <= totalAccounts - 2; i++) {
-          await puzzleContract.connect(accounts[i]).mintEntry();
-        }
-        await expect(
-          puzzleContract.connect(accounts[totalAccounts - 1]).mintEntry()
-        ).to.be.revertedWith("Collection limit reached");
-      });
+      // it("Owner should have enough payment token to be able to mint", async () => {
+      //   const expectedOwnerTokenAmount = await paymentTokenContract.balanceOf(
+      //     owner.address
+      //   );
+      //   expect(expectedOwnerTokenAmount).to.be.eq(
+      //     ownerBalanceBefore.add(PAYMENT_TOKEN_AMOUNT)
+      //   );
+      // });
+      // it("Owner should be able to mint", async () => {
+      //   await expect(await puzzleContract.mintEntry())
+      //     .to.emit(puzzleContract, "Minted")
+      //     .withArgs(10, 1);
+      // });
+      // it("User with enough funds should be able to mint", async () => {
+      //   await expect(await puzzleContract.connect(investor1).mintEntry())
+      //     .to.emit(puzzleContract, "Minted")
+      //     .withArgs(10, 1);
+      //   const investor1HasEntryNFT = await puzzleContract.balanceOf(
+      //     investor1.address,
+      //     10
+      //   );
+      //   expect(investor1HasEntryNFT).to.be.eq(1);
+      // });
+      // it("User without allowing to spend funds should not be able to mint", async () => {
+      //   await expect(
+      //     puzzleContract.connect(investor3).mintEntry()
+      //   ).to.be.revertedWith("ERC20: insufficient allowance");
+      // });
+      // it("User without enough funds should not be able to mint", async () => {
+      //   await paymentTokenContract
+      //     .connect(investor3)
+      //     .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+      //   await expect(
+      //     puzzleContract.connect(investor3).mintEntry()
+      //   ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
+      // });
+      // it("User should not be able to have more than 1 NFTEntry", async () => {
+      //   await expect(await puzzleContract.connect(investor2).mintEntry()).to.not
+      //     .be.reverted;
+      //   await expect(
+      //     puzzleContract.connect(investor2).mintEntry()
+      //   ).to.be.revertedWith("Cannot have more than 1");
+      // });
+      // it("Should not be able to mint more than collection limit", async () => {
+      //   accounts.map(async (account, i) => {
+      //     if (i >= 3) {
+      //       await paymentTokenContract
+      //         .connect(account)
+      //         .mint(PAYMENT_TOKEN_AMOUNT);
+      //       await paymentTokenContract
+      //         .connect(account)
+      //         .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+      //     }
+      //   });
+      //   for (let i = 0; i <= totalAccounts - 2; i++) {
+      //     await puzzleContract.connect(accounts[i]).mintEntry();
+      //   }
+      //   await expect(
+      //     puzzleContract.connect(accounts[totalAccounts - 1]).mintEntry()
+      //   ).to.be.revertedWith("Collection limit reached");
+      // });
     });
     /*
     describe("Test claim of NFT Puzzle", async () => {
@@ -223,199 +222,199 @@ describe("Something Legendary", async function () {
         // Call mint test for investor1
         await puzzleContract.connect(investor1).mintTest();
       });
-      it("User should not be allowed to interact with claim() and verifyClaim() without nftentry", async () => {
-        await expect(
-          puzzleContract.verifyBurn(investor1.address)
-        ).to.be.revertedWith("Not accessible");
-        await expect(
-          puzzleContract.connect(investor1).burn()
-        ).to.be.revertedWith("Not accessible");
-      });
-      it("User should pass on verifyBurn if they have invested enough", async () => {
-        //Mint entry
-        await puzzleContract.mintEntry();
-        await puzzleContract.connect(investor1).mintEntry();
-        //Run test
-        await puzzleContract.connect(investor1).mintTest();
-        expect(
-          await puzzleContract.verifyBurn(investor1.address)
-        ).to.deep.equal([
-          true,
-          [
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-          ],
-          [
-            BigNumber.from(0),
-            BigNumber.from(1),
-            BigNumber.from(2),
-            BigNumber.from(3),
-            BigNumber.from(4),
-            BigNumber.from(5),
-            BigNumber.from(6),
-            BigNumber.from(7),
-            BigNumber.from(8),
-            BigNumber.from(9),
-          ],
-        ]);
-      });
-      it("Owner should pass on verifyBurn if they have invested enough", async () => {
-        //Mint entry
-        await puzzleContract.mintEntry();
-        await puzzleContract.connect(investor1).mintEntry();
-        //Run test
-        await puzzleContract.mintTest();
-        expect(await puzzleContract.verifyBurn(owner.address)).to.deep.equal([
-          true,
-          [
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-          ],
-          [
-            BigNumber.from(0),
-            BigNumber.from(1),
-            BigNumber.from(2),
-            BigNumber.from(3),
-            BigNumber.from(4),
-            BigNumber.from(5),
-            BigNumber.from(6),
-            BigNumber.from(7),
-            BigNumber.from(8),
-            BigNumber.from(9),
-          ],
-        ]);
-      });
-      it("owner should be able to burn", async () => {
-        //Mint entry
-        await puzzleContract.mintEntry();
-        await puzzleContract.connect(investor1).mintEntry();
-        //Run test
-        await puzzleContract.mintTest();
-        await expect(await puzzleContract.burn())
-          .to.emit(puzzleContract, "Burned")
-          .withArgs(true);
-      });
-      it("User should be able to burn", async () => {
-        //Mint entry
-        await puzzleContract.mintEntry();
-        await puzzleContract.connect(investor1).mintEntry();
-        //Run test
-        await puzzleContract.connect(investor1).mintTest();
-        await expect(await puzzleContract.connect(investor1).burn())
-          .to.emit(puzzleContract, "Burned")
-          .withArgs(true);
-      });
-      it("owner should pass verifyBurn() having 11+ tokens", async () => {
-        //Mint entry
-        await puzzleContract.mintEntry();
-        await puzzleContract.connect(investor1).mintEntry();
-        //Run test
-        await puzzleContract.connect(owner).mintTest();
-        await puzzleContract.connect(owner).mintTest();
-        expect(await puzzleContract.verifyBurn(owner.address)).to.deep.equal([
-          true,
-          [
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-            BigNumber.from(1),
-          ],
-          [
-            BigNumber.from(0),
-            BigNumber.from(1),
-            BigNumber.from(2),
-            BigNumber.from(3),
-            BigNumber.from(4),
-            BigNumber.from(5),
-            BigNumber.from(6),
-            BigNumber.from(7),
-            BigNumber.from(8),
-            BigNumber.from(9),
-          ],
-        ]);
-      });
-      it("User should be able to burn having 11+ tokens", async () => {
-        //Mint entry
-        await puzzleContract.mintEntry();
-        await puzzleContract.connect(investor1).mintEntry();
-        //Run test
-        await puzzleContract.connect(owner).mintTest();
-        await puzzleContract.connect(owner).mintTest();
-        expect(await puzzleContract.connect(owner).burn())
-          .to.emit(puzzleContract, "Burned")
-          .withArgs(true);
-      });
-      it("Owner should be able to burn having 20 tokens and still have 10", async () => {
-        //Mint entry
-        await puzzleContract.mintEntry();
-        await puzzleContract.connect(investor1).mintEntry();
-        //Run test
-        await puzzleContract.mintTest();
-        expect(await puzzleContract.burn())
-          .to.emit(puzzleContract, "Burned")
-          .withArgs(true);
-        expect(await puzzleContract.balanceOf(owner.address, 1)).to.equal(1);
-      });
-      it("User should be able to burn having 20 tokens and still have 10", async () => {
-        //Mint entry
-        await puzzleContract.mintEntry();
-        await puzzleContract.connect(investor1).mintEntry();
-        //Run test
-        await puzzleContract.connect(investor1).mintTest();
-        expect(await puzzleContract.connect(investor1).burn()).to.emit(true);
-        expect(await puzzleContract.balanceOf(investor1.address, 0)).to.equal(
-          1
-        );
-        expect(await puzzleContract.balanceOf(investor1.address, 1)).to.equal(
-          1
-        );
-        expect(await puzzleContract.balanceOf(investor1.address, 2)).to.equal(
-          1
-        );
-        expect(await puzzleContract.balanceOf(investor1.address, 3)).to.equal(
-          1
-        );
-        expect(await puzzleContract.balanceOf(investor1.address, 4)).to.equal(
-          1
-        );
-        expect(await puzzleContract.balanceOf(investor1.address, 5)).to.equal(
-          1
-        );
-        expect(await puzzleContract.balanceOf(investor1.address, 6)).to.equal(
-          1
-        );
-        expect(await puzzleContract.balanceOf(investor1.address, 7)).to.equal(
-          1
-        );
-        expect(await puzzleContract.balanceOf(investor1.address, 8)).to.equal(
-          1
-        );
-        expect(await puzzleContract.balanceOf(investor1.address, 9)).to.equal(
-          1
-        );
-      });
+      // it("User should not be allowed to interact with claim() and verifyClaim() without nftentry", async () => {
+      //   await expect(
+      //     puzzleContract.verifyBurn(investor1.address)
+      //   ).to.be.revertedWith("Not accessible");
+      //   await expect(
+      //     puzzleContract.connect(investor1).burn()
+      //   ).to.be.revertedWith("Not accessible");
+      // });
+      // it("User should pass on verifyBurn if they have invested enough", async () => {
+      //   //Mint entry
+      //   await puzzleContract.mintEntry();
+      //   await puzzleContract.connect(investor1).mintEntry();
+      //   //Run test
+      //   await puzzleContract.connect(investor1).mintTest();
+      //   expect(
+      //     await puzzleContract.verifyBurn(investor1.address)
+      //   ).to.deep.equal([
+      //     true,
+      //     [
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //     ],
+      //     [
+      //       BigNumber.from(0),
+      //       BigNumber.from(1),
+      //       BigNumber.from(2),
+      //       BigNumber.from(3),
+      //       BigNumber.from(4),
+      //       BigNumber.from(5),
+      //       BigNumber.from(6),
+      //       BigNumber.from(7),
+      //       BigNumber.from(8),
+      //       BigNumber.from(9),
+      //     ],
+      //   ]);
+      // });
+      // it("Owner should pass on verifyBurn if they have invested enough", async () => {
+      //   //Mint entry
+      //   await puzzleContract.mintEntry();
+      //   await puzzleContract.connect(investor1).mintEntry();
+      //   //Run test
+      //   await puzzleContract.mintTest();
+      //   expect(await puzzleContract.verifyBurn(owner.address)).to.deep.equal([
+      //     true,
+      //     [
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //     ],
+      //     [
+      //       BigNumber.from(0),
+      //       BigNumber.from(1),
+      //       BigNumber.from(2),
+      //       BigNumber.from(3),
+      //       BigNumber.from(4),
+      //       BigNumber.from(5),
+      //       BigNumber.from(6),
+      //       BigNumber.from(7),
+      //       BigNumber.from(8),
+      //       BigNumber.from(9),
+      //     ],
+      //   ]);
+      // });
+      // it("owner should be able to burn", async () => {
+      //   //Mint entry
+      //   await puzzleContract.mintEntry();
+      //   await puzzleContract.connect(investor1).mintEntry();
+      //   //Run test
+      //   await puzzleContract.mintTest();
+      //   await expect(await puzzleContract.burn())
+      //     .to.emit(puzzleContract, "Burned")
+      //     .withArgs(true);
+      // });
+      // it("User should be able to burn", async () => {
+      //   //Mint entry
+      //   await puzzleContract.mintEntry();
+      //   await puzzleContract.connect(investor1).mintEntry();
+      //   //Run test
+      //   await puzzleContract.connect(investor1).mintTest();
+      //   await expect(await puzzleContract.connect(investor1).burn())
+      //     .to.emit(puzzleContract, "Burned")
+      //     .withArgs(true);
+      // });
+      // it("owner should pass verifyBurn() having 11+ tokens", async () => {
+      //   //Mint entry
+      //   await puzzleContract.mintEntry();
+      //   await puzzleContract.connect(investor1).mintEntry();
+      //   //Run test
+      //   await puzzleContract.connect(owner).mintTest();
+      //   await puzzleContract.connect(owner).mintTest();
+      //   expect(await puzzleContract.verifyBurn(owner.address)).to.deep.equal([
+      //     true,
+      //     [
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //       BigNumber.from(1),
+      //     ],
+      //     [
+      //       BigNumber.from(0),
+      //       BigNumber.from(1),
+      //       BigNumber.from(2),
+      //       BigNumber.from(3),
+      //       BigNumber.from(4),
+      //       BigNumber.from(5),
+      //       BigNumber.from(6),
+      //       BigNumber.from(7),
+      //       BigNumber.from(8),
+      //       BigNumber.from(9),
+      //     ],
+      //   ]);
+      // });
+      // it("User should be able to burn having 11+ tokens", async () => {
+      //   //Mint entry
+      //   await puzzleContract.mintEntry();
+      //   await puzzleContract.connect(investor1).mintEntry();
+      //   //Run test
+      //   await puzzleContract.connect(owner).mintTest();
+      //   await puzzleContract.connect(owner).mintTest();
+      //   expect(await puzzleContract.connect(owner).burn())
+      //     .to.emit(puzzleContract, "Burned")
+      //     .withArgs(true);
+      // });
+      // it("Owner should be able to burn having 20 tokens and still have 10", async () => {
+      //   //Mint entry
+      //   await puzzleContract.mintEntry();
+      //   await puzzleContract.connect(investor1).mintEntry();
+      //   //Run test
+      //   await puzzleContract.mintTest();
+      //   expect(await puzzleContract.burn())
+      //     .to.emit(puzzleContract, "Burned")
+      //     .withArgs(true);
+      //   expect(await puzzleContract.balanceOf(owner.address, 1)).to.equal(1);
+      // });
+      // it("User should be able to burn having 20 tokens and still have 10", async () => {
+      //   //Mint entry
+      //   await puzzleContract.mintEntry();
+      //   await puzzleContract.connect(investor1).mintEntry();
+      //   //Run test
+      //   await puzzleContract.connect(investor1).mintTest();
+      //   expect(await puzzleContract.connect(investor1).burn()).to.emit(true);
+      //   expect(await puzzleContract.balanceOf(investor1.address, 0)).to.equal(
+      //     1
+      //   );
+      //   expect(await puzzleContract.balanceOf(investor1.address, 1)).to.equal(
+      //     1
+      //   );
+      //   expect(await puzzleContract.balanceOf(investor1.address, 2)).to.equal(
+      //     1
+      //   );
+      //   expect(await puzzleContract.balanceOf(investor1.address, 3)).to.equal(
+      //     1
+      //   );
+      //   expect(await puzzleContract.balanceOf(investor1.address, 4)).to.equal(
+      //     1
+      //   );
+      //   expect(await puzzleContract.balanceOf(investor1.address, 5)).to.equal(
+      //     1
+      //   );
+      //   expect(await puzzleContract.balanceOf(investor1.address, 6)).to.equal(
+      //     1
+      //   );
+      //   expect(await puzzleContract.balanceOf(investor1.address, 7)).to.equal(
+      //     1
+      //   );
+      //   expect(await puzzleContract.balanceOf(investor1.address, 8)).to.equal(
+      //     1
+      //   );
+      //   expect(await puzzleContract.balanceOf(investor1.address, 9)).to.equal(
+      //     1
+      //   );
+      // });
 
       /*
       it("User should not be allowed to burn twice (have more than 1 NFTLevel2)", async () => {
@@ -433,16 +432,16 @@ describe("Something Legendary", async function () {
       */
     });
     describe("Metadata", async () => {
-      it("Get the right metadata", async () => {
-        expect(await puzzleContract.tokenURI(1)).to.equal(
-          "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm/1.json"
-        );
-      });
-      it("Get the right metadata via uri() function", async () => {
-        expect(await puzzleContract.uri(1)).to.equal(
-          "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm/1.json"
-        );
-      });
+      // it("Get the right metadata", async () => {
+      //   expect(await puzzleContract.tokenURI(1)).to.equal(
+      //     "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm/1.json"
+      //   );
+      // });
+      // it("Get the right metadata via uri() function", async () => {
+      //   expect(await puzzleContract.uri(1)).to.equal(
+      //     "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm/1.json"
+      //   );
+      // });
     });
   });
   /*

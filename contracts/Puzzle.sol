@@ -45,7 +45,7 @@ contract Puzzle is ERC1155, Ownable{
     //uint256 reservedForFree = 100;
             //-----URI------
     string private base_uri_not_revealed;
-    string private base_uri = "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm";
+    string public base_uri = "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm";
     bool isReaveled = false;
             //-----ADDRESSES OF COMMUNICATIONS-----
     address public factoryAddress;
