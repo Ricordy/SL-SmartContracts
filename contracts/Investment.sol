@@ -71,8 +71,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //-----MAIN FUNCTIONS------
     ///
     function invest(uint256 _amount) public nonReentrant isAllowed isProgress isPaused{
-        require(_amount >= 100, "Error");
-        require(_amount <= totalInvestment / 10 , "Error");
+        require(_amount >= 100, "Not enough amount to invest");
+        require(_amount <= totalInvestment / 10 , "Amount exceed the total allowed");
         
         ERC20 _token = ERC20(paymentTokenAddress);
         require(_token.balanceOf(address(this)) < totalInvestment, "Total reached");

@@ -10,6 +10,7 @@ contract Factory is Ownable {
     Investment[] deployed;
     address lgentry;
     uint public counter;
+    
 
 
 
@@ -22,15 +23,14 @@ contract Factory is Ownable {
     }
 
 
-    function deployNew(uint256 totalInvestment, address stableContractAddress) public returns (uint256) {
-        return 20;
+    function deployNew(uint256 totalInvestment, address stableContractAddress) public returns (address) {
         counter++;
         Investment inv = new Investment(totalInvestment, lgentry, stableContractAddress);
 
         deployed.push(inv);
         console.log('Contract created',address(inv));
         emit ContractCreated(counter/*, address(inv)*/);
-        //return address(inv);
+        return address(inv);
     }
 
     function getAddressTotal(address user) public view returns(uint userTotal){
@@ -50,9 +50,12 @@ contract Factory is Ownable {
     /**
      * TEST FUNCTIONS
      */
-    function getLastDeployedContract() public view returns(address) {
-        address test = address(deployed[deployed.length -1]);
-        return test;
+    function getLastDeployedContract() public view returns(address contractAddress) {
+        if (deployed.length > 0) {
+            contractAddress = address(deployed[deployed.length -1]);
+        } else {
+            contractAddress = address(0);
+        }
     }
 
 }
