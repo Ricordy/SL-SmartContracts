@@ -12,7 +12,7 @@ describe("Factory Contract Tests", async () => {
       factoryContract: Factory,
       accounts: SignerWithAddress[];
 
-  beforeEach(async () => {
+  beforeEach("",async () => {
     accounts = await ethers.getSigners();
     const [owner, investor1, investor2] = accounts,
           investmentContractFactory = new Factory__factory(owner),
