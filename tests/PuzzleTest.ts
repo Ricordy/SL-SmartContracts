@@ -3,7 +3,6 @@ import {
   CoinTest__factory,
   Factory,
   Factory__factory,
-  Investment__factory,
   Puzzle,
   Puzzle__factory,
 } from "../typechain-types";
@@ -288,7 +287,7 @@ describe("Puzzle Contract", async () => {
   });
   describe("Claim Puzzle NFT", async () => {
     beforeEach(async () => {
-      ({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
+      //({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
     });
     it("Investor should be able to claim a NFT Puzzle after having invested the minimum amount required", async () => {
       return true;
@@ -296,6 +295,9 @@ describe("Puzzle Contract", async () => {
       // expect(await puzzleContract.verifyClaim(investor1.address)).to.equal(
       //   true
       // );
+    });
+    it('Mint cannot surpass collection limit', async () => {
+
     });
   });
 });
