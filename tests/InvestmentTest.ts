@@ -188,9 +188,14 @@ describe("Investment Contract Tests", async () => {
       throw new Error("Not implemented");
     });
   });
-  describe("STATUS: WITHDRAW || REFUNDING:", async () => {
-    it('Should set the status to "progress"', async () => {
-      throw new Error("Not implemented");
+  describe("STATUS: WITHDRAW", async () => {
+    beforeEach(async () => {
+      const { investmentContract } = await loadFixture(deployContractFixture);
+      await investmentContract.flipWithdraw();
+    });
+    it('Should set the status to "withdraw"', async () => {
+      const contractStatus = await investmentContract.state();
+      expect(contractStatus).to.be.equal(STATUS_WITHDRAW);
     });
   });
 });

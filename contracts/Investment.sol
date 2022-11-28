@@ -17,9 +17,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         Pause,
         Progress,
         Process,
-        Wtihdraw,
+        Withdraw,
         Refunding
-
     }
 
     ///
@@ -151,7 +150,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     modifier isWithdraw() {
-        require(state == Status.Wtihdraw);
+        require(state == Status.Withdraw);
         _;
     }
 
@@ -181,7 +180,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function flipWithdraw() public onlyOwner {
-        state = Status.Wtihdraw;
+        state = Status.Withdraw;
     }
 
     function flipRefunding() public onlyOwner {
