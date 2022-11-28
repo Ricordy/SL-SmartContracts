@@ -11,6 +11,7 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 // Constants
 const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
@@ -30,7 +31,8 @@ describe("Puzzle Contract", async () => {
     investor1: SignerWithAddress,
     investor2: SignerWithAddress,
     investor3: SignerWithAddress,
-    ownerBalanceBefore: BigNumber;
+    ownerBalanceBefore: BigNumber,
+    baseUriFromContract: string;
 
   async function deployContractFixture() {
     // Puzzle contract needs Factory and PaymentToken address to be deployed
@@ -56,7 +58,7 @@ describe("Puzzle Contract", async () => {
     );
     await puzzleContract.deployed();
     // Set the Puzzle contract deployed as entry address on Factory contract
-    // await factoryContract.setEntryAddress(puzzleContract.address);
+    await factoryContract.setEntryAddress(puzzleContract.address);
 
     return {
       owner,
@@ -89,13 +91,20 @@ describe("Puzzle Contract", async () => {
     return { paymentTokenContract, puzzleContract };
   }
 
-  async function investor1AbleToMintFixture() {
+  async function ownerAndInvestor1AbleToMintFixture() {
     const { paymentTokenContract, puzzleContract } = await loadFixture(
       deployContractFixture
     );
     // Mint PaymentTokens to the owner
+    await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
+    // Mint PaymentTokens to the investor1
     await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
-    // Approve Puzzle contract to spend the PaymentTokens
+    // Approve Puzzle contract to spend Owner's PaymentTokens
+    await paymentTokenContract.approve(
+      puzzleContract.address,
+      PAYMENT_TOKEN_AMOUNT
+    );
+    // Approve Puzzle contract to spend Investor1's PaymentTokens
     await paymentTokenContract
       .connect(investor1)
       .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
@@ -135,7 +144,6 @@ describe("Puzzle Contract", async () => {
 
     puzzleContract.connect(investor1).mintEntry();
 
-    /*
     const deployNewTx = await factoryContract.deployNew(
       INVESTMENT1_AMOUNT,
       paymentTokenContract.address
@@ -147,13 +155,44 @@ describe("Puzzle Contract", async () => {
     const investmentContract = investmentFactory.attach(
       deployedInvestmentAddress
     );
+
+    // Allow investment contract to spend
+    await paymentTokenContract
+      .connect(investor1)
+      .approve(investmentContract.address, INVESTOR1_INVESTMENT_AMOUNT);
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
       .invest(INVESTOR1_INVESTMENT_AMOUNT);
 
-      */
     return { paymentTokenContract, puzzleContract };
+  }
+  async function ownerAndInvestor1ReadyToBurnLevel2NFT() {
+    const { paymentTokenContract, puzzleContract } = await loadFixture(
+      deployContractFixture
+    );
+    // Mint PaymentTokens to the owner
+    await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
+    // Mint PaymentTokens to the investor1
+    await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
+    // Approve Puzzle contract to spend Owner's PaymentTokens
+    await paymentTokenContract.approve(
+      puzzleContract.address,
+      PAYMENT_TOKEN_AMOUNT
+    );
+    // Approve Puzzle contract to spend Investor1's PaymentTokens
+    await paymentTokenContract
+      .connect(investor1)
+      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+    // Mint Entry NFT for the owner
+    await puzzleContract.mintEntry();
+    // Mint Entry NFT for the Investor1
+    await puzzleContract.connect(investor1).mintEntry();
+    // Mint all Puzzle NFTs for the owner
+    await puzzleContract.mintTest();
+    // Mint all Puzzle NFTs for the investor1
+    await puzzleContract.connect(investor1).mintTest();
+    return { puzzleContract };
   }
 
   describe("When the contract is deployed", async function () {
@@ -195,6 +234,22 @@ describe("Puzzle Contract", async () => {
         paymentTokenContract.address
       );
     });
+    describe("Metadata", async () => {
+      beforeEach(async () => {
+        ({ puzzleContract } = await loadFixture(deployContractFixture));
+        baseUriFromContract = await puzzleContract.base_uri();
+      });
+      it("Get the right metadata - TO REVIEW", async () => {
+        expect(await puzzleContract.tokenURI(1)).to.equal(
+          `${baseUriFromContract}/1.json`
+        );
+      });
+      it("Get the right metadata via uri() function  - TO REVIEW", async () => {
+        expect(await puzzleContract.uri(1)).to.equal(
+          `${baseUriFromContract}/1.json`
+        );
+      });
+    });
   });
   describe("Pre-minting the entry NFT", async () => {
     it("Owner should have enough payment token to be able to mint", async () => {
@@ -212,13 +267,7 @@ describe("Puzzle Contract", async () => {
         ownerPaymentTokenBalanceBefore.add(PAYMENT_TOKEN_AMOUNT)
       );
     });
-    it("Owner should be able to mint if they have enough funds and the funds were approved", async () => {
-      const { puzzleContract } = await loadFixture(ownerAbleToMintFixture);
 
-      await expect(await puzzleContract.mintEntry())
-        .to.emit(puzzleContract, "Minted")
-        .withArgs(ENTRY_LEVEL_NFT_ID, 1);
-    });
     it("Investor without allowing to spend funds should not be able to mint", async () => {
       const { puzzleContract } = await loadFixture(
         investor1DidntApproveSpendFixture
@@ -239,7 +288,14 @@ describe("Puzzle Contract", async () => {
   });
   describe("Minting the entry NFT", async () => {
     beforeEach(async () => {
-      ({ puzzleContract } = await loadFixture(investor1AbleToMintFixture));
+      ({ puzzleContract } = await loadFixture(
+        ownerAndInvestor1AbleToMintFixture
+      ));
+    });
+    it("Owner should be able to mint if they have enough funds and the funds were approved", async () => {
+      await expect(await puzzleContract.mintEntry())
+        .to.emit(puzzleContract, "Minted")
+        .withArgs(ENTRY_LEVEL_NFT_ID, 1);
     });
     it("Investor should be able to mint if they have enough funds and the funds were approved", async function () {
       await expect(await puzzleContract.connect(investor1).mintEntry())
@@ -285,16 +341,132 @@ describe("Puzzle Contract", async () => {
       ).to.be.revertedWith("Collection limit reached");
     });
   });
+  describe("Pre-claim Puzzle NFT", async () => {
+    beforeEach(async () => {
+      const { puzzleContract } = await loadFixture(deployContractFixture);
+    });
+    it("Owner should not be allowed to claim() without the Entry NFT", async () => {
+      await expect(puzzleContract.claim()).to.be.revertedWith(
+        "User not able to claim"
+      );
+    });
+    it("Investor should not be allowed to claim() without the Entry NFT", async () => {
+      await expect(
+        puzzleContract.connect(investor1).claim()
+      ).to.be.revertedWith("User not able to claim");
+    });
+  });
   describe("Claim Puzzle NFT", async () => {
     beforeEach(async () => {
       //({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
     });
-    it("Investor should be able to claim a NFT Puzzle after having invested the minimum amount required", async () => {
-      return true;
+    it("Investor should be able to call verifyClaim (to claim an NFT Puzzle) after having invested the minimum amount required", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
 
-      // expect(await puzzleContract.verifyClaim(investor1.address)).to.equal(
-      //   true
-      // );
+      expect(await puzzleContract.verifyClaim(investor1.address)).to.equal(
+        true
+      );
+    });
+    it("Investor should be able to call  claim (to claim a NFT Puzzle) after having invested the minimum amount required", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
+
+      await expect(await puzzleContract.connect(investor1).claim())
+        .to.emit(puzzleContract, "Minted")
+        .withArgs(anyValue, 1);
+    });
+  });
+  describe("Pre-Burn LEVEL2 NFT", async () => {
+    beforeEach(async () => {
+      ({ puzzleContract } = await loadFixture(deployContractFixture));
+    });
+    it("Owner should not be able to burn without the required Puzzle NFTs", async () => {
+      await expect(puzzleContract.burn()).to.be.revertedWith(
+        "Not able to burn"
+      );
+    });
+    it("Investor should not be able to burn without the required Puzzle NFTs", async () => {
+      await expect(puzzleContract.connect(investor1).burn()).to.be.revertedWith(
+        "Not able to burn"
+      );
+    });
+  });
+  describe("Burn LEVEL2 NFT", async () => {
+    beforeEach(async () => {
+      ({ puzzleContract } = await loadFixture(
+        ownerAndInvestor1ReadyToBurnLevel2NFT
+      ));
+    });
+    it("Owner should be able to burn LEVEL2 NFT", async () => {
+      await expect(await puzzleContract.burn())
+        .to.emit(puzzleContract, "Burned")
+        .withArgs(true);
+    });
+    it("Owner should be able to burn LEVEL2 NFT having 20 Puzzle NFTs and still have 10 left", async () => {
+      // Mint 10 more Puzzle NFTs to the owner
+      await puzzleContract.mintTest();
+      // Fill the array with owner's address
+      const accounts = new Array(10).fill(owner.address);
+      // Shallow-clone sliced collections array
+      const NFTIds = [...COLLECTIONS.slice(0, 10)];
+      // Balance before Burn
+      const puzzleNftBalanceBeforeBurn = await puzzleContract.balanceOfBatch(
+        accounts,
+        NFTIds
+      );
+      // Burn LEVEL2 NFT token
+      await puzzleContract.burn();
+      // Balance after Burn
+      const puzzleNftBalanceAfterBurn = await puzzleContract.balanceOfBatch(
+        accounts,
+        NFTIds
+      );
+      const expectedArrayResults = puzzleNftBalanceAfterBurn.map(function (
+        value: BigNumber,
+        i: number
+      ) {
+        return value.add(1).eq(puzzleNftBalanceBeforeBurn[i]);
+      });
+
+      expect(expectedArrayResults.every((element) => element === true)).to.be
+        .true;
+    });
+    it("Investor should be able to burn LEVEL2 NFT having 20 Puzzle NFTs and still have 10 left", async () => {
+      // Mint 10 more Puzzle NFTs to the investor
+      await puzzleContract.connect(investor1).mintTest();
+      // Fill the array with investor's address
+      const accounts = new Array(10).fill(investor1.address);
+      // Shallow-clone sliced collections array
+      const NFTIds = [...COLLECTIONS.slice(0, 10)];
+      // Balance before Burn
+      const puzzleNftBalanceBeforeBurn = await puzzleContract
+        .connect(investor1)
+        .balanceOfBatch(accounts, NFTIds);
+      // Burn LEVEL2 NFT token
+      await puzzleContract.connect(investor1).burn();
+      // Balance after Burn
+      const puzzleNftBalanceAfterBurn = await puzzleContract
+        .connect(investor1)
+        .balanceOfBatch(accounts, NFTIds);
+      const expectedArrayResults = puzzleNftBalanceAfterBurn.map(function (
+        value: BigNumber,
+        i: number
+      ) {
+        return value.add(1).eq(puzzleNftBalanceBeforeBurn[i]);
+      });
+
+      expect(expectedArrayResults.every((element) => element === true)).to.be
+        .true;
+    });
+    it("Investor should be able to burn LEVEL2 NFT", async () => {
+      await expect(await puzzleContract.connect(investor1).burn())
+        .to.emit(puzzleContract, "Burned")
+        .withArgs(true);
+    });
+    it("Owner should not be able to burn more than 1 LEVEL2 NFT", async () => {
+      await puzzleContract.burn();
+      await expect(puzzleContract.burn()).to.be.revertedWith(
+        "Cannot have more than 1"
+      );
     });
     it('Mint cannot surpass collection limit', async () => {
 

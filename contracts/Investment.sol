@@ -26,10 +26,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //-----STATE VARIABLES------
     ///
     Status public state;
-    uint256 totalInvestment;
+    uint256 public totalInvestment;
     uint256 returnProfit;
-    address stable = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
-    address entryAdd;
+    address public paymentTokenAddress = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
+    address public entryNFTAddress;
 
     ///
     //-----EVENTS------
@@ -60,12 +60,11 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    constructor(uint256 _totalInvestment, address lgentry, address stableContractAddress) ERC20("InvestmentCurrency", "IC"){
+    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
-        entryAdd = lgentry;
-        stable = stableContractAddress;
+        entryNFTAddress = _entryNFTAddress;
+        paymentTokenAddress = _paymentTokenAddress;
         flipProgress();
-
     }
 
     ///
@@ -75,7 +74,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(_amount >= 100, "Error");
         require(_amount <= totalInvestment / 10 , "Error");
         
-        ERC20 _token = ERC20(stable);
+        ERC20 _token = ERC20(paymentTokenAddress);
         require(_token.balanceOf(address(this)) < totalInvestment, "Total reached");
         
         require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
@@ -93,7 +92,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         
         _burn(msg.sender, balance);
 
-        ERC20 _token = ERC20(stable);
+        ERC20 _token = ERC20(paymentTokenAddress);
         _token.transferFrom(address(this), msg.sender, calculateFinalAmount(balance));
 
         emit Withdraw(msg.sender, calculateFinalAmount(balance), block.timestamp);
@@ -101,7 +100,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function withdrawSL() public onlyOwner isAllowed isProcess isPaused {
-        ERC20 _token = ERC20(stable);
+        ERC20 _token = ERC20(paymentTokenAddress);
         
         require(_token.balanceOf(address(this)) >= totalInvestment, "Total not reached"); // TODO: fazer para 80%
         _token.transferFrom(address(this), msg.sender, totalContractBalanceStable(_token));
@@ -111,7 +110,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function refill(uint256 _amount, uint256 profitRate) public onlyOwner isAllowed isProcess isPaused {
-        ERC20 _token = ERC20(stable);
+        ERC20 _token = ERC20(paymentTokenAddress);
         require(totalContractBalanceStable(_token) == 0); //Verificar com mercado secundário
         require(totalInvestment + (totalInvestment * profitRate /100) == _amount); //Implementar com taxa de retorno
         _token.transferFrom(msg.sender, address(this), _amount);
@@ -162,7 +161,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     modifier isAllowed() {
-        require(ERC1155(entryAdd).balanceOf(msg.sender, 10) > 0, "Not accessible");
+        require(ERC1155(entryNFTAddress).balanceOf(msg.sender, 10) > 0, "Not accessible");
         _;
     }
 
