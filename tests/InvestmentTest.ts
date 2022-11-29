@@ -221,6 +221,11 @@ describe("Investment Contract Tests", async () => {
           .to.emit(investmentContract, "UserInvest")
           .withArgs(investor1.address, EXPECTED_INV_AMOUNT1, anyValue);
       });
+      it("Should mint the exact same value as the investment ", async () => {
+        const { investmentContract, investor1 } = await loadFixture(investorApprovedTokenToSpend);
+        await investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1);
+        expect(await investmentContract.balanceOf(investor1.address)).to.equal(EXPECTED_INV_AMOUNT1)
+      });
       it("Investor should not be allowed to surpass totalInvestment when investing", async () => {
         const { investmentContract, crucialInvestor, paymentTokenContract, puzzleContract  } = await loadFixture(oneInvestCallLeftToFill);
         //Min and approve crucialInvestor TestCoin
@@ -236,13 +241,7 @@ describe("Investment Contract Tests", async () => {
         
           
       });
-      it("Should mint the exact same value as the investment ", async () => {
-        const { investmentContract, investor1 } = await loadFixture(
-          investorApprovedTokenToSpend
-        );
-        await investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1);
-        expect(await investmentContract.balanceOf(investor1.address)).to.equal(EXPECTED_INV_AMOUNT1)
-      });
+      
     });
   });
   describe("STATUS: PROCESS", async () => {
