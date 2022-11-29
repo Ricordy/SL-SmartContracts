@@ -74,7 +74,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(_amount <= totalInvestment / 10 , "Amount exceed the total allowed");
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        require(_token.balanceOf(address(this)) < totalInvestment, "Total reached");
+        require(_token.balanceOf(address(this)) + _amount < totalInvestment, "Total reached");
         
         require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
         _token.transferFrom(msg.sender, address(this), _amount);

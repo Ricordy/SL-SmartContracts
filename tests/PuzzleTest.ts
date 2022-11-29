@@ -143,16 +143,15 @@ describe("Puzzle Contract", async () => {
       .connect(investor1)
       .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
 
-    await puzzleContract.connect(investor1).mintEntry();
+    puzzleContract.connect(investor1).mintEntry();
 
-    const tx = await factoryContract.deployNew(
+    const deployNewTx = await factoryContract.deployNew(
       INVESTMENT1_AMOUNT,
       paymentTokenContract.address
     );
 
     const deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract();
-
     const investmentFactory = new Investment__factory(owner);
     const investmentContract = investmentFactory.attach(
       deployedInvestmentAddress
@@ -241,12 +240,12 @@ describe("Puzzle Contract", async () => {
         ({ puzzleContract } = await loadFixture(deployContractFixture));
         baseUriFromContract = await puzzleContract.base_uri();
       });
-      it("Get the right metadata", async () => {
+      it("Get the right metadata - TO REVIEW", async () => {
         expect(await puzzleContract.tokenURI(1)).to.equal(
           `${baseUriFromContract}/1.json`
         );
       });
-      it("Get the right metadata via uri() function", async () => {
+      it("Get the right metadata via uri() function  - TO REVIEW", async () => {
         expect(await puzzleContract.uri(1)).to.equal(
           `${baseUriFromContract}/1.json`
         );
@@ -362,6 +361,13 @@ describe("Puzzle Contract", async () => {
     beforeEach(async () => {
       //({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
     });
+    it("Investor should be able to call verifyClaim (to claim an NFT Puzzle) after having invested the minimum amount required", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
+
+      expect(await puzzleContract.verifyClaim(investor1.address)).to.equal(
+        true
+      );
+    });
     it("Investor should be able to call  claim (to claim a NFT Puzzle) after having invested the minimum amount required", async () => {
       const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
 
@@ -463,6 +469,8 @@ describe("Puzzle Contract", async () => {
         "Cannot have more than 1"
       );
     });
-    it("Mint cannot surpass collection limit", async () => {});
+    it('Mint cannot surpass collection limit', async () => {
+
+    });
   });
 });
