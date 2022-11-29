@@ -21,12 +21,14 @@ const INVESTMENT_1_AMOUNT = 100000,
   STATUS_PROCESS = 2,
   STATUS_WITHDRAW = 3,
   STATUS_REFUNDING = 4,
-  PAYMENT_TOKEN_AMOUNT = 20000,
   INVESTOR1_INVESTMENT_AMOUNT = 100000,
+  GENERAL_ACCOUNT_AMOUNT = 20000,
+  GENERAL_INVEST_AMOUNT = 9500,
   LESS_THAN_EXPECTED_INV_AMOUNT = 99,
   MORE_THAN_EXPECTED_INV_AMOUNT = INVESTMENT_1_AMOUNT / 2,
   EXPECTED_INV_AMOUNT1 = INVESTMENT_1_AMOUNT / 10 - 1,
-  ENTRY_LEVEL_NFT_ID = 10;
+  ENTRY_LEVEL_NFT_ID = 10,
+  PAYMENT_TOKEN_AMOUNT = 20000;
 
 describe("Investment Contract Tests", async () => {
   let investmentContract: Investment,
@@ -69,6 +71,7 @@ describe("Investment Contract Tests", async () => {
       owner,
       investor1,
       investor2,
+      accounts,
       paymentTokenContract,
       puzzleContract,
       factoryContract,
@@ -98,6 +101,48 @@ describe("Investment Contract Tests", async () => {
       investor1,
       investmentContract,
       paymentTokenContract,
+    };
+  }
+
+  async function oneInvestCallLeftToFill() {
+    const {
+      investor1,
+      accounts,
+      investmentContract,
+      paymentTokenContract,
+      puzzleContract,
+    } = await loadFixture(deployContractFixture);
+
+    //MAke 9500 investments on 10 accounts (total of 95.000 invested)
+    for (let i = 0; i <= 9; i++) {
+      //Mint and Approve fake coin spending
+      //Mint fake coin
+      await paymentTokenContract
+        .connect(accounts[i])
+        .mint(GENERAL_ACCOUNT_AMOUNT);
+      //Approve fake coin spending
+      await paymentTokenContract
+        .connect(accounts[i])
+        .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT);
+      await paymentTokenContract
+        .connect(accounts[i])
+        .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT);
+      //Buy NFT Entry for each user
+      await puzzleContract.connect(accounts[i]).mintEntry();
+      //Make 9500 investment
+      await investmentContract
+        .connect(accounts[i])
+        .invest(GENERAL_INVEST_AMOUNT);
+    }
+
+    const crucialInvestor = accounts[10];
+
+    return {
+      investor1,
+      investmentContract,
+      paymentTokenContract,
+      crucialInvestor,
+      puzzleContract,
     };
   }
   async function ownerAndInvestor1AbleToMintFixture() {
@@ -157,6 +202,7 @@ describe("Investment Contract Tests", async () => {
 
     return { factoryContract, deployedInvestmentAddress };
   }
+
   describe("When the contract is deployed", async function () {
     it("Should set the right owner", async () => {
       const { owner, investmentContract } = await loadFixture(
@@ -241,6 +287,44 @@ describe("Investment Contract Tests", async () => {
         )
           .to.emit(investmentContract, "UserInvest")
           .withArgs(investor1.address, EXPECTED_INV_AMOUNT1, anyValue);
+      });
+      it("Should mint the exact same value as the investment ", async () => {
+        const { investmentContract, investor1 } = await loadFixture(
+          investorApprovedTokenToSpend
+        );
+        await investmentContract
+          .connect(investor1)
+          .invest(EXPECTED_INV_AMOUNT1);
+        expect(await investmentContract.balanceOf(investor1.address)).to.equal(
+          EXPECTED_INV_AMOUNT1
+        );
+      });
+      it("Investor should not be allowed to surpass totalInvestment when investing", async () => {
+        const {
+          investmentContract,
+          crucialInvestor,
+          paymentTokenContract,
+          puzzleContract,
+        } = await loadFixture(oneInvestCallLeftToFill);
+        //Min and approve crucialInvestor TestCoin
+        await paymentTokenContract
+          .connect(crucialInvestor)
+          .mint(GENERAL_ACCOUNT_AMOUNT);
+        await paymentTokenContract
+          .connect(crucialInvestor)
+          .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT);
+        await paymentTokenContract
+          .connect(crucialInvestor)
+          .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT);
+
+        //Mint NFTEntry for crucialInvestor
+        await puzzleContract.connect(crucialInvestor).mintEntry();
+        //Test user tryign to invest 9500 when there is only 5000 left
+        await expect(
+          investmentContract
+            .connect(crucialInvestor)
+            .invest(GENERAL_INVEST_AMOUNT)
+        ).to.be.revertedWith("Total reached");
       });
     });
   });

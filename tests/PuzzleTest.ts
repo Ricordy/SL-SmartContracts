@@ -143,16 +143,15 @@ describe("Puzzle Contract", async () => {
       .connect(investor1)
       .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
 
-    await puzzleContract.connect(investor1).mintEntry();
+    puzzleContract.connect(investor1).mintEntry();
 
-    const tx = await factoryContract.deployNew(
+    const deployNewTx = await factoryContract.deployNew(
       INVESTMENT1_AMOUNT,
       paymentTokenContract.address
     );
 
     const deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract();
-
     const investmentFactory = new Investment__factory(owner);
     const investmentContract = investmentFactory.attach(
       deployedInvestmentAddress
@@ -241,12 +240,12 @@ describe("Puzzle Contract", async () => {
         ({ puzzleContract } = await loadFixture(deployContractFixture));
         baseUriFromContract = await puzzleContract.base_uri();
       });
-      it("Get the right metadata", async () => {
+      it("Get the right metadata - TO REVIEW", async () => {
         expect(await puzzleContract.tokenURI(1)).to.equal(
           `${baseUriFromContract}/1.json`
         );
       });
-      it("Get the right metadata via uri() function", async () => {
+      it("Get the right metadata via uri() function  - TO REVIEW", async () => {
         expect(await puzzleContract.uri(1)).to.equal(
           `${baseUriFromContract}/1.json`
         );
@@ -324,22 +323,20 @@ describe("Puzzle Contract", async () => {
       );
       const maxPerCollection = await puzzleContract.MAX_PER_COLLECTION();
 
-      for (let i = 0; i <= maxPerCollection.toNumber(); i++) {
+      for (let i = 0; i < accounts.length; i++) {
         await paymentTokenContract
           .connect(accounts[i])
           .mint(PAYMENT_TOKEN_AMOUNT);
         await paymentTokenContract
           .connect(accounts[i])
           .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
-        if (i < maxPerCollection.toNumber()) {
+        if (i < accounts.length - 1) {
           await puzzleContract.connect(accounts[i]).mintEntry();
         }
       }
 
       await expect(
-        puzzleContract
-          .connect(accounts[maxPerCollection.toNumber()])
-          .mintEntry()
+        puzzleContract.connect(accounts[accounts.length - 1]).mintEntry()
       ).to.be.revertedWith("Collection limit reached");
     });
   });
@@ -361,6 +358,13 @@ describe("Puzzle Contract", async () => {
   describe("Claim Puzzle NFT", async () => {
     beforeEach(async () => {
       //({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
+    });
+    it("Investor should be able to call verifyClaim (to claim an NFT Puzzle) after having invested the minimum amount required", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
+
+      expect(await puzzleContract.verifyClaim(investor1.address)).to.equal(
+        true
+      );
     });
     it("Investor should be able to call  claim (to claim a NFT Puzzle) after having invested the minimum amount required", async () => {
       const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
