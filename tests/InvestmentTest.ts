@@ -21,10 +21,12 @@ const INVESTMENT_1_AMOUNT = 100000,
   STATUS_PROCESS = 2,
   STATUS_WITHDRAW = 3,
   STATUS_REFUNDING = 4,
-  INVESTOR1_AMOUNT = 100000,
+  PAYMENT_TOKEN_AMOUNT = 20000,
+  INVESTOR1_INVESTMENT_AMOUNT = 100000,
   LESS_THAN_EXPECTED_INV_AMOUNT = 99,
   MORE_THAN_EXPECTED_INV_AMOUNT = INVESTMENT_1_AMOUNT / 2,
-  EXPECTED_INV_AMOUNT1 = INVESTMENT_1_AMOUNT / 10 - 1;
+  EXPECTED_INV_AMOUNT1 = INVESTMENT_1_AMOUNT / 10 - 1,
+  ENTRY_LEVEL_NFT_ID = 10;
 
 describe("Investment Contract Tests", async () => {
   let investmentContract: Investment,
@@ -81,13 +83,15 @@ describe("Investment Contract Tests", async () => {
       paymentTokenContract,
       puzzleContract,
     } = await loadFixture(deployContractFixture);
-    await paymentTokenContract.connect(investor1).mint(INVESTOR1_AMOUNT);
     await paymentTokenContract
       .connect(investor1)
-      .approve(investmentContract.address, INVESTOR1_AMOUNT);
+      .mint(INVESTOR1_INVESTMENT_AMOUNT);
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, INVESTOR1_AMOUNT);
+      .approve(investmentContract.address, INVESTOR1_INVESTMENT_AMOUNT);
+    await paymentTokenContract
+      .connect(investor1)
+      .approve(puzzleContract.address, INVESTOR1_INVESTMENT_AMOUNT);
     await puzzleContract.connect(investor1).mintEntry();
 
     return {
@@ -95,6 +99,63 @@ describe("Investment Contract Tests", async () => {
       investmentContract,
       paymentTokenContract,
     };
+  }
+  async function ownerAndInvestor1AbleToMintFixture() {
+    const { paymentTokenContract, puzzleContract } = await loadFixture(
+      deployContractFixture
+    );
+    // Mint PaymentTokens to the owner
+    await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
+    // Mint PaymentTokens to the investor1
+    await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
+    // Approve Puzzle contract to spend Owner's PaymentTokens
+    await paymentTokenContract.approve(
+      puzzleContract.address,
+      PAYMENT_TOKEN_AMOUNT
+    );
+    // Approve Puzzle contract to spend Investor1's PaymentTokens
+    await paymentTokenContract
+      .connect(investor1)
+      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+    return { paymentTokenContract, puzzleContract };
+  }
+
+  async function investor1readyToClaimNFT() {
+    const { paymentTokenContract, puzzleContract, factoryContract } =
+      await loadFixture(deployContractFixture);
+
+    // Mint PaymentTokens to investor
+    await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
+
+    await paymentTokenContract
+      .connect(investor1)
+      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+
+    await puzzleContract.connect(investor1).mintEntry();
+
+    const tx = await factoryContract.deployNew(
+      INVESTMENT_1_AMOUNT,
+      paymentTokenContract.address
+    );
+
+    const deployedInvestmentAddress =
+      await factoryContract.getLastDeployedContract();
+
+    const investmentFactory = new Investment__factory(owner);
+    const investmentContract = investmentFactory.attach(
+      deployedInvestmentAddress
+    );
+
+    // Allow investment contract to spend
+    await paymentTokenContract
+      .connect(investor1)
+      .approve(investmentContract.address, INVESTOR1_INVESTMENT_AMOUNT);
+    // Invest an amount on investment1
+    await investmentContract
+      .connect(investor1)
+      .invest(INVESTOR1_INVESTMENT_AMOUNT);
+
+    return { factoryContract, deployedInvestmentAddress };
   }
   describe("When the contract is deployed", async function () {
     it("Should set the right owner", async () => {
@@ -189,13 +250,34 @@ describe("Investment Contract Tests", async () => {
     });
   });
   describe("STATUS: WITHDRAW", async () => {
-    beforeEach(async () => {
-      const { investmentContract } = await loadFixture(deployContractFixture);
-      await investmentContract.flipWithdraw();
-    });
-    it('Should set the status to "withdraw"', async () => {
-      const contractStatus = await investmentContract.state();
-      expect(contractStatus).to.be.equal(STATUS_WITHDRAW);
+    describe("Pre-Withdraw", async () => {
+      beforeEach(async () => {
+        const { investmentContract } = await loadFixture(deployContractFixture);
+        await investmentContract.flipWithdraw();
+      });
+      it('Should set the status to "withdraw"', async () => {
+        const contractStatus = await investmentContract.state();
+        expect(contractStatus).to.be.equal(STATUS_WITHDRAW);
+      });
+      it("Investor should have the Entry NFT", async () => {
+        const { puzzleContract } = await loadFixture(
+          ownerAndInvestor1AbleToMintFixture
+        );
+        await puzzleContract.connect(investor1).mintEntry();
+        const investor1HasEntryNFT = await puzzleContract.balanceOf(
+          investor1.address,
+          ENTRY_LEVEL_NFT_ID
+        );
+        expect(investor1HasEntryNFT).to.be.eq(1);
+      });
+      it("Investor should have invested to be able to withdraw", async () => {
+        // const { factoryContract, deployedInvestmentAddress } =
+        //   await loadFixture(investor1readyToClaimNFT);
+        // const amountInvested = await factoryContract.getAddressOnContract(
+        //   deployedInvestmentAddress
+        // );
+        // console.log(amountInvested);
+      });
     });
   });
 });
