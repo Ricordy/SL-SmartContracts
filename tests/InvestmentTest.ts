@@ -28,7 +28,9 @@ const INVESTMENT_1_AMOUNT = 100000,
   MORE_THAN_EXPECTED_INV_AMOUNT = INVESTMENT_1_AMOUNT / 2,
   EXPECTED_INV_AMOUNT1 = INVESTMENT_1_AMOUNT / 10 - 1,
   ENTRY_LEVEL_NFT_ID = 10,
-  PAYMENT_TOKEN_AMOUNT = 200000;
+  PAYMENT_TOKEN_AMOUNT = 200000,
+  REFILL_VALUE = INVESTMENT_1_AMOUNT,
+  PROFIT_RATE = 15;
 
 describe("Investment Contract Tests", async () => {
   let investmentContract: Investment,
@@ -83,13 +85,21 @@ describe("Investment Contract Tests", async () => {
     };
   }
 
-  async function investorApprovedTokenToSpend() {
+  async function ownerAndInvestorApprovedTokenToSpend() {
     const {
+      owner,
       investor1,
       investmentContract,
       paymentTokenContract,
       puzzleContract,
     } = await loadFixture(deployContractFixture);
+    await paymentTokenContract
+      .mint(INVESTOR1_INVESTMENT_AMOUNT);
+    await paymentTokenContract
+      .approve(investmentContract.address, INVESTOR1_INVESTMENT_AMOUNT);
+    await paymentTokenContract
+      .approve(puzzleContract.address, INVESTOR1_INVESTMENT_AMOUNT);
+    await puzzleContract.mintEntry();
     await paymentTokenContract
       .connect(investor1)
       .mint(INVESTOR1_INVESTMENT_AMOUNT);
@@ -102,6 +112,7 @@ describe("Investment Contract Tests", async () => {
     await puzzleContract.connect(investor1).mintEntry();
 
     return {
+      owner,
       investor1,
       investmentContract,
       paymentTokenContract,
@@ -272,7 +283,7 @@ describe("Investment Contract Tests", async () => {
       });
       it("Investor should not be allowed to invest less than the minimum required", async () => {
         const { investmentContract, investor1 } = await loadFixture(
-          investorApprovedTokenToSpend
+          ownerAndInvestorApprovedTokenToSpend
         );
         await expect(
           investmentContract
@@ -282,7 +293,7 @@ describe("Investment Contract Tests", async () => {
       });
       it("Investor should not be allowed to invest more than 10% of total investment", async () => {
         const { investmentContract, investor1 } = await loadFixture(
-          investorApprovedTokenToSpend
+          ownerAndInvestorApprovedTokenToSpend
         );
         await expect(
           investmentContract
@@ -292,7 +303,7 @@ describe("Investment Contract Tests", async () => {
       });
       it("Investor should be allowed to invest", async () => {
         const { investmentContract, investor1 } = await loadFixture(
-          investorApprovedTokenToSpend
+          ownerAndInvestorApprovedTokenToSpend
         );
         await expect(
           investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1)
@@ -302,7 +313,7 @@ describe("Investment Contract Tests", async () => {
       });
       it("Should mint the exact same value as the investment ", async () => {
         const { investmentContract, investor1 } = await loadFixture(
-          investorApprovedTokenToSpend
+          ownerAndInvestorApprovedTokenToSpend
         );
         await investmentContract
           .connect(investor1)
@@ -339,6 +350,22 @@ describe("Investment Contract Tests", async () => {
         ).to.be.revertedWith("Total reached");
       });
     });
+    describe("Withdraw && WithdrawSL && Refill", async () => {
+      it("Withdraw function shouldnt be able to be called", async () => {
+        const { investmentContract, investor1 } = await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+        await expect(investmentContract.connect(investor1).withdraw()).to.be.revertedWith("Not on withdraw")
+      });
+      it("WithdrawSL function shouldnt be able to be called", async () => {
+        const { investmentContract, owner } = await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+        await expect(investmentContract.connect(owner).withdrawSL()).to.be.revertedWith("Not on process")
+
+      });
+      it("Refill function shouldnt be able to be called", async () => {
+        const { investmentContract } = await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+        await expect(investmentContract.refill(REFILL_VALUE, PROFIT_RATE)).to.be.revertedWith("Not on process")
+
+      });
+    }); 
   });
   describe("STATUS: PROCESS", async () => {
     it('Should set the status to "progress"', async () => {

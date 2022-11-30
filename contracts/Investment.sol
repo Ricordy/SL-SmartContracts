@@ -136,27 +136,27 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //---- MODIFIERS------
     /// 
     modifier isPaused() {
-        require(state != Status.Pause);
+        require(state != Status.Pause, "Contract paused");
         _;
     }
 
     modifier isProgress() {
-        require(state == Status.Progress);
+        require(state == Status.Progress, "Not on progress");
         _;
     }
 
     modifier isProcess() {
-        require(state == Status.Progress);
+        require(state == Status.Process, "Not on process");
         _;
     }
 
     modifier isWithdraw() {
-        require(state == Status.Withdraw);
+        require(state == Status.Withdraw, "Not on withdraw");
         _;
     }
 
     modifier isRefunding() {
-        require(state == Status.Refunding);
+        require(state == Status.Refunding, "Not on refunding");
         _;
     }
 
