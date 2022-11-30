@@ -385,7 +385,7 @@ describe("Investment Contract Tests", async () => {
       it("Investors should not be able to call",async () => {
         await expect(investmentContract.connect(investor1).withdrawSL()).to.be.revertedWith("Ownable: caller is not the owner");
       });
-      it("Investors should not be able to calls",async () => {
+      it("Owner should be able to withdraw all funds and contract balance should be 0",async () => {
         await investmentContract.withdrawSL()
         expect(await investmentContract.totalContractBalanceStable(paymentTokenContract.address)).to.equal(0);
       });
