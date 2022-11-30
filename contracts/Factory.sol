@@ -4,31 +4,27 @@ pragma solidity ^0.8.9;
 import "./Investment.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-contract Factory is Ownable {
 
+contract Factory is Ownable {
 
     Investment[] deployed;
     address lgentry;
     uint public counter;
-    
-
-
 
     event ContractCreated (
         uint256 ContractID/*,
         address conAddress*/
     );
-
     constructor() {
     }
 
-
-    function deployNew(uint256 totalInvestment, address stableContractAddress) public returns (address) {
+    function deployNew(uint256 totalInvestment, address paymentTokenAddress) external returns (address) {
         counter++;
-        Investment inv = new Investment(totalInvestment, lgentry, stableContractAddress);
+        Investment inv = new Investment(totalInvestment, lgentry, paymentTokenAddress);
 
         deployed.push(inv);
         console.log('Contract created',address(inv));
+        // console.log(msg.sender);
         emit ContractCreated(counter/*, address(inv)*/);
         return address(inv);
     }
@@ -57,5 +53,4 @@ contract Factory is Ownable {
             contractAddress = address(0);
         }
     }
-
 }

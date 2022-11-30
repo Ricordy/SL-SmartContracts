@@ -29,6 +29,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     uint256 returnProfit;
     address public paymentTokenAddress = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
     address public entryNFTAddress;
+    uint256 public constant MINIMUM_INVESTMENT = 100;
 
     ///
     //-----EVENTS------
@@ -70,7 +71,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //-----MAIN FUNCTIONS------
     ///
     function invest(uint256 _amount) public nonReentrant isAllowed isProgress isPaused{
-        require(_amount >= 100, "Not enough amount to invest");
+        require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
         require(_amount <= totalInvestment / 10 , "Amount exceed the total allowed");
         
         ERC20 _token = ERC20(paymentTokenAddress);
@@ -160,7 +161,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     modifier isAllowed() {
-        require(ERC1155(entryNFTAddress).balanceOf(msg.sender, 10) > 0, "Not accessible");
+        require(ERC1155(entryNFTAddress).balanceOf(msg.sender, 10) > 0, "User does not have the Entry NFT");
         _;
     }
 

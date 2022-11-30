@@ -28,7 +28,7 @@ const INVESTMENT_1_AMOUNT = 100000,
   MORE_THAN_EXPECTED_INV_AMOUNT = INVESTMENT_1_AMOUNT / 2,
   EXPECTED_INV_AMOUNT1 = INVESTMENT_1_AMOUNT / 10 - 1,
   ENTRY_LEVEL_NFT_ID = 10,
-  PAYMENT_TOKEN_AMOUNT = 20000;
+  PAYMENT_TOKEN_AMOUNT = 200000;
 
 describe("Investment Contract Tests", async () => {
   let investmentContract: Investment,
@@ -55,12 +55,16 @@ describe("Investment Contract Tests", async () => {
     // Deploy Factory contract from the factory
     factoryContract = await factoryContractFactory.deploy();
     await factoryContract.deployed();
+
     // Deploy Puzzle contract from the factory passing Factory and PaymentToken deployed contract addresses
     puzzleContract = await puzzleContractFactory.deploy(
       factoryContract.address,
       paymentTokenContract.address
     );
     await puzzleContract.deployed();
+
+    // Set the Puzzle contract deployed as entry address on Factory contract
+    await factoryContract.setEntryAddress(puzzleContract.address);
 
     investmentContract = await investmentContractFactory.deploy(
       INVESTMENT_1_AMOUNT,
@@ -165,7 +169,7 @@ describe("Investment Contract Tests", async () => {
     return { paymentTokenContract, puzzleContract };
   }
 
-  async function investor1readyToClaimNFT() {
+  async function investor1ReadyToClaimNFT() {
     const { paymentTokenContract, puzzleContract, factoryContract } =
       await loadFixture(deployContractFixture);
 
@@ -178,7 +182,7 @@ describe("Investment Contract Tests", async () => {
 
     await puzzleContract.connect(investor1).mintEntry();
 
-    const tx = await factoryContract.deployNew(
+    await factoryContract.deployNew(
       INVESTMENT_1_AMOUNT,
       paymentTokenContract.address
     );
@@ -186,21 +190,29 @@ describe("Investment Contract Tests", async () => {
     const deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract();
 
-    const investmentFactory = new Investment__factory(owner);
-    const investmentContract = investmentFactory.attach(
+    // const investmentFactory = new Investment__factory(owner);
+    const investmentFactory = await ethers.getContractFactory("Investment");
+    // (await investmentFactory).deploy();
+    const investmentContract = await investmentFactory.attach(
       deployedInvestmentAddress
     );
+    console.log("owner from fixture", await investmentContract.owner());
 
     // Allow investment contract to spend
     await paymentTokenContract
       .connect(investor1)
-      .approve(investmentContract.address, INVESTOR1_INVESTMENT_AMOUNT);
+      .approve(investmentContract.address, EXPECTED_INV_AMOUNT1);
     // Invest an amount on investment1
-    await investmentContract
-      .connect(investor1)
-      .invest(INVESTOR1_INVESTMENT_AMOUNT);
+    await investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1);
 
-    return { factoryContract, deployedInvestmentAddress };
+    return {
+      owner,
+      investor1,
+      factoryContract,
+      deployedInvestmentAddress,
+      investmentContract,
+      paymentTokenContract,
+    };
   }
 
   describe("When the contract is deployed", async function () {
@@ -256,9 +268,9 @@ describe("Investment Contract Tests", async () => {
           investmentContract
             .connect(investor1)
             .invest(LESS_THAN_EXPECTED_INV_AMOUNT)
-        ).to.be.revertedWith("Not accessible");
+        ).to.be.revertedWith("User does not have the Entry NFT");
       });
-      it("Investor should not be allowed to invest less than 100", async () => {
+      it("Investor should not be allowed to invest less than the minimum required", async () => {
         const { investmentContract, investor1 } = await loadFixture(
           investorApprovedTokenToSpend
         );
@@ -354,13 +366,39 @@ describe("Investment Contract Tests", async () => {
         );
         expect(investor1HasEntryNFT).to.be.eq(1);
       });
-      it("Investor should have invested to be able to withdraw", async () => {
-        // const { factoryContract, deployedInvestmentAddress } =
-        //   await loadFixture(investor1readyToClaimNFT);
-        // const amountInvested = await factoryContract.getAddressOnContract(
-        //   deployedInvestmentAddress
-        // );
-        // console.log(amountInvested);
+      it("Investor should have invested at least the minimum amount to be able to withdraw", async () => {
+        const { factoryContract, deployedInvestmentAddress } =
+          await loadFixture(investor1ReadyToClaimNFT);
+        const minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
+        const amountInvested = await factoryContract
+          .connect(investor1)
+          .getAddressOnContract(deployedInvestmentAddress);
+
+        expect(amountInvested).to.be.greaterThanOrEqual(minimunInvestment);
+      });
+    });
+    describe("After Withdraw", async () => {
+      // beforeEach(async () => {
+      //   ({ investmentContract, paymentTokenContract } = await loadFixture(
+      //     investor1ReadyToClaimNFT
+      //   ));
+      //   await investmentContract.flipWithdraw();
+      // });
+      it("Investor should burn all the ERC20 tokens", async () => {
+        const { owner, investmentContract, paymentTokenContract } =
+          await loadFixture(investor1ReadyToClaimNFT);
+        console.log("owner", owner.address);
+        console.log("from contract", await investmentContract.owner());
+        // console.log(accounts.map((account) => account.address));
+
+        // console.log(owner.address, investor1.address, investor2.address);
+
+        await investmentContract.connect(owner).flipWithdraw();
+
+        // const tokensBeforeWithdraw = await investmentContract
+        //   .connect(investor1)
+        //   .balanceOf(investor1.address);
+        // console.log(tokensBeforeWithdraw);
       });
     });
   });
