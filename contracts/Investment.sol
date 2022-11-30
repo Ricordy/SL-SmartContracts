@@ -29,7 +29,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     Status public state;
     uint256 public totalInvestment;
-    uint256 returnProfit;
+    uint256 public returnProfit;
     address public paymentTokenAddress = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
     address public entryNFTAddress;
     uint256 public constant MINIMUM_INVESTMENT = 100;
@@ -114,8 +114,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     function refill(uint256 _amount, uint256 profitRate) public onlyOwner isAllowed isProcess isPaused {
         ERC20 _token = ERC20(paymentTokenAddress);
-        require(totalContractBalanceStable(_token) == 0); //Verificar com mercado secundário
-        require(totalInvestment + (totalInvestment * profitRate /100) == _amount); //Implementar com taxa de retorno
+        require(totalContractBalanceStable(_token) == 0, "Contract still have funds"); //Verificar com mercado secundário
+        require(totalInvestment + (totalInvestment * profitRate /100) == _amount, "Not correct value"); //Implementar com taxa de retorno
         _token.transferFrom(msg.sender, address(this), _amount);
         returnProfit = profitRate;
 
@@ -133,6 +133,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     function calculateFinalAmount(uint256 _amount) internal view returns(uint256 totalAmount) {
         totalAmount = _amount + (_amount * returnProfit / 100);
+    }
+
+    function profitRate() public view returns(uint256 profit){
+        profit = returnProfit;
     }
 
     /// 

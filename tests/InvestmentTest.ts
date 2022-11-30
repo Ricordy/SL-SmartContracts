@@ -29,8 +29,9 @@ const INVESTMENT_1_AMOUNT = 100000,
   EXPECTED_INV_AMOUNT1 = INVESTMENT_1_AMOUNT / 10 - 1,
   ENTRY_LEVEL_NFT_ID = 10,
   PAYMENT_TOKEN_AMOUNT = 200000,
-  REFILL_VALUE = INVESTMENT_1_AMOUNT,
+  REFILL_VALUE = INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT/100 * 15),
   PROFIT_RATE = 15;
+
 
 describe("Investment Contract Tests", async () => {
   let investmentContract: Investment,
@@ -389,8 +390,54 @@ describe("Investment Contract Tests", async () => {
         await investmentContract.withdrawSL()
         expect(await investmentContract.totalContractBalanceStable(paymentTokenContract.address)).to.equal(0);
       });
+      it("Should not be called when contract balance is less than 80%", async () => {
+        //Talk to Cadu: beforeEach problem (cannot have a clean contract without withdrawing first)
+        await investmentContract.withdrawSL()
+        await expect(investmentContract.withdrawSL()).to.be.revertedWith("Total not reached");
+      });
 
     });
+    describe("Function Refill", async () => {
+      beforeEach("set state to process", async () => {
+        const {investmentContract, investor1, paymentTokenContract} = await loadFixture(oneInvestCallLeftToFill);
+        await paymentTokenContract.mint(INVESTMENT_1_AMOUNT);
+        await paymentTokenContract.approve(investmentContract.address, INVESTMENT_2_AMOUNT);
+        await investmentContract.flipProcess();
+        return {investmentContract, investor1, paymentTokenContract};
+      });
+      it("Investors should not be able to call",async () => {
+        await expect(investmentContract.connect(investor1).refill(REFILL_VALUE, PROFIT_RATE)).to.be.revertedWith("Ownable: caller is not the owner");
+      });
+      it("Cannot refill while contract still have funds!",async () => {
+        await expect(investmentContract.refill(REFILL_VALUE, PROFIT_RATE)).to.be.revertedWith("Contract still have funds");
+      });
+      it("Cannot call function with wrong amount to refill (totalInvestment * profitRate) == amount(refilled) ",async () => {
+        await investmentContract.withdrawSL()
+        await expect(investmentContract.refill(REFILL_VALUE - 100, PROFIT_RATE)).to.be.revertedWith("Not correct value");
+      });
+      it("Owner should be able to refill contarct",async () => {
+        await investmentContract.withdrawSL()
+        await expect(investmentContract.refill(REFILL_VALUE, PROFIT_RATE)).to.emit(investmentContract, "ContractRefilled").withArgs(REFILL_VALUE, PROFIT_RATE, anyValue);
+      });
+      it("should set global variable returnProfit = ProfitRate", async () => {
+        //Talk to Cadu: beforeEach problem (cannot have a clean contract without withdrawing first)
+        await investmentContract.withdrawSL()
+        await investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
+        expect(await investmentContract.profitRate()).to.equal(PROFIT_RATE);
+      });
+
+
+    });
+    describe("Withdraw && Invest", async () => {
+      it("Withdraw function shouldnt be able to be called", async () => {
+        await expect(investmentContract.connect(investor1).withdraw()).to.be.revertedWith("Not on withdraw")
+      });
+      it("Invest function shouldnt be able to be called", async () => {
+        await expect(investmentContract.connect(investor1).invest(100)).to.be.revertedWith("Not on progress")
+      });
+    }); 
+
+
   });
   describe("STATUS: WITHDRAW", async () => {
     describe("Pre-Withdraw", async () => {
