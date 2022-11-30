@@ -63,7 +63,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress) ERC20("InvestmentCurrency", "IC"){
+    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress, address _owner) ERC20("InvestmentCurrency", "IC"){
+        _transferOwnership(_owner);
         totalInvestment = _totalInvestment;
         entryNFTAddress = _entryNFTAddress;
         paymentTokenAddress = _paymentTokenAddress;
@@ -105,7 +106,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     function withdrawSL() public onlyOwner isAllowed isProcess isPaused {
         ERC20 _token = ERC20(paymentTokenAddress);
         
-        require(_token.balanceOf(address(this)) >= totalInvestment.div(100).mul(80), "Total not reached"); // TODO: fazer para 80%
+        require(_token.balanceOf(address(this)) >= totalInvestment.div(100).mul(80), "Total not reached"); 
         _token.transfer(msg.sender, totalContractBalanceStable(_token));
 
         emit SLWithdraw(totalInvestment, block.timestamp);

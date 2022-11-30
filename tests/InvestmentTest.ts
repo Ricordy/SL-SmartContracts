@@ -312,7 +312,7 @@ describe("Investment Contract Tests", async () => {
           .to.emit(investmentContract, "UserInvest")
           .withArgs(investor1.address, EXPECTED_INV_AMOUNT1, anyValue);
       });
-      it("Should mint the exact same value as the investment ", async () => {
+      it("Should mint the exact same value of ERC20 tracker token as the amount investment", async () => {
         const { investmentContract, investor1 } = await loadFixture(
           ownerAndInvestorApprovedTokenToSpend
         );
@@ -349,9 +349,6 @@ describe("Investment Contract Tests", async () => {
             .connect(crucialInvestor)
             .invest(GENERAL_INVEST_AMOUNT)
         ).to.be.revertedWith("Total reached");
-      });
-      it("Should mint the exact same value of ERC20 tracker token as the amount investment", async () => {
-
       });
     });
     describe("Withdraw && WithdrawSL && Refill", async () => {
@@ -391,7 +388,6 @@ describe("Investment Contract Tests", async () => {
         expect(await investmentContract.totalContractBalanceStable(paymentTokenContract.address)).to.equal(0);
       });
       it("Should not be called when contract balance is less than 80%", async () => {
-        //Talk to Cadu: beforeEach problem (cannot have a clean contract without withdrawing first)
         await investmentContract.withdrawSL()
         await expect(investmentContract.withdrawSL()).to.be.revertedWith("Total not reached");
       });
@@ -415,7 +411,7 @@ describe("Investment Contract Tests", async () => {
         await investmentContract.withdrawSL()
         await expect(investmentContract.refill(REFILL_VALUE - 100, PROFIT_RATE)).to.be.revertedWith("Not correct value");
       });
-      it("Owner should be able to refill contarct",async () => {
+      it("Owner should be able to refill contract",async () => {
         await investmentContract.withdrawSL()
         await expect(investmentContract.refill(REFILL_VALUE, PROFIT_RATE)).to.emit(investmentContract, "ContractRefilled").withArgs(REFILL_VALUE, PROFIT_RATE, anyValue);
       });
