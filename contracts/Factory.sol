@@ -20,7 +20,8 @@ contract Factory is Ownable {
 
     function deployNew(uint256 totalInvestment, address paymentTokenAddress) onlyOwner external returns (address) {
         counter++;
-        Investment inv = new Investment(totalInvestment, lgentry, paymentTokenAddress, msg.sender);
+        Investment inv = new Investment(totalInvestment, lgentry, paymentTokenAddress);
+        inv.transferOwnership(msg.sender);
 
         deployed.push(inv);
         console.log('Contract created',address(inv));

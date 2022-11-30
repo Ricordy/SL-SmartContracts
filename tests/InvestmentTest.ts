@@ -72,7 +72,7 @@ describe("Investment Contract Tests", async () => {
     investmentContract = await investmentContractFactory.deploy(
       INVESTMENT_1_AMOUNT,
       puzzleContract.address,
-      paymentTokenContract.address
+      paymentTokenContract.address,
     );
     return {
       owner,

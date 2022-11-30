@@ -63,8 +63,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress, address _owner) ERC20("InvestmentCurrency", "IC"){
-        _transferOwnership(_owner);
+    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
         entryNFTAddress = _entryNFTAddress;
         paymentTokenAddress = _paymentTokenAddress;
