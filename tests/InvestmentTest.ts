@@ -349,6 +349,9 @@ describe("Investment Contract Tests", async () => {
             .invest(GENERAL_INVEST_AMOUNT)
         ).to.be.revertedWith("Total reached");
       });
+      it("Should mint the exact same value of ERC20 tracker token as the amount investment", async () => {
+
+      });
     });
     describe("Withdraw && WithdrawSL && Refill", async () => {
       it("Withdraw function shouldnt be able to be called", async () => {
@@ -368,8 +371,25 @@ describe("Investment Contract Tests", async () => {
     }); 
   });
   describe("STATUS: PROCESS", async () => {
-    it('Should set the status to "progress"', async () => {
-      throw new Error("Not implemented");
+    it('Should set the status to "process"', async () => {
+      const {investmentContract} = await loadFixture(oneInvestCallLeftToFill);
+      await investmentContract.flipProcess();
+      expect(await investmentContract.state()).to.equal(STATUS_PROCESS);
+    });
+    describe("Function WithdrawSL", async () => {
+      beforeEach("set state to process", async () => {
+        const {investmentContract, investor1, paymentTokenContract} = await loadFixture(oneInvestCallLeftToFill);
+        await investmentContract.flipProcess();
+        return {investmentContract, investor1, paymentTokenContract};
+      });
+      it("Investors should not be able to call",async () => {
+        await expect(investmentContract.connect(investor1).withdrawSL()).to.be.revertedWith("Ownable: caller is not the owner");
+      });
+      it("Investors should not be able to calls",async () => {
+        await investmentContract.withdrawSL()
+        expect(await investmentContract.totalContractBalanceStable(paymentTokenContract.address)).to.equal(0);
+      });
+
     });
   });
   describe("STATUS: WITHDRAW", async () => {

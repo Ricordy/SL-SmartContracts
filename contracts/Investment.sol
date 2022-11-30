@@ -6,10 +6,13 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 
 contract Investment is ERC20, Ownable, ReentrancyGuard {
 
+
+    using SafeMath for uint256;
     ///
     //-----STATUS------
     ///
@@ -102,8 +105,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     function withdrawSL() public onlyOwner isAllowed isProcess isPaused {
         ERC20 _token = ERC20(paymentTokenAddress);
         
-        require(_token.balanceOf(address(this)) >= totalInvestment, "Total not reached"); // TODO: fazer para 80%
-        _token.transferFrom(address(this), msg.sender, totalContractBalanceStable(_token));
+        require(_token.balanceOf(address(this)) >= totalInvestment.div(100).mul(80), "Total not reached"); // TODO: fazer para 80%
+        _token.transfer(msg.sender, totalContractBalanceStable(_token));
 
         emit SLWithdraw(totalInvestment, block.timestamp);
 
