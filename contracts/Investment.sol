@@ -78,7 +78,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(_amount <= totalInvestment / 10 , "Amount exceed the total allowed");
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        require(_token.balanceOf(address(this)) + _amount < totalInvestment, "Total reached");
+        require(_token.balanceOf(address(this)) + _amount <= totalInvestment, "Total reached");
         
         require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
         _token.transferFrom(msg.sender, address(this), _amount);
@@ -89,17 +89,17 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function withdraw() public nonReentrant isPaused isAllowed isWithdraw isRefunding{
+    function withdraw() public nonReentrant isPaused isAllowed isWithdrawOrRefunding {
         uint256 balance = balanceOf(msg.sender);
         require(balance > 0, "not invested");
         
         _burn(msg.sender, balance);
 
         ERC20 _token = ERC20(paymentTokenAddress);
-        _token.transferFrom(address(this), msg.sender, calculateFinalAmount(balance));
+        uint256 finalAmount = calculateFinalAmount(balance);
+        _token.transfer(msg.sender, finalAmount);
 
-        emit Withdraw(msg.sender, calculateFinalAmount(balance), block.timestamp);
-        
+        emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
 
     function withdrawSL() public onlyOwner isAllowed isProcess isPaused {
@@ -112,14 +112,14 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function refill(uint256 _amount, uint256 profitRate) public onlyOwner isAllowed isProcess isPaused {
+    function refill(uint256 _amount, uint256 _profitRate) public onlyOwner isAllowed isProcess isPaused {
         ERC20 _token = ERC20(paymentTokenAddress);
         require(totalContractBalanceStable(_token) == 0, "Contract still have funds"); //Verificar com mercado secundário
-        require(totalInvestment + (totalInvestment * profitRate /100) == _amount, "Not correct value"); //Implementar com taxa de retorno
+        require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value"); //Implementar com taxa de retorno
         _token.transferFrom(msg.sender, address(this), _amount);
-        returnProfit = profitRate;
+        returnProfit = _profitRate;
 
-        emit ContractRefilled(_amount, profitRate, block.timestamp);
+        emit ContractRefilled(_amount, _profitRate, block.timestamp);
 
     }
 
@@ -157,8 +157,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         _;
     }
 
-    modifier isWithdraw() {
-        require(state == Status.Withdraw, "Not on withdraw");
+    modifier isWithdrawOrRefunding() {
+        require(state == Status.Withdraw || state == Status.Refunding, "Not on Withdraw or Refunding");
         _;
     }
 
