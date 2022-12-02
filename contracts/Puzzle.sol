@@ -4,6 +4,7 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
@@ -12,7 +13,7 @@ interface IFactory {
 }
 
 
-contract Puzzle is ERC1155, Ownable{
+contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
 
     ///
     //-----STATE VARIABLES------
@@ -30,12 +31,12 @@ contract Puzzle is ERC1155, Ownable{
     uint8 public constant MOTOR = 9;
     uint8 public constant LEVEL1 = 10;
     uint8 public constant LEVEL2 = 11;
-    uint256[] IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR,LEVEL1,LEVEL2];
+    uint256[] COLLECTION_IDS = [WHEEL,STEERING,GLASS,CHASIS,BREAK,DOOR,LIGHT,AC,CHAIR,MOTOR,LEVEL1,LEVEL2];
             //-----GENERAL------
     mapping(uint8 => uint256) MAX_LOT;
     uint256 public constant MAX_PER_COLLECTION = 15;
     uint256 public constant ENTRY_NFT_PRICE = 100;
-    uint256 public constant MIN_INVESTMENT_AMOUNT = 5000;
+    uint256 public constant MIN_CLAIM_AMOUNT = 5000;
             //-----CURRENTTOTAL------
     mapping(uint8 => uint256) private tokenID; //CURRENT TOKEN ID FOR EACH COLLECTION
             //-----USERTOTALPUZZLE------
@@ -59,7 +60,8 @@ contract Puzzle is ERC1155, Ownable{
 
     event Minted(
         uint8 collection,
-        uint256 id
+        uint256 id,
+        address user
     );
     event Burned(
         bool 
@@ -74,7 +76,7 @@ contract Puzzle is ERC1155, Ownable{
     );
 
     constructor(address _factoryAddress,address _paymentTokenAddress) ERC1155(""){
-        for(uint8 i; i < IDS.length; i++){
+        for(uint8 i; i < COLLECTION_IDS.length; i++){
             MAX_LOT[i] = MAX_PER_COLLECTION; 
             tokenID[i]++;
         }
@@ -86,24 +88,24 @@ contract Puzzle is ERC1155, Ownable{
     //-----MINT------
     ///
 
-    function claim() public isAllowed{
+    function claim() external isAllowed nonReentrant {
         require(verifyClaim(msg.sender), "User not able to claim");
         uint8 ID = tRandom();
-        require(tokenID[ID] <= MAX_PER_COLLECTION);
+        require(tokenID[ID] <= MAX_PER_COLLECTION, "Collection limit reached");
         _mint(msg.sender, ID, 1, "");
         userPuzzlePieces[msg.sender]++;
         tokenID[ID]++;
-        emit Minted(ID, 1/*, msg.sender*/);
+        emit Minted(ID, 1, msg.sender);
     }
 
-    function mintEntry() public  {
+    function mintEntry() external isAllowed nonReentrant {
         require(balanceOf(msg.sender, LEVEL1) < 1, "Cannot have more than 1");
         require(tokenID[LEVEL1] <= MAX_LOT[LEVEL1], "Collection limit reached");
         ERC20 _token = ERC20(paymentTokenAddress);
         _token.transferFrom(msg.sender, address(this), ENTRY_NFT_PRICE);
         tokenID[LEVEL1]++;
         _mint(msg.sender, LEVEL1, 1, "");
-        emit Minted(LEVEL1, 1/*, msg.sender*/);
+        emit Minted(LEVEL1, 1, msg.sender);
     }
   
 
@@ -120,13 +122,14 @@ contract Puzzle is ERC1155, Ownable{
     ///
     //-----BURNBATCH------
     ///
-    function burn() public isAllowed {
+    function burn() external isAllowed nonReentrant {
         require(balanceOf(msg.sender, LEVEL2) == 0, "Cannot have more than 1"); 
         (bool burnable, uint256[] memory _idsToBurn, uint256[] memory newIDS)=verifyBurn(msg.sender);
         require(burnable, "Not able to burn");
         _burnBatch(msg.sender, newIDS, _idsToBurn);
         emit Burned(true);
         _mint(msg.sender, LEVEL2, 1, "");
+        emit Minted(LEVEL2, 1, msg.sender);
         tokenID[LEVEL2]++;
         
     }
@@ -140,7 +143,7 @@ contract Puzzle is ERC1155, Ownable{
         address[] memory userAddress = new address[](10);
         for(uint i = 0; i < newIDS.length; i++){
             userAddress[i] = user;
-            newIDS[i] = IDS[i];
+            newIDS[i] = COLLECTION_IDS[i];
         }
         uint256[] memory balance = balanceOfBatch(userAddress, newIDS);
         for(uint i; i< balance.length; i++){
@@ -157,7 +160,7 @@ contract Puzzle is ERC1155, Ownable{
 
     function verifyClaim(address user) public view isAllowed returns(bool){
         IFactory factory = IFactory(factoryAddress);
-        uint256 allowedToMint = factory.getAddressTotal(user) / MIN_INVESTMENT_AMOUNT;
+        uint256 allowedToMint = factory.getAddressTotal(user) / MIN_CLAIM_AMOUNT;
         if(userPuzzlePieces[user] + 1 > allowedToMint){
             return false;
         }
@@ -191,7 +194,7 @@ contract Puzzle is ERC1155, Ownable{
     //-----TESTING FUNCTIONS------
     ///
     function mintTest() public {
-        for(uint8 i; i < IDS.length - 2; i++){
+        for(uint8 i; i < COLLECTION_IDS.length - 2; i++){
             _mint(msg.sender, i, 1, "");
             tokenID[i]++;
         }
