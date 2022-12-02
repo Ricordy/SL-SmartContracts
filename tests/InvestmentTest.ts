@@ -562,12 +562,12 @@ describe("Investment Contract Tests", async () => {
         amountInvested: BigNumber;
 
       beforeEach("Make withdraw", async () => {
-        ({
+        const {
           investmentContract,
           crucialInvestor,
           paymentTokenContract,
           puzzleContract,
-        } = await loadFixture(oneInvestCallLeftToFill));
+        } = await loadFixture(oneInvestCallLeftToFill);
         //Min and approve crucialInvestor TestCoin
         await paymentTokenContract
           .connect(crucialInvestor)
@@ -648,20 +648,27 @@ describe("Investment Contract Tests", async () => {
           )
         );
       });
-      it("Investor should not be able to invest again", async () => {
-        throw new Error("Not implemented");
+      it("Investor should not be able to invest after withdraw", async () => {
+        const minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
 
-        // const minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
-        // investmentContract.connect(crucialInvestor).invest(minimunInvestment);
+        await expect(
+          investmentContract.connect(crucialInvestor).invest(minimunInvestment)
+        ).to.be.revertedWith("Not on progress");
       });
       it("Investor should not be able to withdraw again", async () => {
-        throw new Error("Not implemented");
+        await expect(
+          investmentContract.connect(crucialInvestor).withdraw()
+        ).to.be.revertedWith("Not enough balance");
       });
       it("Owner should not be able to withdraw again", async () => {
-        throw new Error("Not implemented");
+        await expect(investmentContract.withdrawSL()).to.be.revertedWith(
+          "Not on process"
+        );
       });
       it("Owner should not be able to refill again", async () => {
-        throw new Error("Not implemented");
+        await expect(
+          investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
+        ).to.be.revertedWith("Not on process");
       });
     });
   });

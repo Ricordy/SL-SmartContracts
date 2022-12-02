@@ -91,7 +91,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     function withdraw() public nonReentrant isPaused isAllowed isWithdrawOrRefunding {
         uint256 balance = balanceOf(msg.sender);
-        require(balance > 0, "not invested");
+        require(balance > 0, "Not enough balance");
         
         _burn(msg.sender, balance);
 
