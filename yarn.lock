@@ -731,14 +731,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nomicfoundation/hardhat-network-helpers@npm:^1.0.0":
-  version: 1.0.6
-  resolution: "@nomicfoundation/hardhat-network-helpers@npm:1.0.6"
+"@nomicfoundation/hardhat-network-helpers@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "@nomicfoundation/hardhat-network-helpers@npm:1.0.7"
   dependencies:
     ethereumjs-util: ^7.1.4
   peerDependencies:
     hardhat: ^2.9.5
-  checksum: 196e0273563edd232b8e663a73a9cf60d3e6ce3c00c1b8a7d9b4d9173b01b02ab5a0202eaea0658180318e14773290e226f95ae3626c89e46f8c699f2fd46b2f
+  checksum: 622338ae1692496aa3fb864c0ca04a58b141bd1410b0b3814085113f863c400167c9d7796a15fa77cb9fe2743daefd6c5d84322f62b6196ec8a9564dafcc0f23
   languageName: node
   linkType: hard
 
@@ -3506,9 +3506,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat@npm:^2.12.2":
-  version: 2.12.2
-  resolution: "hardhat@npm:2.12.2"
+"hardhat@npm:^2.12.3":
+  version: 2.12.3
+  resolution: "hardhat@npm:2.12.3"
   dependencies:
     "@ethersproject/abi": ^5.1.2
     "@metamask/eth-sig-util": ^4.0.0
@@ -3570,7 +3570,7 @@ __metadata:
       optional: true
   bin:
     hardhat: internal/cli/cli.js
-  checksum: cd45bf9d4f15d967bd2d8154cc5bc60e7d0d4bab80caea909d36e3660437fc9f6b4faf41736ed3b75b11ff15ac9a9b68828eebb1026ed9fa8d9eb87242f061d2
+  checksum: 38cf169787aa640ecb7c0d50170ba7064ae8ccd8adc07f6b97294c1c76bda8df96e79deb1e2608cdf7adde4f73b7c555068ab705fd271cc875a771be449848f2
   languageName: node
   linkType: hard
 
@@ -5887,7 +5887,7 @@ __metadata:
     "@ethersproject/abi": ^5.4.7
     "@ethersproject/providers": ^5.4.7
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.4
-    "@nomicfoundation/hardhat-network-helpers": ^1.0.0
+    "@nomicfoundation/hardhat-network-helpers": ^1.0.7
     "@nomicfoundation/hardhat-toolbox": ^2.0.0
     "@nomiclabs/hardhat-ethers": ^2.0.0
     "@nomiclabs/hardhat-etherscan": ^3.0.0
@@ -5900,7 +5900,7 @@ __metadata:
     chai: ^4.2.0
     dotenv: ^16.0.3
     ethers: ^5.4.7
-    hardhat: ^2.12.2
+    hardhat: ^2.12.3
     hardhat-gas-reporter: ^1.0.8
     mocha: ^10.1.0
     solidity-coverage: ^0.8.0

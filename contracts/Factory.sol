@@ -24,7 +24,7 @@ contract Factory is Ownable {
         inv.transferOwnership(msg.sender);
 
         deployed.push(inv);
-        console.log('Contract created',address(inv));
+        // console.log('Contract created',address(inv));
         // console.log(msg.sender);
         emit ContractCreated(counter/*, address(inv)*/);
         return address(inv);
