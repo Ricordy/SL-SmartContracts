@@ -85,7 +85,6 @@ describe("Investment Contract Tests", async () => {
       investmentContract,
     };
   }
-
   async function ownerAndInvestorApprovedTokenToSpend() {
     const {
       owner,
