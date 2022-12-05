@@ -106,6 +106,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
 
+
     function withdrawSL() external onlyOwner isAllowed isProcess isNotPaused {
         uint256 totalBalance;
 
