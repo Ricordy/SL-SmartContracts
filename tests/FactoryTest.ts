@@ -19,6 +19,7 @@ const INVESTMENT_2_AMOUNT = 150000;
 
 describe("Factory Contract Tests", async () => {
   let paymentTokenContract: CoinTest,
+  paymentTokenContract2: CoinTest,
     puzzleContract: Puzzle,
     investmentContract: Investment,
     factoryContract: Factory,
@@ -35,6 +36,8 @@ describe("Factory Contract Tests", async () => {
     await factoryContract.deployed();
     paymentTokenContract = await paymentTokenFactory.deploy();
     await paymentTokenContract.deployed();
+    paymentTokenContract2 = await paymentTokenFactory.deploy();
+    await paymentTokenContract2.deployed();
     puzzleContract = await puzzleContractFactory.deploy(factoryContract.address, paymentTokenContract.address);
     await puzzleContract.deployed();
 
@@ -44,7 +47,7 @@ describe("Factory Contract Tests", async () => {
   describe('DeployNew function', async () => {
     it("caller must be the owner ", async () => {
       const {factoryContract, paymentTokenContract, investor1} = await loadFixture(DeployContracts);
-      await expect(factoryContract.connect(investor1).deployNew(INVESTMENT_1_AMOUNT ,paymentTokenContract.address)).to.be.revertedWith("Ownable: caller is not the owner")
+      await expect(factoryContract.connect(investor1).deployNew(INVESTMENT_1_AMOUNT ,paymentTokenContract.address, paymentTokenContract2.address)).to.be.revertedWith("Ownable: caller is not the owner")
     });
     it("Should create a new Investment contract", async () => {
       return true;

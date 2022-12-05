@@ -6,13 +6,13 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
 
 
 contract Investment is ERC20, Ownable, ReentrancyGuard {
 
 
-    using SafeMath for uint256;
+
     ///
     //-----STATUS------
     ///
@@ -83,7 +83,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(_coin == 1 || _coin == 0, "Not correct value for coin");
         ERC20 _token = ERC20(paymentTokenAddress[_coin]);
         
-        require(_token.balanceOf(address(this)) + _amount <= totalInvestment, "Total reached");
+        require(_token.balanceOf(address(this)) + _amount <= totalInvestment, "Total reached"); // TODO
         
         require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
         _token.transferFrom(msg.sender, address(this), _amount);
@@ -110,15 +110,19 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         uint256 totalBalance;
 
         ERC20 _token = ERC20(paymentTokenAddress[0]);
-        totalBalance += totalContractBalanceStable(_token);
+        totalBalance = totalContractBalanceStable(_token);
+       
 
-        _token = ERC20(paymentTokenAddress[1]);
-        totalBalance += totalContractBalanceStable(_token);
+        ERC20 _token2 = ERC20(paymentTokenAddress[1]);
+        totalBalance += totalContractBalanceStable(_token2);
+        
 
-        require(totalBalance >= totalInvestment.div(100).mul(80), "Total not reached"); 
-        _token.transfer(msg.sender, totalBalance);
+        require(totalBalance >= totalInvestment * 80 / 100 , "Total not reached"); 
+        
+        _token.transfer(msg.sender, totalContractBalanceStable(_token));
+        _token2.transfer(msg.sender, totalContractBalanceStable(_token2));
 
-        emit SLWithdraw(totalInvestment, block.timestamp);
+        emit SLWithdraw(totalBalance, block.timestamp);
 
     }
 

@@ -15,17 +15,20 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 // Constants
-const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-const PAYMENT_TOKEN_AMOUNT = 20000;
-const ENTRY_LEVEL_NFT_ID = 10;
-const LEVEL2_NFT_ID = 11;
-const INVESTMENT1_AMOUNT = 100000;
-const INVESTOR1_INVESTMENT_AMOUNT = 6000;
+const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  PAYMENT_TOKEN_AMOUNT = 20000,
+  ENTRY_LEVEL_NFT_ID = 10,
+  LEVEL2_NFT_ID = 11,
+  INVESTMENT1_AMOUNT = 100000,
+  INVESTOR1_INVESTMENT_AMOUNT = 6000,
+  PAYMENT_TOKEN_ID_0 = 0,
+  PAYMENT_TOKEN_ID_1 = 1;
 
 describe("Puzzle Contract", async () => {
   // Variables
   let puzzleContract: Puzzle,
     paymentTokenContract: CoinTest,
+    paymentTokenContract2: CoinTest,
     factoryContract: Factory,
     totalAccounts: number,
     accounts: SignerWithAddress[],
@@ -50,6 +53,9 @@ describe("Puzzle Contract", async () => {
     // Deploy PaymentToken (CoinTest) contract from the factory
     paymentTokenContract = await paymentTokenContractFactory.deploy();
     await paymentTokenContract.deployed();
+    // Deploy PaymentToken (CoinTest2) contract from the factory
+    paymentTokenContract2 = await paymentTokenContractFactory.deploy();
+    await paymentTokenContract2.deployed();
     // Deploy Factory contract from the factory
     factoryContract = await factoryContractFactory.deploy();
     await factoryContract.deployed();
@@ -148,7 +154,8 @@ describe("Puzzle Contract", async () => {
 
     const deployNewTx = await factoryContract.deployNew(
       INVESTMENT1_AMOUNT,
-      paymentTokenContract.address
+      paymentTokenContract.address,
+      paymentTokenContract2.address
     );
 
     const deployedInvestmentAddress =
@@ -165,7 +172,7 @@ describe("Puzzle Contract", async () => {
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
-      .invest(INVESTOR1_INVESTMENT_AMOUNT);
+      .invest(INVESTOR1_INVESTMENT_AMOUNT, PAYMENT_TOKEN_ID_0);
 
     return { paymentTokenContract, puzzleContract };
   }
