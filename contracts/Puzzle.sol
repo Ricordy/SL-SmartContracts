@@ -131,7 +131,7 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
         _mint(msg.sender, LEVEL2, 1, "");
         emit Minted(LEVEL2, 1, msg.sender);
         tokenID[LEVEL2]++;
-        
+
     }
 
     ///

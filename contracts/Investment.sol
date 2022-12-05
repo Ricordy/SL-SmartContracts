@@ -30,7 +30,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     Status public state;
     uint256 public totalInvestment;
     uint256 public returnProfit;
-    address public paymentTokenAddress = 0xBC45823a879CB9A789ed394A8Cf4bd8b7aa58e27;
+    address[] public paymentTokenAddress;
     address public entryNFTAddress;
     uint256 public constant MINIMUM_INVESTMENT = 100;
 
@@ -63,26 +63,29 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress) ERC20("InvestmentCurrency", "IC"){
+    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress, address _paymentTokenAddress2) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
         entryNFTAddress = _entryNFTAddress;
-        paymentTokenAddress = _paymentTokenAddress;
+        paymentTokenAddress.push(_paymentTokenAddress);
+        paymentTokenAddress.push(_paymentTokenAddress2);
         flipProgress();
     }
 
     ///
     //-----MAIN FUNCTIONS------
     ///
-    function invest(uint256 _amount) public nonReentrant isAllowed isProgress isPaused{
+    ///@notice _coin represents the stable coin wanted 0 = USDC, 1 = USDT
+    function invest(uint256 _amount, uint256 _coin) public nonReentrant isAllowed isProgress isPaused{
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
         require(_amount <= totalInvestment / 10 , "Amount exceed the total allowed");
         
-        ERC20 _token = ERC20(paymentTokenAddress);
+        require(_coin == 1 || _coin == 0, "Not correct value for coin");
+        ERC20 _token = ERC20(paymentTokenAddress[_coin]);
+        
         require(_token.balanceOf(address(this)) + _amount <= totalInvestment, "Total reached");
-        
         require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
-        _token.transferFrom(msg.sender, address(this), _amount);
         
+        _token.transferFrom(msg.sender, address(this), _amount);
         _mint(msg.sender, _amount);
         
         emit UserInvest(msg.sender, _amount, block.timestamp);
@@ -95,7 +98,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         
         _burn(msg.sender, balance);
 
-        ERC20 _token = ERC20(paymentTokenAddress);
+        ERC20 _token = ERC20(paymentTokenAddress[0]);
         uint256 finalAmount = calculateFinalAmount(balance);
         _token.transfer(msg.sender, finalAmount);
 
@@ -103,17 +106,23 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function withdrawSL() public onlyOwner isAllowed isProcess isPaused {
-        ERC20 _token = ERC20(paymentTokenAddress);
-        
-        require(_token.balanceOf(address(this)) >= totalInvestment.div(100).mul(80), "Total not reached"); 
-        _token.transfer(msg.sender, totalContractBalanceStable(_token));
+        uint256 totalBalance;
+
+        ERC20 _token = ERC20(paymentTokenAddress[0]);
+        totalBalance += totalContractBalanceStable(_token);
+
+        _token = ERC20(paymentTokenAddress[1]);
+        totalBalance += totalContractBalanceStable(_token);
+
+        require(totalBalance >= totalInvestment.div(100).mul(80), "Total not reached"); 
+        _token.transfer(msg.sender, totalBalance);
 
         emit SLWithdraw(totalInvestment, block.timestamp);
 
     }
 
     function refill(uint256 _amount, uint256 _profitRate) public onlyOwner isAllowed isProcess isPaused {
-        ERC20 _token = ERC20(paymentTokenAddress);
+        ERC20 _token = ERC20(paymentTokenAddress[0]);
         require(totalContractBalanceStable(_token) == 0, "Contract still have funds"); //Verificar com mercado secundário
         require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value"); //Implementar com taxa de retorno
         _token.transferFrom(msg.sender, address(this), _amount);

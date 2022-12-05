@@ -37,7 +37,7 @@ contract Factory is Ownable {
     }
 
     function getAddressOnContract(address contractAddress) public view returns(uint userTotal){
-            userTotal = ERC20(contractAddress).balanceOf(msg.sender);
+            userTotal = ERC20(contractAddress).balanceOf(msg.sender); //TODO
     }
 
     function setEntryAddress(address _lgentry) public onlyOwner {
