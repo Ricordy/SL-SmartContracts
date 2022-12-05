@@ -12,8 +12,8 @@ contract Factory is Ownable {
     uint public counter;
 
     event ContractCreated (
-        uint256 ContractID/*,
-        address conAddress*/
+        uint256 ContractID,
+        address conAddress
     );
     constructor() {
     }
@@ -26,28 +26,25 @@ contract Factory is Ownable {
         deployed.push(inv);
         // console.log('Contract created',address(inv));
         // console.log(msg.sender);
-        emit ContractCreated(counter/*, address(inv)*/);
+        emit ContractCreated(counter, address(inv));
         return address(inv);
     }
 
-    function getAddressTotal(address user) public view returns(uint userTotal){
+    function getAddressTotal(address user) external view returns(uint userTotal){
         for(uint i; i < deployed.length; i++){
             userTotal += ERC20(deployed[i]).balanceOf(user);
         }
     }
 
-    function getAddressOnContract(address contractAddress) public view returns(uint userTotal){
-            userTotal = ERC20(contractAddress).balanceOf(msg.sender); //TODO
+    function getAddressOnContract(address contractAddress) external view returns(uint userTotal){
+            userTotal = ERC20(contractAddress).balanceOf(msg.sender);
     }
 
-    function setEntryAddress(address _lgentry) public onlyOwner {
+    function setEntryAddress(address _lgentry) external onlyOwner {
         lgentry= _lgentry;
     }
 
-    /**
-     * TEST FUNCTIONS
-     */
-    function getLastDeployedContract() public view returns(address contractAddress) {
+    function getLastDeployedContract() external view returns(address contractAddress) {
         if (deployed.length > 0) {
             contractAddress = address(deployed[deployed.length -1]);
         } else {

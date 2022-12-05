@@ -16,12 +16,13 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 // Constants
 const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-      PAYMENT_TOKEN_AMOUNT = 20000,
-      ENTRY_LEVEL_NFT_ID = 10,
-      INVESTMENT1_AMOUNT = 100000,
-      INVESTOR1_INVESTMENT_AMOUNT = 6000,
-      PAYMENT_TOKEN_ID_0 = 0,
-      PAYMENT_TOKEN_ID_1 = 1;
+  PAYMENT_TOKEN_AMOUNT = 20000,
+  ENTRY_LEVEL_NFT_ID = 10,
+  LEVEL2_NFT_ID = 11,
+  INVESTMENT1_AMOUNT = 100000,
+  INVESTOR1_INVESTMENT_AMOUNT = 6000,
+  PAYMENT_TOKEN_ID_0 = 0,
+  PAYMENT_TOKEN_ID_1 = 1;
 
 describe("Puzzle Contract", async () => {
   // Variables
@@ -303,12 +304,12 @@ describe("Puzzle Contract", async () => {
     it("Owner should be able to mint if they have enough funds and the funds were approved", async () => {
       await expect(await puzzleContract.mintEntry())
         .to.emit(puzzleContract, "Minted")
-        .withArgs(ENTRY_LEVEL_NFT_ID, 1);
+        .withArgs(ENTRY_LEVEL_NFT_ID, 1, owner.address);
     });
     it("Investor should be able to mint if they have enough funds and the funds were approved", async function () {
       await expect(await puzzleContract.connect(investor1).mintEntry())
         .to.emit(puzzleContract, "Minted")
-        .withArgs(ENTRY_LEVEL_NFT_ID, 1);
+        .withArgs(ENTRY_LEVEL_NFT_ID, 1, investor1.address);
     });
     it("Investor should have the Entry Level NFT after the mint", async () => {
       await puzzleContract.connect(investor1).mintEntry();
@@ -317,12 +318,12 @@ describe("Puzzle Contract", async () => {
         .balanceOf(investor1.address, ENTRY_LEVEL_NFT_ID);
       expect(investor1HasEntryNFT).to.be.eq(1);
     });
-    it("Investor should not be able to have more than 1 NFTEntry", async () => {
+    it("Investor should not be able to have more than 1 Entry NFT", async () => {
       await expect(await puzzleContract.connect(investor1).mintEntry()).to.not
         .be.reverted;
       await expect(
         puzzleContract.connect(investor1).mintEntry()
-      ).to.be.revertedWith("Cannot have more than 1");
+      ).to.be.revertedWith("User already has the Entry NFT");
     });
     it("Investors should not be able to mint more than the collection limit", async () => {
       const { paymentTokenContract, puzzleContract } = await loadFixture(
@@ -378,7 +379,7 @@ describe("Puzzle Contract", async () => {
 
       await expect(await puzzleContract.connect(investor1).claim())
         .to.emit(puzzleContract, "Minted")
-        .withArgs(anyValue, 1);
+        .withArgs(anyValue, 1, investor1.address);
     });
   });
   describe("Pre-Burn LEVEL2 NFT", async () => {
@@ -404,8 +405,11 @@ describe("Puzzle Contract", async () => {
     });
     it("Owner should be able to burn LEVEL2 NFT", async () => {
       await expect(await puzzleContract.burn())
-        .to.emit(puzzleContract, "Burned")
-        .withArgs(true);
+        .to.emit(puzzleContract, "BurnedBatch")
+        .withArgs(owner.address, anyValue, anyValue);
+      // await expect(await puzzleContract.burn())
+      //   .to.emit(puzzleContract, "Minted")
+      //   .withArgs(LEVEL2_NFT_ID, 1, owner.address);
     });
     it("Owner should be able to burn LEVEL2 NFT having 20 Puzzle NFTs and still have 10 left", async () => {
       // Mint 10 more Puzzle NFTs to the owner
@@ -465,13 +469,13 @@ describe("Puzzle Contract", async () => {
     });
     it("Investor should be able to burn LEVEL2 NFT", async () => {
       await expect(await puzzleContract.connect(investor1).burn())
-        .to.emit(puzzleContract, "Burned")
-        .withArgs(true);
+        .to.emit(puzzleContract, "BurnedBatch")
+        .withArgs(investor1.address, anyValue, anyValue);
     });
     it("Owner should not be able to burn more than 1 LEVEL2 NFT", async () => {
       await puzzleContract.burn();
       await expect(puzzleContract.burn()).to.be.revertedWith(
-        "Cannot have more than 1"
+        "User already has the LEVEL2 NFT"
       );
     });
     it("Mint cannot surpass collection limit", async () => {});

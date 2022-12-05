@@ -64,7 +64,13 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
         address user
     );
     event Burned(
-        bool 
+        address user
+    );
+
+    event BurnedAndMinted(
+        address user,
+        address[] burnedIds,
+        uint256[] amount
     );
     
     ///
@@ -99,7 +105,7 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
     }
 
     function mintEntry() external isAllowed nonReentrant {
-        require(balanceOf(msg.sender, LEVEL1) < 1, "Cannot have more than 1");
+        require(balanceOf(msg.sender, LEVEL1) < 1, "User already has the Entry NFT");
         require(tokenID[LEVEL1] <= MAX_LOT[LEVEL1], "Collection limit reached");
         ERC20 _token = ERC20(paymentTokenAddress);
         _token.transferFrom(msg.sender, address(this), ENTRY_NFT_PRICE);
@@ -123,13 +129,13 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
     //-----BURNBATCH------
     ///
     function burn() external isAllowed nonReentrant {
-        require(balanceOf(msg.sender, LEVEL2) == 0, "Cannot have more than 1"); 
+        require(balanceOf(msg.sender, LEVEL2) == 0, "User already has the LEVEL2 NFT"); 
         (bool burnable, uint256[] memory _idsToBurn, uint256[] memory newIDS)=verifyBurn(msg.sender);
         require(burnable, "Not able to burn");
         _burnBatch(msg.sender, newIDS, _idsToBurn);
-        emit Burned(true);
+        // emit BurnedBatch(msg.sender,newIDS,_idsToBurn);
         _mint(msg.sender, LEVEL2, 1, "");
-        emit Minted(LEVEL2, 1, msg.sender);
+        // emit Minted(LEVEL2, 1, msg.sender);
         tokenID[LEVEL2]++;
 
     }

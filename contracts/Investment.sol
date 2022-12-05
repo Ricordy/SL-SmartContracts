@@ -33,6 +33,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     address[] public paymentTokenAddress;
     address public entryNFTAddress;
     uint256 public constant MINIMUM_INVESTMENT = 100;
+    uint8 public constant LEVEL1 = 10;
 
     ///
     //-----EVENTS------
@@ -74,17 +75,17 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----MAIN FUNCTIONS------
     ///
-    ///@notice _coin represents the stable coin wanted 0 = USDC, 1 = USDT
-    function invest(uint256 _amount, uint256 _coin) public nonReentrant isAllowed isProgress isPaused{
+     ///@notice _coin represents the stable coin wanted 0 = USDC, 1 = USDT
+    function invest(uint256 _amount, uint256 _coin) public nonReentrant isAllowed isProgress isNotPaused{
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
         require(_amount <= totalInvestment / 10 , "Amount exceed the total allowed");
         
         require(_coin == 1 || _coin == 0, "Not correct value for coin");
         ERC20 _token = ERC20(paymentTokenAddress[_coin]);
         
-        require(_token.balanceOf(address(this)) + _amount <= totalInvestment, "Total reached"); //TODO
-        require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
+        require(_token.balanceOf(address(this)) + _amount <= totalInvestment, "Total reached"); // TODO
         
+        require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
         _token.transferFrom(msg.sender, address(this), _amount);
         _mint(msg.sender, _amount);
         
@@ -92,7 +93,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function withdraw() public nonReentrant isPaused isAllowed isWithdrawOrRefunding {
+    function withdraw() external nonReentrant isNotPaused isAllowed isWithdrawOrRefunding {
         uint256 balance = balanceOf(msg.sender);
         require(balance > 0, "Not enough balance");
         
@@ -105,7 +106,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
 
-    function withdrawSL() public onlyOwner isAllowed isProcess isPaused {
+    function withdrawSL() external onlyOwner isAllowed isProcess isNotPaused {
         uint256 totalBalance;
 
         ERC20 _token = ERC20(paymentTokenAddress[0]);
@@ -125,12 +126,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     }
 
-    function refill(uint256 _amount, uint256 _profitRate) public onlyOwner isAllowed isProcess isPaused {
+    function refill(uint256 _amount, uint256 _profitRate) public onlyOwner isAllowed isProcess isNotPaused {
         ERC20 _token = ERC20(paymentTokenAddress[0]);
-
-        require(totalContractBalanceStable(_token) == 0, "Contract still have funds"); //Verificar com mercado secundário
-        require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value"); //Implementar com taxa de retorno
-        
+        require(totalContractBalanceStable(_token) == 0, "Contract still have funds");
+        require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value");
         _token.transferFrom(msg.sender, address(this), _amount);
         returnProfit = _profitRate;
 
@@ -143,7 +142,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     function totalContractBalanceStable(ERC20 _token) public view returns(uint256 totalBalance) {
         totalBalance = _token.balanceOf(address(this));
-
     }
 
     function calculateFinalAmount(uint256 _amount) internal view returns(uint256 totalAmount) {
@@ -157,7 +155,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     /// 
     //---- MODIFIERS------
     /// 
-    modifier isPaused() {
+    modifier isNotPaused() {
         require(state != Status.Pause, "Contract paused");
         _;
     }
@@ -183,7 +181,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     modifier isAllowed() {
-        require(ERC1155(entryNFTAddress).balanceOf(msg.sender, 10) > 0, "User does not have the Entry NFT");
+        require(ERC1155(entryNFTAddress).balanceOf(msg.sender, LEVEL1) > 0, "User does not have the Entry NFT");
         _;
     }
 
