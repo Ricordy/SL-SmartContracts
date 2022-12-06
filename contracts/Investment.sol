@@ -7,11 +7,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-
-
 contract Investment is ERC20, Ownable, ReentrancyGuard {
-
-
 
     ///
     //-----STATUS------
@@ -27,10 +23,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----STATE VARIABLES------
     ///
-    Status public state;
+    Status public status;
     uint256 public totalInvestment;
     uint256 public returnProfit;
-    address[] public paymentTokenAddress;
+    address public paymentTokenAddress;
     address public entryNFTAddress;
     uint256 public constant MINIMUM_INVESTMENT = 100;
     uint8 public constant LEVEL1 = 10;
@@ -64,24 +60,22 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress, address _paymentTokenAddress2) ERC20("InvestmentCurrency", "IC"){
+    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress) ERC20("InvestmentCurrency", "IC"){
         totalInvestment = _totalInvestment;
         entryNFTAddress = _entryNFTAddress;
-        paymentTokenAddress.push(_paymentTokenAddress);
-        paymentTokenAddress.push(_paymentTokenAddress2);
-        flipProgress();
+        paymentTokenAddress = _paymentTokenAddress;
+        changeStatus(Status.Progress);
     }
 
     ///
     //-----MAIN FUNCTIONS------
     ///
      ///@notice _coin represents the stable coin wanted 0 = USDC, 1 = USDT
-    function invest(uint256 _amount, uint256 _coin) public nonReentrant isAllowed isProgress isNotPaused{
+    function invest(uint256 _amount) public nonReentrant isAllowed isProgress isNotPaused{
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
         require(_amount <= totalInvestment / 10 , "Amount exceed the total allowed");
         
-        require(_coin == 1 || _coin == 0, "Not correct value for coin");
-        ERC20 _token = ERC20(paymentTokenAddress[_coin]);
+        ERC20 _token = ERC20(paymentTokenAddress);
         
         require(_token.balanceOf(address(this)) + _amount <= totalInvestment, "Total reached"); // TODO
         
@@ -90,7 +84,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         _mint(msg.sender, _amount);
         
         emit UserInvest(msg.sender, _amount, block.timestamp);
-
     }
 
     function withdraw() external nonReentrant isNotPaused isAllowed isWithdrawOrRefunding {
@@ -99,43 +92,34 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         
         _burn(msg.sender, balance);
 
-        ERC20 _token = ERC20(paymentTokenAddress[0]);
+        ERC20 _token = ERC20(paymentTokenAddress);
         uint256 finalAmount = calculateFinalAmount(balance);
         _token.transfer(msg.sender, finalAmount);
 
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
 
-
     function withdrawSL() external onlyOwner isAllowed isProcess isNotPaused {
         uint256 totalBalance;
 
-        ERC20 _token = ERC20(paymentTokenAddress[0]);
+        ERC20 _token = ERC20(paymentTokenAddress);
         totalBalance = totalContractBalanceStable(_token);
-       
-
-        ERC20 _token2 = ERC20(paymentTokenAddress[1]);
-        totalBalance += totalContractBalanceStable(_token2);
-        
-
+    
         require(totalBalance >= totalInvestment * 80 / 100 , "Total not reached"); 
         
         _token.transfer(msg.sender, totalContractBalanceStable(_token));
-        _token2.transfer(msg.sender, totalContractBalanceStable(_token2));
-
+    
         emit SLWithdraw(totalBalance, block.timestamp);
-
     }
 
     function refill(uint256 _amount, uint256 _profitRate) public onlyOwner isAllowed isProcess isNotPaused {
-        ERC20 _token = ERC20(paymentTokenAddress[0]);
+        ERC20 _token = ERC20(paymentTokenAddress);
         require(totalContractBalanceStable(_token) == 0, "Contract still have funds");
         require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value");
         _token.transferFrom(msg.sender, address(this), _amount);
         returnProfit = _profitRate;
 
         emit ContractRefilled(_amount, _profitRate, block.timestamp);
-
     }
 
     ///
@@ -153,27 +137,27 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //---- MODIFIERS------
     /// 
     modifier isNotPaused() {
-        require(state != Status.Pause, "Contract paused");
+        require(status != Status.Pause, "Contract paused");
         _;
     }
 
     modifier isProgress() {
-        require(state == Status.Progress, "Not on progress");
+        require(status == Status.Progress, "Not on progress");
         _;
     }
 
     modifier isProcess() {
-        require(state == Status.Process, "Not on process");
+        require(status == Status.Process, "Not on process");
         _;
     }
 
     modifier isWithdrawOrRefunding() {
-        require(state == Status.Withdraw || state == Status.Refunding, "Not on Withdraw or Refunding");
+        require(status == Status.Withdraw || status == Status.Refunding, "Not on Withdraw or Refunding");
         _;
     }
 
     modifier isRefunding() {
-        require(state == Status.Refunding, "Not on refunding");
+        require(status == Status.Refunding, "Not on refunding");
         _;
     }
 
@@ -185,24 +169,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     /// 
     //----STATUS FUNCTIONS------
     /// 
-    function flipPause() public onlyOwner {
-        state = Status.Pause;
+    function changeStatus(Status _status) public onlyOwner {
+        status = _status;
     }
-
-    function flipProgress() public onlyOwner {
-        state = Status.Progress;
-    }
-
-    function flipProcess() public onlyOwner {
-        state = Status.Process;
-    }
-
-    function flipWithdraw() public onlyOwner {
-        state = Status.Withdraw;
-    }
-
-    function flipRefunding() public onlyOwner {
-        state = Status.Refunding;
-    }
-
 }

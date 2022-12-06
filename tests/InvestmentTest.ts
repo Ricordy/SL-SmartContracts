@@ -33,9 +33,7 @@ const INVESTMENT_1_AMOUNT = 100000,
   PAYMENT_TOKEN_AMOUNT = 200000,
   PROFIT_RATE = 15,
   REFILL_VALUE =
-    INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE,
-  PAYMENT_TOKEN_ID_0 = 0,
-  PAYMENT_TOKEN_ID_1 = 1;
+    INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE;
 
 describe("Investment Contract Tests", async () => {
   let investmentContract: Investment,
@@ -61,10 +59,6 @@ describe("Investment Contract Tests", async () => {
     paymentTokenContract = await paymentTokenContractFactory.deploy();
     await paymentTokenContract.deployed();
 
-    // Deploy PaymentToken (CoinTest2) contract from the factory
-    paymentTokenContract2 = await paymentTokenContractFactory.deploy();
-    await paymentTokenContract2.deployed();
-
     // Deploy Factory contract from the factory
     factoryContract = await factoryContractFactory.deploy();
     await factoryContract.deployed();
@@ -83,8 +77,7 @@ describe("Investment Contract Tests", async () => {
     investmentContract = await investmentContractFactory.deploy(
       INVESTMENT_1_AMOUNT,
       puzzleContract.address,
-      paymentTokenContract.address,
-      paymentTokenContract2.address
+      paymentTokenContract.address
     );
     return {
       owner,
@@ -163,7 +156,7 @@ describe("Investment Contract Tests", async () => {
       //Make 9500 investment
       await investmentContract
         .connect(accounts[i])
-        .invest(GENERAL_INVEST_AMOUNT, 0);
+        .invest(GENERAL_INVEST_AMOUNT);
     }
 
     crucialInvestor = accounts[10];
@@ -211,8 +204,7 @@ describe("Investment Contract Tests", async () => {
 
     await factoryContract.deployNew(
       INVESTMENT_1_AMOUNT,
-      paymentTokenContract.address,
-      paymentTokenContract2.address
+      paymentTokenContract.address
     );
 
     const deployedInvestmentAddress =
@@ -229,7 +221,7 @@ describe("Investment Contract Tests", async () => {
       .connect(investor1)
       .approve(investmentContract.address, EXPECTED_INV_AMOUNT1);
     // Invest an amount on investment1
-    await investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1, PAYMENT_TOKEN_ID_0);
+    await investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1);
 
     return {
       owner,
@@ -268,7 +260,7 @@ describe("Investment Contract Tests", async () => {
       // Make 1000 investment
       await investmentContract
         .connect(accounts[i])
-        .invest(GENERAL_INVEST_AMOUNT_TO_REFUND, PAYMENT_TOKEN_ID_0);
+        .invest(GENERAL_INVEST_AMOUNT_TO_REFUND);
     }
 
     return {
@@ -306,21 +298,21 @@ describe("Investment Contract Tests", async () => {
       );
       // Get the PaymentToken address from the Puzzle contract
       const paymentTokenAddressFromContract =
-        await investmentContract.paymentTokenAddress(PAYMENT_TOKEN_ID_0);
+        await investmentContract.paymentTokenAddress();
       expect(paymentTokenAddressFromContract).to.be.equal(
         paymentTokenContract.address
       );
     });
     it('Should set the status to "progress"', async () => {
       const { investmentContract } = await loadFixture(deployContractFixture);
-      const contractStatus = await investmentContract.state();
+      const contractStatus = await investmentContract.status();
       expect(contractStatus).to.be.equal(STATUS_PROGRESS);
     });
   });
   describe("STATUS: PROGRESS", async () => {
     it('Should set the status to "progress"', async () => {
       const { investmentContract } = await loadFixture(deployContractFixture);
-      const contractStatus = await investmentContract.state();
+      const contractStatus = await investmentContract.status();
       expect(contractStatus).to.be.equal(STATUS_PROGRESS);
     });
     describe("Invest function", async () => {
@@ -331,7 +323,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(investor1)
-            .invest(LESS_THAN_EXPECTED_INV_AMOUNT, PAYMENT_TOKEN_ID_0)
+            .invest(LESS_THAN_EXPECTED_INV_AMOUNT)
         ).to.be.revertedWith("User does not have the Entry NFT");
       });
       it("Investor should not be allowed to invest less than the minimum required", async () => {
@@ -341,7 +333,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(investor1)
-            .invest(LESS_THAN_EXPECTED_INV_AMOUNT, PAYMENT_TOKEN_ID_0)
+            .invest(LESS_THAN_EXPECTED_INV_AMOUNT)
         ).to.be.revertedWith("Not enough amount to invest");
       });
       it("Investor should not be allowed to invest more than 10% of total investment", async () => {
@@ -351,7 +343,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(investor1)
-            .invest(MORE_THAN_EXPECTED_INV_AMOUNT, PAYMENT_TOKEN_ID_0)
+            .invest(MORE_THAN_EXPECTED_INV_AMOUNT)
         ).to.be.revertedWith("Amount exceed the total allowed");
       });
       it("Investor should be allowed to invest", async () => {
@@ -359,7 +351,7 @@ describe("Investment Contract Tests", async () => {
           ownerAndInvestorApprovedTokenToSpend
         );
         await expect(
-          investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1, PAYMENT_TOKEN_ID_0)
+          investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1)
         )
           .to.emit(investmentContract, "UserInvest")
           .withArgs(investor1.address, EXPECTED_INV_AMOUNT1, anyValue);
@@ -370,7 +362,7 @@ describe("Investment Contract Tests", async () => {
         );
         await investmentContract
           .connect(investor1)
-          .invest(EXPECTED_INV_AMOUNT1, PAYMENT_TOKEN_ID_0);
+          .invest(EXPECTED_INV_AMOUNT1);
         expect(await investmentContract.balanceOf(investor1.address)).to.equal(
           EXPECTED_INV_AMOUNT1
         );
@@ -399,7 +391,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(crucialInvestor)
-            .invest(GENERAL_INVEST_AMOUNT, PAYMENT_TOKEN_ID_0)
+            .invest(GENERAL_INVEST_AMOUNT)
         ).to.be.revertedWith("Total reached");
       });
     });
@@ -433,14 +425,14 @@ describe("Investment Contract Tests", async () => {
   describe("STATUS: PROCESS", async () => {
     it('Should set the status to "process"', async () => {
       const { investmentContract } = await loadFixture(oneInvestCallLeftToFill);
-      await investmentContract.flipProcess();
-      expect(await investmentContract.state()).to.equal(STATUS_PROCESS);
+      await investmentContract.changeStatus(STATUS_PROCESS);
+      expect(await investmentContract.status()).to.equal(STATUS_PROCESS);
     });
     describe("Function WithdrawSL", async () => {
       beforeEach("set state to process", async () => {
         const { investmentContract, investor1, paymentTokenContract } =
           await loadFixture(oneInvestCallLeftToFill);
-        await investmentContract.flipProcess();
+        await investmentContract.changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
       });
       it("Investors should not be able to call", async () => {
@@ -490,7 +482,7 @@ describe("Investment Contract Tests", async () => {
           investmentContract.address,
           INVESTMENT_2_AMOUNT
         );
-        await investmentContract.flipProcess();
+        await investmentContract.changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
       });
       it("Investors should not be able to call", async () => {
@@ -532,7 +524,7 @@ describe("Investment Contract Tests", async () => {
       });
       it("Invest function shouldnt be able to be called", async () => {
         await expect(
-          investmentContract.connect(investor1).invest(100, PAYMENT_TOKEN_ID_0)
+          investmentContract.connect(investor1).invest(100)
         ).to.be.revertedWith("Not on progress");
       });
     });
@@ -541,8 +533,8 @@ describe("Investment Contract Tests", async () => {
     describe("Pre-Withdraw", async () => {
       it("Should be on status WITHDRAW", async () => {
         const { investmentContract } = await loadFixture(deployContractFixture);
-        await investmentContract.flipWithdraw();
-        const contractStatus = await investmentContract.state();
+        await investmentContract.changeStatus(STATUS_WITHDRAW);
+        const contractStatus = await investmentContract.status();
         expect(contractStatus).to.be.equal(STATUS_WITHDRAW);
       });
       it("Investor should have the Entry NFT", async () => {
@@ -603,10 +595,10 @@ describe("Investment Contract Tests", async () => {
         // Invest the remaining amount to fill the contract
         await investmentContract
           .connect(crucialInvestor)
-          .invest(amountInvested, PAYMENT_TOKEN_ID_0);
+          .invest(amountInvested);
 
         // Change contract status to process
-        await investmentContract.flipProcess();
+        await investmentContract.changeStatus(STATUS_PROCESS);
         // Allow owner to withdraw the totalInvestment from the contract
         await paymentTokenContract.approve(
           investmentContract.address,
@@ -634,7 +626,7 @@ describe("Investment Contract Tests", async () => {
         await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
 
         // Change state to withdraw
-        await investmentContract.flipWithdraw();
+        await investmentContract.changeStatus(STATUS_WITHDRAW);
 
         paymentTokenBalanceBeforeWithdraw =
           await paymentTokenContract.balanceOf(crucialInvestor.address);
@@ -662,7 +654,7 @@ describe("Investment Contract Tests", async () => {
         const minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
 
         await expect(
-          investmentContract.connect(crucialInvestor).invest(minimunInvestment, PAYMENT_TOKEN_ID_0)
+          investmentContract.connect(crucialInvestor).invest(minimunInvestment)
         ).to.be.revertedWith("Not on progress");
       });
       it("Investor should not be able to withdraw again", async () => {
@@ -685,10 +677,10 @@ describe("Investment Contract Tests", async () => {
   describe("STATUS: REFUNDING", async () => {
     beforeEach(async () => {
       const { investmentContract } = await loadFixture(readyToRefundFixture);
-      await investmentContract.flipRefunding();
+      await investmentContract.changeStatus(STATUS_REFUNDING);
     });
     it("Should be on status REFUNDING", async () => {
-      const contractStatus = await investmentContract.state();
+      const contractStatus = await investmentContract.status();
       expect(contractStatus).to.be.equal(STATUS_REFUNDING);
     });
   });

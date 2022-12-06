@@ -154,8 +154,7 @@ describe("Puzzle Contract", async () => {
 
     const deployNewTx = await factoryContract.deployNew(
       INVESTMENT1_AMOUNT,
-      paymentTokenContract.address,
-      paymentTokenContract2.address
+      paymentTokenContract.address
     );
 
     const deployedInvestmentAddress =
@@ -172,7 +171,7 @@ describe("Puzzle Contract", async () => {
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
-      .invest(INVESTOR1_INVESTMENT_AMOUNT, PAYMENT_TOKEN_ID_0);
+      .invest(INVESTOR1_INVESTMENT_AMOUNT);
 
     return { paymentTokenContract, puzzleContract };
   }
