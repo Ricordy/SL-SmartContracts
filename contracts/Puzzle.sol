@@ -208,11 +208,8 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
         max = MAX_LOT[collection];
     }
 
-
-    
-
     modifier isAllowed() {
-        require(balanceOf(msg.sender, LEVEL1) > 0, "Puzzle: Not accessible");
+        require(balanceOf(msg.sender, LEVEL1) > 0, "Puzzle: Missing Entry NFT");
         _;
    }
 

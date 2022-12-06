@@ -350,33 +350,29 @@ describe("Puzzle Contract", async () => {
   });
   describe("Pre-claim Puzzle NFT", async () => {
     beforeEach(async () => {
-      const { puzzleContract } = await loadFixture(deployContractFixture);
+      ({ puzzleContract } = await loadFixture(deployContractFixture));
     });
     it("Owner should not be allowed to claim() without the Entry NFT", async () => {
       await expect(puzzleContract.claim()).to.be.revertedWith(
-        "User not able to claim"
+        "Puzzle: Missing Entry NFT"
       );
     });
     it("Investor should not be allowed to claim() without the Entry NFT", async () => {
       await expect(
         puzzleContract.connect(investor1).claim()
-      ).to.be.revertedWith("User not able to claim");
+      ).to.be.revertedWith("Puzzle: Missing Entry NFT");
     });
   });
   describe("Claim Puzzle NFT", async () => {
     beforeEach(async () => {
-      //({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
+      ({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
     });
     it("Investor should be able to call verifyClaim (to claim an NFT Puzzle) after having invested the minimum amount required", async () => {
-      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
-
-      expect(await puzzleContract.verifyClaim(investor1.address)).to.equal(
-        true
-      );
+      expect(
+        await puzzleContract.connect(investor1).verifyClaim(investor1.address)
+      ).to.equal(true);
     });
     it("Investor should be able to call  claim (to claim a NFT Puzzle) after having invested the minimum amount required", async () => {
-      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
-
       await expect(await puzzleContract.connect(investor1).claim())
         .to.emit(puzzleContract, "Minted")
         .withArgs(anyValue, 1, investor1.address);
@@ -388,12 +384,12 @@ describe("Puzzle Contract", async () => {
     });
     it("Owner should not be able to burn without the required Puzzle NFTs", async () => {
       await expect(puzzleContract.burn()).to.be.revertedWith(
-        "Not able to burn"
+        "Puzzle: Missing Entry NFT"
       );
     });
     it("Investor should not be able to burn without the required Puzzle NFTs", async () => {
       await expect(puzzleContract.connect(investor1).burn()).to.be.revertedWith(
-        "Not able to burn"
+        "Puzzle: Missing Entry NFT"
       );
     });
   });
