@@ -104,7 +104,7 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
         emit Minted(ID, 1, msg.sender);
     }
 
-    function mintEntry() external isAllowed nonReentrant {
+    function mintEntry() external nonReentrant {
         require(balanceOf(msg.sender, LEVEL1) < 1, "User already has the Entry NFT");
         require(tokenID[LEVEL1] <= MAX_LOT[LEVEL1], "Collection limit reached");
         ERC20 _token = ERC20(paymentTokenAddress);
@@ -212,8 +212,8 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
     
 
     modifier isAllowed() {
-        //  require(balanceOf(msg.sender, LEVEL1) > 0, "Not accessible");
-            _;
+        require(balanceOf(msg.sender, LEVEL1) > 0, "Puzzle: Not accessible");
+        _;
    }
 
 }
