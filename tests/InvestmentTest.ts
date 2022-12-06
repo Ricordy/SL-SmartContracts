@@ -344,7 +344,12 @@ describe("Investment Contract Tests", async () => {
           investmentContract
             .connect(investor1)
             .invest(MORE_THAN_EXPECTED_INV_AMOUNT)
-        ).to.be.revertedWith("Amount exceed the total allowed");
+        )
+          .to.be.revertedWithCustomError(
+            investmentContract,
+            "InvestmentExceedMax"
+          )
+          .withArgs(MORE_THAN_EXPECTED_INV_AMOUNT, INVESTMENT_1_AMOUNT / 10);
       });
       it("Investor should be allowed to invest", async () => {
         const { investmentContract, investor1 } = await loadFixture(
