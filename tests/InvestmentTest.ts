@@ -521,7 +521,7 @@ describe("Investment Contract Tests", async () => {
         //Talk to Cadu: beforeEach problem (cannot have a clean contract without withdrawing first)
         await investmentContract.withdrawSL();
         await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
-        expect(await investmentContract.profitRate()).to.equal(PROFIT_RATE);
+        expect(await investmentContract.returnProfit()).to.equal(PROFIT_RATE);
       });
     });
     describe("Withdraw && Invest", async () => {

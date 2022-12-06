@@ -405,7 +405,7 @@ describe("Puzzle Contract", async () => {
     });
     it("Owner should be able to burn LEVEL2 NFT", async () => {
       await expect(await puzzleContract.burn())
-        .to.emit(puzzleContract, "BurnedBatch")
+        .to.emit(puzzleContract, "BurnedAndMinted")
         .withArgs(owner.address, anyValue, anyValue);
       // await expect(await puzzleContract.burn())
       //   .to.emit(puzzleContract, "Minted")
@@ -469,7 +469,7 @@ describe("Puzzle Contract", async () => {
     });
     it("Investor should be able to burn LEVEL2 NFT", async () => {
       await expect(await puzzleContract.connect(investor1).burn())
-        .to.emit(puzzleContract, "BurnedBatch")
+        .to.emit(puzzleContract, "BurnedAndMinted")
         .withArgs(investor1.address, anyValue, anyValue);
     });
     it("Owner should not be able to burn more than 1 LEVEL2 NFT", async () => {

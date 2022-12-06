@@ -69,7 +69,7 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
 
     event BurnedAndMinted(
         address user,
-        address[] burnedIds,
+        uint256[] burnedIds,
         uint256[] amount
     );
     
@@ -133,9 +133,8 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
         (bool burnable, uint256[] memory _idsToBurn, uint256[] memory newIDS)=verifyBurn(msg.sender);
         require(burnable, "Not able to burn");
         _burnBatch(msg.sender, newIDS, _idsToBurn);
-        // emit BurnedBatch(msg.sender,newIDS,_idsToBurn);
         _mint(msg.sender, LEVEL2, 1, "");
-        // emit Minted(LEVEL2, 1, msg.sender);
+        emit BurnedAndMinted(msg.sender, newIDS, _idsToBurn);
         tokenID[LEVEL2]++;
 
     }

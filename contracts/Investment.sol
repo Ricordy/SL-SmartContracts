@@ -149,10 +149,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         totalAmount = _amount + (_amount * returnProfit / 100);
     }
 
-    function profitRate() public view returns(uint256 profit){
-        profit = returnProfit;
-    }
-
     /// 
     //---- MODIFIERS------
     /// 
