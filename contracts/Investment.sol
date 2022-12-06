@@ -64,7 +64,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         totalInvestment = _totalInvestment;
         entryNFTAddress = _entryNFTAddress;
         paymentTokenAddress = _paymentTokenAddress;
-        changeState(Status.Progress);
+        changeStatus(Status.Progress);
     }
 
     ///
@@ -169,7 +169,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     /// 
     //----STATUS FUNCTIONS------
     /// 
-    function changeState(Status _status) public onlyOwner {
+    function changeStatus(Status _status) public onlyOwner {
         status = _status;
     }
 }

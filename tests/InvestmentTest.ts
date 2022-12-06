@@ -425,14 +425,14 @@ describe("Investment Contract Tests", async () => {
   describe("STATUS: PROCESS", async () => {
     it('Should set the status to "process"', async () => {
       const { investmentContract } = await loadFixture(oneInvestCallLeftToFill);
-      await investmentContract.changeState(STATUS_PROCESS);
+      await investmentContract.changeStatus(STATUS_PROCESS);
       expect(await investmentContract.status()).to.equal(STATUS_PROCESS);
     });
     describe("Function WithdrawSL", async () => {
       beforeEach("set state to process", async () => {
         const { investmentContract, investor1, paymentTokenContract } =
           await loadFixture(oneInvestCallLeftToFill);
-        await investmentContract.changeState(STATUS_PROCESS);
+        await investmentContract.changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
       });
       it("Investors should not be able to call", async () => {
@@ -482,7 +482,7 @@ describe("Investment Contract Tests", async () => {
           investmentContract.address,
           INVESTMENT_2_AMOUNT
         );
-        await investmentContract.changeState(STATUS_PROCESS);
+        await investmentContract.changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
       });
       it("Investors should not be able to call", async () => {
@@ -533,7 +533,7 @@ describe("Investment Contract Tests", async () => {
     describe("Pre-Withdraw", async () => {
       it("Should be on status WITHDRAW", async () => {
         const { investmentContract } = await loadFixture(deployContractFixture);
-        await investmentContract.changeState(STATUS_WITHDRAW);
+        await investmentContract.changeStatus(STATUS_WITHDRAW);
         const contractStatus = await investmentContract.status();
         expect(contractStatus).to.be.equal(STATUS_WITHDRAW);
       });
@@ -598,7 +598,7 @@ describe("Investment Contract Tests", async () => {
           .invest(amountInvested);
 
         // Change contract status to process
-        await investmentContract.changeState(STATUS_PROCESS);
+        await investmentContract.changeStatus(STATUS_PROCESS);
         // Allow owner to withdraw the totalInvestment from the contract
         await paymentTokenContract.approve(
           investmentContract.address,
@@ -626,7 +626,7 @@ describe("Investment Contract Tests", async () => {
         await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
 
         // Change state to withdraw
-        await investmentContract.changeState(STATUS_WITHDRAW);
+        await investmentContract.changeStatus(STATUS_WITHDRAW);
 
         paymentTokenBalanceBeforeWithdraw =
           await paymentTokenContract.balanceOf(crucialInvestor.address);
@@ -677,7 +677,7 @@ describe("Investment Contract Tests", async () => {
   describe("STATUS: REFUNDING", async () => {
     beforeEach(async () => {
       const { investmentContract } = await loadFixture(readyToRefundFixture);
-      await investmentContract.changeState(STATUS_REFUNDING);
+      await investmentContract.changeStatus(STATUS_REFUNDING);
     });
     it("Should be on status REFUNDING", async () => {
       const contractStatus = await investmentContract.status();
