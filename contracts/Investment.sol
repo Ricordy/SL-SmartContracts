@@ -78,7 +78,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
      ///@notice _coin represents the stable coin wanted 0 = USDC, 1 = USDT
     function invest(uint256 _amount) public nonReentrant isAllowed isProgress isNotPaused{
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
-        uint256 remainingAmount = totalContractBalanceStable(ERC20(paymentTokenAddress));
+        uint256 remainingAmount = totalInvestment - totalContractBalanceStable(ERC20(paymentTokenAddress));
         if (remainingAmount > totalInvestment / 10) {
             remainingAmount = totalInvestment / 10;
         }
@@ -87,8 +87,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         }
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        
-        require(_token.balanceOf(address(this)) + _amount <= totalInvestment, "Total reached"); // TODO
         
         require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
         _token.transferFrom(msg.sender, address(this), _amount);
