@@ -583,11 +583,22 @@ describe("Investment Contract Tests", async () => {
       });
     });
     describe("Withdraw && Invest", async () => {
-      // it("Withdraw function should be able to be called", async () => {
-      //   await expect(
-      //     investmentContract.connect(investor1).withdraw()
-      //   ).to.be.revertedWith("Not on Withdraw or Refunding");
-      // });
+      beforeEach("set state to process", async () => {
+        const { investmentContract, investor1, paymentTokenContract } =
+          await loadFixture(oneInvestCallLeftToFill);
+        await paymentTokenContract.mint(INVESTMENT_1_AMOUNT);
+        await paymentTokenContract.approve(
+          investmentContract.address,
+          INVESTMENT_2_AMOUNT
+        );
+        await investmentContract.changeStatus(STATUS_PROCESS);
+        return { investmentContract, investor1, paymentTokenContract };
+      });
+      it("Withdraw function should be able to be called", async () => {
+        await expect(
+          investmentContract.connect(investor1).withdraw()
+        ).to.be.revertedWith("Not on Withdraw or Refunding");
+      });
       it("Invest function shouldnt be able to be called", async () => {
         await expect(
           investmentContract.connect(investor1).invest(100)
