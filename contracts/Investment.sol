@@ -7,6 +7,11 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+/// Investing amount exceeded the maximum allowed
+/// @param amount the amount user is trying to invest
+/// @param maxAllowed max amount allowed to invest
+error InvestmentExceedMax(uint256 amount, uint256 maxAllowed);
+
 contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     ///
@@ -73,11 +78,15 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
      ///@notice _coin represents the stable coin wanted 0 = USDC, 1 = USDT
     function invest(uint256 _amount) public nonReentrant isAllowed isProgress isNotPaused{
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
-        require(_amount <= totalInvestment / 10 , "Amount exceed the total allowed");
+        uint256 remainingAmount = totalInvestment - totalContractBalanceStable(ERC20(paymentTokenAddress));
+        if (remainingAmount > totalInvestment / 10) {
+            remainingAmount = totalInvestment / 10;
+        }
+        if (_amount > remainingAmount) {
+            revert InvestmentExceedMax(_amount, remainingAmount);
+        }
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        
-        require(_token.balanceOf(address(this)) + _amount <= totalInvestment, "Total reached"); // TODO
         
         require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
         _token.transferFrom(msg.sender, address(this), _amount);

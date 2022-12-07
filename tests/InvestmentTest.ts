@@ -337,14 +337,31 @@ describe("Investment Contract Tests", async () => {
         ).to.be.revertedWith("Not enough amount to invest");
       });
       it("Investor should not be allowed to invest more than 10% of total investment", async () => {
-        const { investmentContract, investor1 } = await loadFixture(
-          ownerAndInvestorApprovedTokenToSpend
-        );
+        const { investmentContract, investor1, paymentTokenContract } =
+          await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+
+        const contractBalance =
+          await investmentContract.totalContractBalanceStable(
+            paymentTokenContract.address
+          );
+
+        const maxAllowed = BigNumber.from(INVESTMENT_1_AMOUNT).div(10);
+        const remainingToInvest =
+          BigNumber.from(INVESTMENT_1_AMOUNT).sub(contractBalance);
+        const maxToInvest = remainingToInvest.gt(maxAllowed)
+          ? maxAllowed
+          : remainingToInvest;
+
         await expect(
           investmentContract
             .connect(investor1)
             .invest(MORE_THAN_EXPECTED_INV_AMOUNT)
-        ).to.be.revertedWith("Amount exceed the total allowed");
+        )
+          .to.be.revertedWithCustomError(
+            investmentContract,
+            "InvestmentExceedMax"
+          )
+          .withArgs(MORE_THAN_EXPECTED_INV_AMOUNT, maxToInvest);
       });
       it("Investor should be allowed to invest", async () => {
         const { investmentContract, investor1 } = await loadFixture(
@@ -387,12 +404,29 @@ describe("Investment Contract Tests", async () => {
 
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
+
+        const contractBalance =
+          await investmentContract.totalContractBalanceStable(
+            paymentTokenContract.address
+          );
+
+        const maxAllowed = BigNumber.from(INVESTMENT_1_AMOUNT).div(10);
+        const remainingToInvest =
+          BigNumber.from(INVESTMENT_1_AMOUNT).sub(contractBalance);
+        const maxToInvest = remainingToInvest.gt(maxAllowed)
+          ? maxAllowed
+          : remainingToInvest;
         //Test user tryign to invest 9500 when there is only 5000 left
         await expect(
           investmentContract
             .connect(crucialInvestor)
             .invest(GENERAL_INVEST_AMOUNT)
-        ).to.be.revertedWith("Total reached");
+        )
+          .to.be.revertedWithCustomError(
+            investmentContract,
+            "InvestmentExceedMax"
+          )
+          .withArgs(GENERAL_INVEST_AMOUNT, maxToInvest);
       });
     });
     describe("Withdraw && WithdrawSL && Refill", async () => {
