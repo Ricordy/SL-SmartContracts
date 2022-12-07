@@ -16,6 +16,7 @@ import { BigNumber } from "ethers";
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 const INVESTMENT_1_AMOUNT = 100000,
+  INVESTMENT_1_MAX_ALLOWED_TO_INVEST = INVESTMENT_1_AMOUNT / 10,
   INVESTMENT_2_AMOUNT = 150000,
   STATUS_PAUSE = 0,
   STATUS_PROGRESS = 1,
@@ -28,7 +29,6 @@ const INVESTMENT_1_AMOUNT = 100000,
   GENERAL_INVEST_AMOUNT_TO_REFUND = 10000,
   LESS_THAN_EXPECTED_INV_AMOUNT = 99,
   MORE_THAN_EXPECTED_INV_AMOUNT = INVESTMENT_1_AMOUNT / 2,
-  EXPECTED_INV_AMOUNT1 = INVESTMENT_1_AMOUNT / 10 - 1,
   ENTRY_LEVEL_NFT_ID = 10,
   PAYMENT_TOKEN_AMOUNT = 200000,
   PROFIT_RATE = 15,
@@ -219,9 +219,11 @@ describe("Investment Contract Tests", async () => {
     // Allow investment contract to spend
     await paymentTokenContract
       .connect(investor1)
-      .approve(investmentContract.address, EXPECTED_INV_AMOUNT1);
+      .approve(investmentContract.address, INVESTMENT_1_MAX_ALLOWED_TO_INVEST);
     // Invest an amount on investment1
-    await investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1);
+    await investmentContract
+      .connect(investor1)
+      .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST);
 
     return {
       owner,
@@ -337,6 +339,25 @@ describe("Investment Contract Tests", async () => {
         ).to.be.revertedWith("Not enough amount to invest");
       });
       it("Investor should not be allowed to invest more than 10% of total investment", async () => {
+        const { investmentContract, investor1 } = await loadFixture(
+          ownerAndInvestorApprovedTokenToSpend
+        );
+
+        await expect(
+          investmentContract
+            .connect(investor1)
+            .invest(MORE_THAN_EXPECTED_INV_AMOUNT)
+        )
+          .to.be.revertedWithCustomError(
+            investmentContract,
+            "InvestmentExceedMax"
+          )
+          .withArgs(
+            MORE_THAN_EXPECTED_INV_AMOUNT,
+            INVESTMENT_1_MAX_ALLOWED_TO_INVEST
+          );
+      });
+      it("Investor should be warned when try to invest more than the amount to reach the contract's total", async () => {
         const { investmentContract, investor1, paymentTokenContract } =
           await loadFixture(ownerAndInvestorApprovedTokenToSpend);
 
@@ -368,10 +389,16 @@ describe("Investment Contract Tests", async () => {
           ownerAndInvestorApprovedTokenToSpend
         );
         await expect(
-          investmentContract.connect(investor1).invest(EXPECTED_INV_AMOUNT1)
+          investmentContract
+            .connect(investor1)
+            .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST)
         )
           .to.emit(investmentContract, "UserInvest")
-          .withArgs(investor1.address, EXPECTED_INV_AMOUNT1, anyValue);
+          .withArgs(
+            investor1.address,
+            INVESTMENT_1_MAX_ALLOWED_TO_INVEST,
+            anyValue
+          );
       });
       it("Should mint the exact same value of ERC20 tracker token as the amount investment", async () => {
         const { investmentContract, investor1 } = await loadFixture(
@@ -379,9 +406,9 @@ describe("Investment Contract Tests", async () => {
         );
         await investmentContract
           .connect(investor1)
-          .invest(EXPECTED_INV_AMOUNT1);
+          .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST);
         expect(await investmentContract.balanceOf(investor1.address)).to.equal(
-          EXPECTED_INV_AMOUNT1
+          INVESTMENT_1_MAX_ALLOWED_TO_INVEST
         );
       });
       it("Investor should not be allowed to surpass totalInvestment when investing", async () => {
@@ -549,13 +576,18 @@ describe("Investment Contract Tests", async () => {
         await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
         expect(await investmentContract.returnProfit()).to.equal(PROFIT_RATE);
       });
+      it('Should change the contract status to "withdraw"', async () => {
+        await investmentContract.withdrawSL();
+        await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
+        expect(await investmentContract.status()).to.equal(STATUS_WITHDRAW);
+      });
     });
     describe("Withdraw && Invest", async () => {
-      it("Withdraw function shouldnt be able to be called", async () => {
-        await expect(
-          investmentContract.connect(investor1).withdraw()
-        ).to.be.revertedWith("Not on Withdraw or Refunding");
-      });
+      // it("Withdraw function should be able to be called", async () => {
+      //   await expect(
+      //     investmentContract.connect(investor1).withdraw()
+      //   ).to.be.revertedWith("Not on Withdraw or Refunding");
+      // });
       it("Invest function shouldnt be able to be called", async () => {
         await expect(
           investmentContract.connect(investor1).invest(100)

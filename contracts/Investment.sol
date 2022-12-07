@@ -78,12 +78,12 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
      ///@notice _coin represents the stable coin wanted 0 = USDC, 1 = USDT
     function invest(uint256 _amount) public nonReentrant isAllowed isProgress isNotPaused{
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
-        uint256 remainingAmount = totalInvestment - totalContractBalanceStable(ERC20(paymentTokenAddress));
-        if (remainingAmount > totalInvestment / 10) {
-            remainingAmount = totalInvestment / 10;
+        uint256 maxToInvest = totalInvestment - totalContractBalanceStable(ERC20(paymentTokenAddress));
+        if (maxToInvest > totalInvestment / 10) {
+            maxToInvest = totalInvestment / 10;
         }
-        if (_amount > remainingAmount) {
-            revert InvestmentExceedMax(_amount, remainingAmount);
+        if (_amount > maxToInvest) {
+            revert InvestmentExceedMax(_amount, maxToInvest);
         }
         
         ERC20 _token = ERC20(paymentTokenAddress);
@@ -127,6 +127,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value");
         _token.transferFrom(msg.sender, address(this), _amount);
         returnProfit = _profitRate;
+        // Change status to withdraw
+        changeStatus(Status.Withdraw);
 
         emit ContractRefilled(_amount, _profitRate, block.timestamp);
     }
