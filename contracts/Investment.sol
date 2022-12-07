@@ -75,7 +75,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----MAIN FUNCTIONS------
     ///
-     ///@notice _coin represents the stable coin wanted 0 = USDC, 1 = USDT
     function invest(uint256 _amount) public nonReentrant isAllowed isProgress isNotPaused{
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
         uint256 maxToInvest = totalInvestment - totalContractBalanceStable(ERC20(paymentTokenAddress));
