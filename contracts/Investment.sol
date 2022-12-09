@@ -93,6 +93,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         uint256 remainingToFill = getMaxToInvest();
         
         if (remainingToFill == 0) {
+            _changeStatus(Status.Process);
             emit ContractFilled(block.timestamp);
         }
         
@@ -192,6 +193,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //----STATUS FUNCTIONS------
     /// 
     function changeStatus(Status _status) public onlyOwner {
+        status = _status;
+    }
+
+    function _changeStatus(Status _status) internal {
         status = _status;
     }
 }
