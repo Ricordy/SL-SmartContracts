@@ -363,7 +363,7 @@ describe("Investment Contract Tests", async () => {
             INVESTMENT_1_MAX_ALLOWED_TO_INVEST
           );
       });
-      it('Status emit event "ContractFilled" when we reach the total investment', async () => {
+      it('Status emit event "ContractFilled" and "UserInvested" when we reach the total investment', async () => {
         const { investmentContract } = await loadFixture(
           oneInvestCallLeftToFill
         );
@@ -388,6 +388,7 @@ describe("Investment Contract Tests", async () => {
           investmentContract.connect(crucialInvestor).invest(maxToInvest)
         )
           .to.emit(investmentContract, "ContractFilled")
+          .withArgs(newTimestamp)
           .and.emit(investmentContract, "UserInvest")
           .withArgs(crucialInvestor.address, maxToInvest, newTimestamp);
       });
