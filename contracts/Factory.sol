@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract Factory is Ownable {
 
-    Investment[] deployed;
+    Investment[] public deployedContracts;
     address lgentry;
     uint public counter;
 
@@ -23,7 +23,7 @@ contract Factory is Ownable {
         Investment inv = new Investment(_totalInvestment, lgentry, _paymentTokenAddress);
         inv.transferOwnership(msg.sender);
 
-        deployed.push(inv);
+        deployedContracts.push(inv);
         // console.log('Contract created',address(inv));
         // console.log(msg.sender);
         emit ContractCreated(counter, address(inv));
@@ -31,8 +31,8 @@ contract Factory is Ownable {
     }
 
     function getAddressTotal(address user) external view returns(uint userTotal){
-        for(uint i; i < deployed.length; i++){
-            userTotal += ERC20(deployed[i]).balanceOf(user);
+        for(uint i; i < deployedContracts.length; i++){
+            userTotal += ERC20(deployedContracts[i]).balanceOf(user);
         }
     }
 
@@ -45,8 +45,8 @@ contract Factory is Ownable {
     }
 
     function getLastDeployedContract() external view returns(address contractAddress) {
-        if (deployed.length > 0) {
-            contractAddress = address(deployed[deployed.length -1]);
+        if (deployedContracts.length > 0) {
+            contractAddress = address(deployedContracts[deployedContracts.length -1]);
         } else {
             contractAddress = address(0);
         }

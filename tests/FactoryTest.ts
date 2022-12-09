@@ -12,7 +12,10 @@ import {
   Puzzle__factory,
 } from "../typechain-types";
 
-const INVESTMENT_1_AMOUNT = 100000;
+const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+
+const INVESTMENT_1_AMOUNT = 100000,
+      CONTRACT_NUMBER_ID = 1;
 
 describe("Factory Contract Tests", async () => {
   let paymentTokenContract: CoinTest,
@@ -51,7 +54,23 @@ describe("Factory Contract Tests", async () => {
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
     it("Should create a new Investment contract", async () => {
-      return true;
+      const { factoryContract } =
+        await loadFixture(DeployContracts);
+      await expect(factoryContract.deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address))
+        .to
+        .emit(factoryContract , "ContractCreated")
+        .withArgs(CONTRACT_NUMBER_ID, anyValue)
     });
+    it("Should keep all contracts stored in an array", async () => {
+      const { factoryContract } =
+        await loadFixture(DeployContracts);
+      await factoryContract.deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address)
+      let lastDeployed = await factoryContract.getLastDeployedContract(),
+          newContract  = await factoryContract.deployedContracts(0);
+      expect(lastDeployed).to.equal(newContract)
+      
+
+    });
+
   });
 });
