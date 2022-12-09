@@ -10,7 +10,7 @@ import {
 } from "../typechain-types";
 import { Investment__factory } from "../typechain-types/factories/contracts/Investment__factory";
 import { CoinTest__factory } from "../typechain-types/factories/contracts/CoinTest__factory";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
@@ -45,7 +45,8 @@ describe("Investment Contract Tests", async () => {
     owner: SignerWithAddress,
     investor1: SignerWithAddress,
     investor2: SignerWithAddress,
-    crucialInvestor: SignerWithAddress;
+    crucialInvestor: SignerWithAddress,
+    minimunInvestment: BigNumber;
 
   async function deployContractFixture() {
     accounts = await ethers.getSigners();
@@ -79,6 +80,8 @@ describe("Investment Contract Tests", async () => {
       puzzleContract.address,
       paymentTokenContract.address
     );
+    minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
+
     return {
       owner,
       investor1,
@@ -89,6 +92,7 @@ describe("Investment Contract Tests", async () => {
       puzzleContract,
       factoryContract,
       investmentContract,
+      minimunInvestment,
     };
   }
   async function ownerAndInvestorApprovedTokenToSpend() {
@@ -98,6 +102,7 @@ describe("Investment Contract Tests", async () => {
       investmentContract,
       paymentTokenContract,
       puzzleContract,
+      minimunInvestment,
     } = await loadFixture(deployContractFixture);
     await paymentTokenContract.mint(INVESTOR1_INVESTMENT_AMOUNT);
     await paymentTokenContract.approve(
@@ -125,6 +130,7 @@ describe("Investment Contract Tests", async () => {
       investor1,
       investmentContract,
       paymentTokenContract,
+      minimunInvestment,
     };
   }
 
@@ -357,48 +363,42 @@ describe("Investment Contract Tests", async () => {
             INVESTMENT_1_MAX_ALLOWED_TO_INVEST
           );
       });
-      it("Investor should be warned when try to invest more than the amount to reach the contract's total", async () => {
-        const { investmentContract, investor1, paymentTokenContract } =
-          await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+      it('Status emit event "ContractFilled" when we reach the total investment', async () => {
+        const { investmentContract } = await loadFixture(
+          oneInvestCallLeftToFill
+        );
+        await paymentTokenContract
+          .connect(crucialInvestor)
+          .mint(GENERAL_ACCOUNT_AMOUNT);
+        await paymentTokenContract
+          .connect(crucialInvestor)
+          .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT);
+        await paymentTokenContract
+          .connect(crucialInvestor)
+          .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT);
 
-        const contractBalance =
-          await investmentContract.totalContractBalanceStable(
-            paymentTokenContract.address
-          );
+        //Mint NFTEntry for crucialInvestor
+        await puzzleContract.connect(crucialInvestor).mintEntry();
 
-        const maxAllowed = BigNumber.from(INVESTMENT_1_AMOUNT).div(10);
-        const remainingToInvest =
-          BigNumber.from(INVESTMENT_1_AMOUNT).sub(contractBalance);
-        const maxToInvest = remainingToInvest.gt(maxAllowed)
-          ? maxAllowed
-          : remainingToInvest;
+        const maxToInvest = await investmentContract.getMaxToInvest();
 
+        const newTimestamp = new Date().getTime();
+        await time.setNextBlockTimestamp(newTimestamp);
         await expect(
-          investmentContract
-            .connect(investor1)
-            .invest(MORE_THAN_EXPECTED_INV_AMOUNT)
+          investmentContract.connect(crucialInvestor).invest(maxToInvest)
         )
-          .to.be.revertedWithCustomError(
-            investmentContract,
-            "InvestmentExceedMax"
-          )
-          .withArgs(MORE_THAN_EXPECTED_INV_AMOUNT, maxToInvest);
+          .to.emit(investmentContract, "ContractFilled")
+          .and.emit(investmentContract, "UserInvest")
+          .withArgs(crucialInvestor.address, maxToInvest, newTimestamp);
       });
       it("Investor should be allowed to invest", async () => {
-        const { investmentContract, investor1 } = await loadFixture(
-          ownerAndInvestorApprovedTokenToSpend
-        );
+        const { investmentContract, investor1, minimunInvestment } =
+          await loadFixture(ownerAndInvestorApprovedTokenToSpend);
         await expect(
-          investmentContract
-            .connect(investor1)
-            .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST)
+          investmentContract.connect(investor1).invest(minimunInvestment)
         )
           .to.emit(investmentContract, "UserInvest")
-          .withArgs(
-            investor1.address,
-            INVESTMENT_1_MAX_ALLOWED_TO_INVEST,
-            anyValue
-          );
+          .withArgs(investor1.address, minimunInvestment, anyValue);
       });
       it("Should mint the exact same value of ERC20 tracker token as the amount investment", async () => {
         const { investmentContract, investor1 } = await loadFixture(
@@ -628,7 +628,7 @@ describe("Investment Contract Tests", async () => {
       it("Investor should have invested at least the minimum amount to be able to withdraw", async () => {
         const { factoryContract, deployedInvestmentAddress } =
           await loadFixture(investor1ReadyToClaimNFT);
-        const minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
+
         const amountInvested = await factoryContract
           .connect(investor1)
           .getAddressOnContract(deployedInvestmentAddress);

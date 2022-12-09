@@ -62,6 +62,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         uint256 time
     );
 
+    event ContractFilled (
+        uint256 time
+    );
+
     ///
     //-----CONSTRUCTOR------
     ///
@@ -77,19 +81,20 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     function invest(uint256 _amount) public nonReentrant isAllowed isProgress isNotPaused{
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
-        uint256 maxToInvest = totalInvestment - totalContractBalanceStable(ERC20(paymentTokenAddress));
-        if (maxToInvest > totalInvestment / 10) {
-            maxToInvest = totalInvestment / 10;
-        }
+        uint256 maxToInvest = getMaxToInvest();
         if (_amount > maxToInvest) {
             revert InvestmentExceedMax(_amount, maxToInvest);
         }
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        
-        require(_token.allowance(msg.sender, address(this)) >= _amount, "Not enough allowance");
         _token.transferFrom(msg.sender, address(this), _amount);
         _mint(msg.sender, _amount);
+
+        uint256 remainingToFill = getMaxToInvest();
+        
+        if (remainingToFill == 0) {
+            emit ContractFilled(block.timestamp);
+        }
         
         emit UserInvest(msg.sender, _amount, block.timestamp);
     }
@@ -137,6 +142,13 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     function totalContractBalanceStable(ERC20 _token) public view returns(uint256 totalBalance) {
         totalBalance = _token.balanceOf(address(this));
+    }
+
+    function getMaxToInvest() public view returns (uint256 maxToInvest) {
+        maxToInvest = totalInvestment - totalContractBalanceStable(ERC20(paymentTokenAddress));
+        if (maxToInvest > totalInvestment / 10) {
+            maxToInvest = totalInvestment / 10;
+        }
     }
 
     function calculateFinalAmount(uint256 _amount) internal view returns(uint256 totalAmount) {
