@@ -752,13 +752,39 @@ describe("Investment Contract Tests", async () => {
     });
   });
   describe("STATUS: REFUNDING", async () => {
-    beforeEach(async () => {
-      const { investmentContract } = await loadFixture(readyToRefundFixture);
-      await investmentContract.changeStatus(STATUS_REFUNDING);
+    describe("Before refunding", async () => {
+      beforeEach(async () => {
+        const { investmentContract } = await loadFixture(readyToRefundFixture);
+        await investmentContract.changeStatus(STATUS_REFUNDING);
+      });
+      it("Should be on status REFUNDING", async () => {
+        const contractStatus = await investmentContract.status();
+        expect(contractStatus).to.be.equal(STATUS_REFUNDING);
+      });
     });
-    it("Should be on status REFUNDING", async () => {
-      const contractStatus = await investmentContract.status();
-      expect(contractStatus).to.be.equal(STATUS_REFUNDING);
+    describe("After refunding", async () => {
+      beforeEach(async () => {
+        const { investmentContract } = await loadFixture(readyToRefundFixture);
+
+        // Change status to refunding
+        await investmentContract.changeStatus(STATUS_REFUNDING);
+      });
+      it("Investor should have all investment tokens (IC) burned", async () => {
+        await investmentContract.connect(investor1).withdraw();
+
+        expect(
+          await investmentContract.balanceOf(investor1.address)
+        ).changeTokenBalance(investmentContract, investor1.address, 1);
+      });
+      it("Investor should receive payment tokens invested", async () => {
+        await expect(() =>
+          investmentContract.connect(investor1).withdraw()
+        ).to.changeTokenBalance(
+          paymentTokenContract,
+          investor1.address,
+          GENERAL_INVEST_AMOUNT_TO_REFUND
+        );
+      });
     });
   });
 });
