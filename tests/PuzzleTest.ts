@@ -20,7 +20,9 @@ const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   ENTRY_LEVEL_NFT_ID = 10,
   LEVEL2_NFT_ID = 11,
   INVESTMENT1_AMOUNT = 100000,
+  INVESTMENT_2_AMOUNT = 150000,
   INVESTOR1_INVESTMENT_AMOUNT = 6000,
+  INVESTOR1_INVESTMENT_2_AMOUNT = 5000,
   PAYMENT_TOKEN_ID_0 = 0,
   PAYMENT_TOKEN_ID_1 = 1;
 
@@ -173,12 +175,11 @@ describe("Puzzle Contract", async () => {
       .connect(investor1)
       .invest(INVESTOR1_INVESTMENT_AMOUNT);
 
-    return { paymentTokenContract, puzzleContract };
+    return { paymentTokenContract, puzzleContract, factoryContract };
   }
   async function ownerAndInvestor1ReadyToBurnLevel2NFT() {
-    const { paymentTokenContract, puzzleContract } = await loadFixture(
-      deployContractFixture
-    );
+    const { paymentTokenContract, puzzleContract, factoryContract } =
+      await loadFixture(deployContractFixture);
     // Mint PaymentTokens to the owner
     await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
     // Mint PaymentTokens to the investor1
@@ -200,7 +201,7 @@ describe("Puzzle Contract", async () => {
     await puzzleContract.mintTest();
     // Mint all Puzzle NFTs for the investor1
     await puzzleContract.connect(investor1).mintTest();
-    return { puzzleContract };
+    return { puzzleContract, factoryContract };
   }
 
   describe("When the contract is deployed", async function () {
@@ -473,6 +474,36 @@ describe("Puzzle Contract", async () => {
         "User already has the LEVEL2 NFT"
       );
     });
-    it("Mint cannot surpass collection limit", async () => {});
+  });
+  describe("Puzzle && Factory", async () => {
+    beforeEach(async () => {
+      ({ factoryContract } = await loadFixture(investor1readyToClaimNFT));
+    });
+    it("Should get Investor's balance from Factory", async () => {
+      // Create new investment
+      await factoryContract.deployNew(
+        INVESTMENT_2_AMOUNT,
+        paymentTokenContract.address
+      );
+
+      const deployedInvestmentAddress =
+        await factoryContract.getLastDeployedContract();
+      const investmentFactory = new Investment__factory(owner);
+      const investmentContract = investmentFactory.attach(
+        deployedInvestmentAddress
+      );
+      await paymentTokenContract
+        .connect(investor1)
+        .approve(investmentContract.address, INVESTOR1_INVESTMENT_2_AMOUNT);
+      await investmentContract
+        .connect(investor1)
+        .invest(INVESTOR1_INVESTMENT_2_AMOUNT);
+      const userBalanceOnContracts = await factoryContract.getAddressTotal(
+        investor1.address
+      );
+      expect(userBalanceOnContracts).to.be.equal(
+        INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_2_AMOUNT
+      );
+    });
   });
 });
