@@ -11,7 +11,11 @@ contract CoinTest is ERC20 {
 
 
     function mint(uint256 amount) public {
-        _mint(msg.sender, amount);
+        _mint(msg.sender, amount * 10 ** decimals());
+    }
+
+    function decimals() override public pure returns(uint8){
+        return 6;
     }
 
 

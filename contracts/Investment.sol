@@ -33,8 +33,9 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     uint256 public returnProfit;
     address public paymentTokenAddress;
     address public entryNFTAddress;
-    uint256 public constant MINIMUM_INVESTMENT = 100;
+    uint256 public constant MINIMUM_INVESTMENT = 100 * 10 ** DECIMALSUSDC ;
     uint8 public constant LEVEL1 = 10;
+    uint8 public constant DECIMALSUSDC = 6;
 
     ///
     //-----EVENTS------
@@ -70,7 +71,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //-----CONSTRUCTOR------
     ///
     constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress) ERC20("InvestmentCurrency", "IC"){
-        totalInvestment = _totalInvestment;
+        totalInvestment = _totalInvestment * 10 ** DECIMALSUSDC;
         entryNFTAddress = _entryNFTAddress;
         paymentTokenAddress = _paymentTokenAddress;
         changeStatus(Status.Progress);
@@ -79,17 +80,17 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----MAIN FUNCTIONS------
     ///
-    function invest(uint256 _amount) public nonReentrant isAllowed isProgress isNotPaused{
-        require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
-        uint256 userInvested = _amount + balanceOf(msg.sender);
+    function invest(uint256 _amount) public nonReentrant{
+        require(_amount * 10 ** DECIMALSUSDC >= MINIMUM_INVESTMENT, "Not enough amount to invest");
+        uint256 userInvested = _amount * 10 ** DECIMALSUSDC + balanceOf(msg.sender);
         uint256 maxToInvest = getMaxToInvest();
         if ( userInvested > maxToInvest) {
             revert InvestmentExceedMax(userInvested, maxToInvest);
         }
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        _token.transferFrom(msg.sender, address(this), _amount);
-        _mint(msg.sender, _amount);
+        _token.transferFrom(msg.sender, address(this), _amount*  10 ** _token.decimals());
+        _mint(msg.sender, _amount * 10 ** DECIMALSUSDC);
 
         uint256 remainingToFill = getMaxToInvest();
         
@@ -109,7 +110,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
         ERC20 _token = ERC20(paymentTokenAddress);
         uint256 finalAmount = calculateFinalAmount(balance);
-        _token.transfer(msg.sender, finalAmount);
+        _token.transfer(msg.sender, finalAmount *  10 ** _token.decimals());
 
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
@@ -131,7 +132,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         ERC20 _token = ERC20(paymentTokenAddress);
         require(totalContractBalanceStable(_token) == 0, "Contract still have funds");
         require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value");
-        _token.transferFrom(msg.sender, address(this), _amount);
+        _token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals());
         returnProfit = _profitRate;
         // Change status to withdraw
         changeStatus(Status.Withdraw);
@@ -154,7 +155,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function calculateFinalAmount(uint256 _amount) internal view returns(uint256 totalAmount) {
-        totalAmount = _amount + (_amount * returnProfit / 100);
+        totalAmount = (_amount + (_amount * returnProfit / 100)) * 10 ** DECIMALSUSDC;
     }
 
     /// 
@@ -199,5 +200,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     function _changeStatus(Status _status) internal {
         status = _status;
+    }
+
+
+    function incrementMax(uint256 newTotal) public {
+        totalInvestment += newTotal ;
     }
 }
