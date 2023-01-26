@@ -83,13 +83,16 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     function invest(uint256 _amount) public nonReentrant{
         require(_amount * 10 ** DECIMALSUSDC >= MINIMUM_INVESTMENT, "Not enough amount to invest");
         uint256 userInvested = _amount * 10 ** DECIMALSUSDC + balanceOf(msg.sender);
+        
         uint256 maxToInvest = getMaxToInvest();
         if ( userInvested > maxToInvest) {
             revert InvestmentExceedMax(userInvested, maxToInvest);
         }
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        _token.transferFrom(msg.sender, address(this), _amount*  10 ** _token.decimals());
+        bool tokenTransfer = _token.transferFrom(msg.sender, address(this), _amount*  10 ** _token.decimals());
+        
+        require(tokenTransfer == true, "Puzzle: Error in token transfer");
         _mint(msg.sender, _amount * 10 ** DECIMALSUSDC);
 
         uint256 remainingToFill = getMaxToInvest();
@@ -106,12 +109,13 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         uint256 balance = balanceOf(msg.sender);
         require(balance > 0, "Not enough balance");
         
-        _burn(msg.sender, balance);
-
         ERC20 _token = ERC20(paymentTokenAddress);
         uint256 finalAmount = calculateFinalAmount(balance);
-        _token.transfer(msg.sender, finalAmount *  10 ** _token.decimals());
+        
+        bool tokenTransfer = _token.transfer(msg.sender, finalAmount *  10 ** _token.decimals());
+        require(tokenTransfer == true, "Puzzle: Error in token transfer");
 
+        _burn(msg.sender, balance);
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
 
@@ -123,7 +127,8 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     
         require(totalBalance >= totalInvestment * 80 / 100 , "Total not reached"); 
         
-        _token.transfer(msg.sender, totalContractBalanceStable(_token));
+        bool tokenTransfer = _token.transfer(msg.sender, totalContractBalanceStable(_token));
+        require(tokenTransfer == true, "Puzzle: Error in token transfer");
     
         emit SLWithdraw(totalBalance, block.timestamp);
     }
@@ -132,7 +137,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         ERC20 _token = ERC20(paymentTokenAddress);
         require(totalContractBalanceStable(_token) == 0, "Contract still have funds");
         require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value");
-        _token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals());
+        
+        bool tokenTransfer = _token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals());
+        require(tokenTransfer == true, "Puzzle: Error in token transfer");
+        
         returnProfit = _profitRate;
         // Change status to withdraw
         changeStatus(Status.Withdraw);

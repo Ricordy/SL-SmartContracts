@@ -107,9 +107,13 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
     function mintEntry() external nonReentrant {
         require(balanceOf(msg.sender, LEVEL1) < 1, "User already has the Entry NFT");
         require(tokenID[LEVEL1] <= MAX_LOT[LEVEL1], "Collection limit reached");
+        
         ERC20 _token = ERC20(paymentTokenAddress);
-        _token.transferFrom(msg.sender, address(this), ENTRY_NFT_PRICE *  10 ** _token.decimals());
+        bool tokenTransfer = _token.transferFrom(msg.sender, address(this), ENTRY_NFT_PRICE *  10 ** _token.decimals());
+        
+        require(tokenTransfer == true, "Puzzle: Error in token transfer");
         tokenID[LEVEL1]++;
+        
         _mint(msg.sender, LEVEL1, 1, "");
         emit Minted(LEVEL1, 1, msg.sender);
     }
