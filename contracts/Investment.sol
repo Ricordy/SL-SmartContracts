@@ -80,27 +80,26 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----MAIN FUNCTIONS------
     ///
-    function invest(uint256 _amount) public nonReentrant{
+    function invest(uint256 _amount) public nonReentrant {
         require(_amount * 10 ** DECIMALSUSDC >= MINIMUM_INVESTMENT, "Not enough amount to invest");
         uint256 userInvested = _amount * 10 ** DECIMALSUSDC + balanceOf(msg.sender);
         
         uint256 maxToInvest = getMaxToInvest();
+        uint256 remainingToFill = maxToInvest + _amount;
+        
         if ( userInvested > maxToInvest) {
             revert InvestmentExceedMax(userInvested, maxToInvest);
         }
-        
-        ERC20 _token = ERC20(paymentTokenAddress);
-        bool tokenTransfer = _token.transferFrom(msg.sender, address(this), _amount*  10 ** _token.decimals());
-        
-        require(tokenTransfer == true, "Puzzle: Error in token transfer");
-        _mint(msg.sender, _amount * 10 ** DECIMALSUSDC);
-
-        uint256 remainingToFill = getMaxToInvest();
-        
         if (remainingToFill == 0) {
             _changeStatus(Status.Process);
             emit ContractFilled(block.timestamp);
         }
+
+        _mint(msg.sender, _amount * 10 ** DECIMALSUSDC);
+        
+        ERC20 _token = ERC20(paymentTokenAddress);
+        require(_token.transferFrom(msg.sender, address(this), _amount*  10 ** _token.decimals()) == true, "Puzzle: Error in token transfer");
+        
         
         emit UserInvest(msg.sender, _amount, block.timestamp);
     }
@@ -112,16 +111,15 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         ERC20 _token = ERC20(paymentTokenAddress);
         uint256 finalAmount = calculateFinalAmount(balance);
         
-        bool tokenTransfer = _token.transfer(msg.sender, finalAmount *  10 ** _token.decimals());
-        require(tokenTransfer == true, "Puzzle: Error in token transfer");
-
         _burn(msg.sender, balance);
+        require( _token.transfer(msg.sender, finalAmount *  10 ** _token.decimals()) == true, "Puzzle: Error in token transfer");
+
+        
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
 
     function withdrawSL() external onlyOwner isAllowed isProcess isNotPaused {
         uint256 totalBalance;
-
         ERC20 _token = ERC20(paymentTokenAddress);
         totalBalance = totalContractBalanceStable(_token);
     
@@ -133,18 +131,15 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         emit SLWithdraw(totalBalance, block.timestamp);
     }
 
-    function refill(uint256 _amount, uint256 _profitRate) public onlyOwner isAllowed isProcess isNotPaused {
-        ERC20 _token = ERC20(paymentTokenAddress);
-        require(totalContractBalanceStable(_token) == 0, "Contract still have funds");
+    function refill(uint256 _amount, uint256 _profitRate) public nonReentrant onlyOwner isAllowed isProcess isNotPaused {
         require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value");
-        
-        bool tokenTransfer = _token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals());
-        require(tokenTransfer == true, "Puzzle: Error in token transfer");
+        ERC20 _token = ERC20(paymentTokenAddress);
         
         returnProfit = _profitRate;
         // Change status to withdraw
         changeStatus(Status.Withdraw);
 
+        require(_token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals()) == true, "Puzzle: Error in token transfer");
         emit ContractRefilled(_amount, _profitRate, block.timestamp);
     }
 
@@ -202,11 +197,11 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     /// 
     //----STATUS FUNCTIONS------
     /// 
-    function changeStatus(Status _status) public onlyOwner {
+    function changeStatus(Status _status) public onlyOwner nonReentrant {
         status = _status;
     }
 
-    function _changeStatus(Status _status) internal {
+    function _changeStatus(Status _status) private {
         status = _status;
     }
 

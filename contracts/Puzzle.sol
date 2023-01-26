@@ -45,7 +45,7 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
     //uint256 reserved_owner = 10;        
     //uint256 reservedForFree = 100;
             //-----URI------
-    string private base_uri_not_revealed;
+    string private base_uri_not_revealed = "insert ipfs link";
     string public base_uri = "ipfs://bafybeiemgzx3i5wa5cw47kpyz44m3t76crqdahe5onjibmgmpshjiivnjm";
     bool isReaveled = false;
             //-----ADDRESSES OF COMMUNICATIONS-----
@@ -82,7 +82,7 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
     );
 
     constructor(address _factoryAddress,address _paymentTokenAddress) ERC1155(""){
-        for(uint8 i; i < COLLECTION_IDS.length; i++){
+        for(uint8 i = 0; i < COLLECTION_IDS.length; i++){
             MAX_LOT[i] = MAX_PER_COLLECTION; 
             tokenID[i]++;
         }
@@ -98,23 +98,22 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
         require(verifyClaim(msg.sender), "User not able to claim");
         uint8 ID = tRandom();
         require(tokenID[ID] <= MAX_PER_COLLECTION, "Collection limit reached");
-        _mint(msg.sender, ID, 1, "");
         userPuzzlePieces[msg.sender]++;
         tokenID[ID]++;
+        _mint(msg.sender, ID, 1, "");
         emit Minted(ID, 1, msg.sender);
     }
 
     function mintEntry() external nonReentrant {
-        require(balanceOf(msg.sender, LEVEL1) < 1, "User already has the Entry NFT");
         require(tokenID[LEVEL1] <= MAX_LOT[LEVEL1], "Collection limit reached");
+        require(balanceOf(msg.sender, LEVEL1) < 1, "User already has the Entry NFT");
+        
+        tokenID[LEVEL1]++;
+        _mint(msg.sender, LEVEL1, 1, "");
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        bool tokenTransfer = _token.transferFrom(msg.sender, address(this), ENTRY_NFT_PRICE *  10 ** _token.decimals());
-        
-        require(tokenTransfer == true, "Puzzle: Error in token transfer");
-        tokenID[LEVEL1]++;
-        
-        _mint(msg.sender, LEVEL1, 1, "");
+        require(_token.transferFrom(msg.sender, address(this), ENTRY_NFT_PRICE *  10 ** _token.decimals()) == true, "Puzzle: Error in token transfer");
+
         emit Minted(LEVEL1, 1, msg.sender);
     }
   
@@ -155,7 +154,7 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard{
             newIDS[i] = COLLECTION_IDS[i];
         }
         uint256[] memory balance = balanceOfBatch(userAddress, newIDS);
-        for(uint i; i< balance.length; i++){
+        for(uint i = 0; i< balance.length; i++){
             if(balance[i] == 0){
                 return(false, idsForBurn, newIDS);
             }
