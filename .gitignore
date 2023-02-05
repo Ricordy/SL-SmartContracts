@@ -31,7 +31,6 @@ typechain-types
 
 #Hardhat files
 cache
-artifacts
 
 # Mac OS Files
 .DS_Store
