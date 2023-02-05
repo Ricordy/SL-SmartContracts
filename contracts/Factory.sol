@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.0;
 
 import "./Investment.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -20,11 +20,12 @@ contract Factory is Ownable {
     }
 
     function deployNew(uint256 _totalInvestment, address _paymentTokenAddress) onlyOwner external returns (address) {
+        require(lgentry != address(0), "Factory: First provide the entry contract address");
+        require(_paymentTokenAddress != address(0), "Factory: Provide a real paymentTokenAddress");
         counter++;
         Investment inv = new Investment(_totalInvestment, lgentry, _paymentTokenAddress);
-        inv.transferOwnership(msg.sender);
-
         deployedContracts.push(inv);
+        inv.transferOwnership(msg.sender);
         // console.log('Contract created',address(inv));
         // console.log(msg.sender);
         emit ContractCreated(counter, address(inv));
@@ -32,7 +33,7 @@ contract Factory is Ownable {
     }
 
     function getAddressTotal(address user) external view returns(uint userTotal){
-        for(uint i; i < deployedContracts.length; i++){
+        for(uint i = 0; i < deployedContracts.length; i++){
             userTotal += ERC20(deployedContracts[i]).balanceOf(user);
         }
     }
@@ -42,6 +43,7 @@ contract Factory is Ownable {
     }
 
     function setEntryAddress(address _lgentry) external onlyOwner {
+        require(_lgentry != address(0), "Factory: Provide a real address in the parameters.");
         lgentry= _lgentry;
     }
 

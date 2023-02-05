@@ -1,9 +1,8 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -29,10 +28,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //-----STATE VARIABLES------
     ///
     Status public status;
-    uint256 public totalInvestment;
+    uint256 public immutable totalInvestment;
     uint256 public returnProfit;
-    address public paymentTokenAddress;
-    address public entryNFTAddress;
+    address public immutable paymentTokenAddress;
+    address public immutable entryNFTAddress;
     uint256 public constant MINIMUM_INVESTMENT = 100 * 10 ** DECIMALSUSDC ;
     uint8 public constant LEVEL1 = 10;
     uint8 public constant DECIMALSUSDC = 6;
@@ -71,6 +70,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     //-----CONSTRUCTOR------
     ///
     constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress) ERC20("InvestmentCurrency", "IC"){
+        require(
+            _entryNFTAddress != address(0) && _paymentTokenAddress != address(0),
+            "Investment: Check the parameters and redeploy"
+        );
         totalInvestment = _totalInvestment * 10 ** DECIMALSUSDC;
         entryNFTAddress = _entryNFTAddress;
         paymentTokenAddress = _paymentTokenAddress;
@@ -124,11 +127,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         totalBalance = totalContractBalanceStable(_token);
     
         require(totalBalance >= totalInvestment * 80 / 100 , "Total not reached"); 
-        
-        bool tokenTransfer = _token.transfer(msg.sender, totalContractBalanceStable(_token));
-        require(tokenTransfer == true, "Puzzle: Error in token transfer");
-    
+
         emit SLWithdraw(totalBalance, block.timestamp);
+        require(_token.transfer(msg.sender, totalContractBalanceStable(_token)) == true, "Puzzle: Error in token transfer");
+    
     }
 
     function refill(uint256 _amount, uint256 _profitRate) public nonReentrant onlyOwner isAllowed isProcess isNotPaused {
@@ -197,16 +199,14 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     /// 
     //----STATUS FUNCTIONS------
     /// 
-    function changeStatus(Status _status) public onlyOwner nonReentrant {
-        status = _status;
+    function changeStatus(Status _newStatus) public onlyOwner nonReentrant {
+        status = _newStatus;
     }
 
-    function _changeStatus(Status _status) private {
-        status = _status;
+    function _changeStatus(Status _newStatus) private {
+        status = _newStatus;
     }
 
 
-    function incrementMax(uint256 newTotal) public {
-        totalInvestment += newTotal ;
-    }
+    
 }
