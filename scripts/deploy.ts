@@ -1,22 +1,47 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 
+import {
+  CoinTest,
+  CoinTest__factory,
+  Factory,
+  Factory__factory,
+  Puzzle,
+  Puzzle__factory,
+  Investment,
+  Investment__factory,
+} from "../typechain-types";
+
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+  const accounts: SignerWithAddress[] = await ethers.getSigners();
+  const owner: SignerWithAddress = accounts[0];
 
-  const lockedAmount = ethers.utils.parseEther("1");
+  const paymentTokenFactory = new CoinTest__factory(owner);
+  const factoryContractFactory = new Factory__factory(owner);
+  const puzzleContractFactory = new Puzzle__factory(owner);
+  const investmentFactory = new Investment__factory(owner);
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  const paymentTokenContract: CoinTest = await paymentTokenFactory.deploy();
 
-  await lock.deployed();
-
-  console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+  const factoryContract: Factory = await factoryContractFactory.deploy();
+  const puzzleContract: Puzzle = await puzzleContractFactory.deploy(
+    factoryContract.address,
+    paymentTokenContract.address
+  );
+  const investmentContract: Investment = await investmentFactory.deploy(
+    100000,
+    puzzleContract.address,
+    paymentTokenContract.address
+  );
+  console.log(
+    "Payment Token address deployed at: ",
+    paymentTokenContract.address
+  );
+  console.log("Puzzle deployed at: ", puzzleContract.address);
+  console.log("Factory deployed at: ", factoryContract.address);
+  console.log("Investment deployed at: ", investmentContract.address);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
