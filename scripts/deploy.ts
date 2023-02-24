@@ -12,6 +12,10 @@ import {
   Investment__factory,
 } from "../typechain-types";
 
+const INVESTMENT_AMOUNT_1 = 100000;
+const INVESTMENT_AMOUNT_2 = 250000;
+const INVESTMENT_AMOUNT_3 = 300000;
+
 async function main() {
   const accounts: SignerWithAddress[] = await ethers.getSigners();
   const owner: SignerWithAddress = accounts[0];
@@ -28,18 +32,48 @@ async function main() {
     factoryContract.address,
     paymentTokenContract.address
   );
-  const investmentContract: Investment = await investmentFactory.deploy(
-    100000,
-    puzzleContract.address,
+  // Set entry address
+  const setEntryTx = await factoryContract.setEntryAddress(
+    puzzleContract.address
+  );
+  const deployNewTx = await factoryContract.deployNew(
+    INVESTMENT_AMOUNT_1,
     paymentTokenContract.address
   );
+  const deployedInvestmentAddress1 =
+    await factoryContract.getLastDeployedContract();
+
+  const deployNewTx2 = await factoryContract.deployNew(
+    INVESTMENT_AMOUNT_2,
+    paymentTokenContract.address
+  );
+  const deployedInvestmentAddress2 =
+    await factoryContract.getLastDeployedContract();
+  const deployNewTx3 = await factoryContract.deployNew(
+    INVESTMENT_AMOUNT_3,
+    paymentTokenContract.address
+  );
+  const deployedInvestmentAddress3 =
+    await factoryContract.getLastDeployedContract();
+  // const investmentContract: Investment = await investmentFactory.deploy(
+  //   100000,
+  //   puzzleContract.address,
+  //   paymentTokenContract.address
+  // );
+  // const investmentContract2: Investment = await investmentFactory.deploy(
+  //   250000,
+  //   puzzleContract.address,
+  //   paymentTokenContract.address
+  // );
   console.log(
     "Payment Token address deployed at: ",
     paymentTokenContract.address
   );
   console.log("Puzzle deployed at: ", puzzleContract.address);
   console.log("Factory deployed at: ", factoryContract.address);
-  console.log("Investment deployed at: ", investmentContract.address);
+  console.log("Investment 1 deployed at: ", deployedInvestmentAddress1);
+  console.log("Investment 2 deployed at: ", deployedInvestmentAddress2);
+  console.log("Investment 3 deployed at: ", deployedInvestmentAddress3);
 }
 
 main().catch((error) => {

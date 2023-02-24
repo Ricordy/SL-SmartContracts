@@ -1,4 +1,5 @@
 import { HardhatUserConfig } from "hardhat/config";
+import "@nomiclabs/hardhat-etherscan";
 import "@nomicfoundation/hardhat-toolbox";
 require("dotenv").config({ path: ".env" });
 
@@ -16,14 +17,15 @@ const config: HardhatUserConfig = {
       accounts: {
         count: 16,
       },
+      chainId: 31337,
     },
-    rinkeby: {
+    goerli: {
       url: ALCHEMY_API_KEY_URL,
       accounts: [PRIVATE_KEY ?? ""],
     },
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY,
+    apiKey: ETHERSCAN_API_KEY ?? "",
   },
 };
 
