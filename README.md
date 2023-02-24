@@ -1,8 +1,12 @@
-# Sample Hardhat Project
+# Run instructions
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+## To deploy and verify NFTEntry just run this on terminal point to ./
 
-Try running some of the following tasks:
+```shell
+npx hardhat run scripts/deployEntry.js --network rinkeby
+```
+
+## To deploy and verify both NFTPieces and NFTLevel2 run this on terminal point to ./
 
 ```shell
 npx hardhat help

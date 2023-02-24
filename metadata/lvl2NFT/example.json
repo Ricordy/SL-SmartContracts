@@ -4,11 +4,11 @@
     "description": "Useless questionmark",
     "attributes": [{
             "trait_type": "Useless",
-            "value": "100"
+            "value": "99"
         },
         {
             "trait_type": "Access Level",
-            "value": "1"
+            "value": "2"
         }
     ]
 }
