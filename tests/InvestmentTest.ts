@@ -16,35 +16,29 @@ import { BigNumber } from "ethers";
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 const INVESTMENT_1_AMOUNT = 100000,
-  INVESTMENT_1_AMOUNT_WITH_DECIMALS = INVESTMENT_1_AMOUNT * 10 ** 6,
   INVESTMENT_1_MAX_ALLOWED_TO_INVEST = INVESTMENT_1_AMOUNT / 10,
-  INVESTMENT_1_MAX_ALLOWED_TO_INVEST_WITH_DECIMALS = INVESTMENT_1_MAX_ALLOWED_TO_INVEST * 10 ** 6,
   INVESTMENT_2_AMOUNT = 150000,
-  INVESTMENT_2_AMOUNT_WITH_DECIMALS = INVESTMENT_2_AMOUNT * 10 ** 6,
   STATUS_PAUSE = 0,
   STATUS_PROGRESS = 1,
   STATUS_PROCESS = 2,
   STATUS_WITHDRAW = 3,
   STATUS_REFUNDING = 4,
   INVESTOR1_INVESTMENT_AMOUNT = 100000,
-  INVESTOR1_INVESTMENT_AMOUNT_WITH_DECIMALS = INVESTOR1_INVESTMENT_AMOUNT * 10 ** 6,
   GENERAL_ACCOUNT_AMOUNT = 20000,
-  GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS = GENERAL_ACCOUNT_AMOUNT * 10 ** 6,
   GENERAL_INVEST_AMOUNT = 9500,
-  GENERAL_INVEST_AMOUNT_WITH_DECIMALS = GENERAL_INVEST_AMOUNT * 10 ** 6,
   GENERAL_INVEST_AMOUNT_TO_REFUND = 10000,
-  GENERAL_INVEST_AMOUNT_TO_REFUND_WITH_DECIMALS = GENERAL_INVEST_AMOUNT_TO_REFUND * 10 ** 6,
   LESS_THAN_EXPECTED_INV_AMOUNT = 99,
   MORE_THAN_EXPECTED_INV_AMOUNT = INVESTMENT_1_AMOUNT / 2,
-  MORE_THAN_EXPECTED_INV_AMOUNT_WITH_DECIMALS = MORE_THAN_EXPECTED_INV_AMOUNT * 10 ** 6,
   ENTRY_LEVEL_NFT_ID = 10,
   PAYMENT_TOKEN_AMOUNT = 200000,
-  PAYMENT_TOKEN_AMOUNT_WITH_DECIMALS = PAYMENT_TOKEN_AMOUNT * 10 ** 6,
   PROFIT_RATE = 15,
   REFILL_VALUE =
-    INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE,
-  REFILL_VALUE_WITH_DECIMALS = REFILL_VALUE * 10 ** 6;
+    INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE;
 
+
+  function withDecimals(toConvert : number) {
+    return toConvert * 10 ** 6;
+  }
 describe("Investment Contract Tests", async () => {
   let investmentContract: Investment,
     paymentTokenContract: CoinTest,
@@ -117,11 +111,11 @@ describe("Investment Contract Tests", async () => {
     await paymentTokenContract.mint(INVESTOR1_INVESTMENT_AMOUNT);
     await paymentTokenContract.approve(
       investmentContract.address,
-      INVESTOR1_INVESTMENT_AMOUNT_WITH_DECIMALS
+      withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
     );
     await paymentTokenContract.approve(
       puzzleContract.address,
-      INVESTOR1_INVESTMENT_AMOUNT_WITH_DECIMALS
+      withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
     );
     await puzzleContract.mintEntry();
     await paymentTokenContract
@@ -129,10 +123,10 @@ describe("Investment Contract Tests", async () => {
       .mint(INVESTOR1_INVESTMENT_AMOUNT);
     await paymentTokenContract
       .connect(investor1)
-      .approve(investmentContract.address, INVESTOR1_INVESTMENT_AMOUNT_WITH_DECIMALS);
+      .approve(investmentContract.address, withDecimals(INVESTOR1_INVESTMENT_AMOUNT));
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, INVESTOR1_INVESTMENT_AMOUNT_WITH_DECIMALS);
+      .approve(puzzleContract.address, withDecimals(INVESTOR1_INVESTMENT_AMOUNT));
     await puzzleContract.connect(investor1).mintEntry();
 
     return {
@@ -163,10 +157,10 @@ describe("Investment Contract Tests", async () => {
       //Approve fake coin spending
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+        .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+        .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
       //Buy NFT Entry for each user
       await puzzleContract.connect(accounts[i]).mintEntry();
       //Make 9500 investment
@@ -196,12 +190,12 @@ describe("Investment Contract Tests", async () => {
     // Approve Puzzle contract to spend Owner's PaymentTokens
     await paymentTokenContract.approve(
       puzzleContract.address,
-      PAYMENT_TOKEN_AMOUNT_WITH_DECIMALS
+      withDecimals(PAYMENT_TOKEN_AMOUNT)
     );
     // Approve Puzzle contract to spend Investor1's PaymentTokens
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT_WITH_DECIMALS);
+      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
     return { paymentTokenContract, puzzleContract };
   }
 
@@ -214,7 +208,7 @@ describe("Investment Contract Tests", async () => {
 
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT_WITH_DECIMALS);
+      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
 
     await puzzleContract.connect(investor1).mintEntry();
 
@@ -235,7 +229,7 @@ describe("Investment Contract Tests", async () => {
     // Allow investment contract to spend
     await paymentTokenContract
       .connect(investor1)
-      .approve(investmentContract.address, INVESTMENT_1_MAX_ALLOWED_TO_INVEST_WITH_DECIMALS);
+      .approve(investmentContract.address, withDecimals(INVESTMENT_1_MAX_ALLOWED_TO_INVEST));
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
@@ -269,10 +263,10 @@ describe("Investment Contract Tests", async () => {
       //Approve fake coin spending
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+        .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+        .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
       //Buy NFT Entry for each user
       await puzzleContract.connect(accounts[i]).mintEntry();
       // Make 1000 investment
@@ -307,7 +301,7 @@ describe("Investment Contract Tests", async () => {
     it("Should set the total Investment", async () => {
       const { investmentContract } = await loadFixture(deployContractFixture);
       const totalInvestment = await investmentContract.totalInvestment();
-      expect(totalInvestment).to.be.equal(INVESTMENT_1_AMOUNT_WITH_DECIMALS );
+      expect(totalInvestment).to.be.equal(withDecimals(INVESTMENT_1_AMOUNT));
     });
     it("Should set the Entry NFT address", async () => {
       const { investmentContract, puzzleContract } = await loadFixture(
@@ -376,8 +370,8 @@ describe("Investment Contract Tests", async () => {
             "InvestmentExceedMax"
           )
           .withArgs(
-            MORE_THAN_EXPECTED_INV_AMOUNT_WITH_DECIMALS,
-            INVESTMENT_1_MAX_ALLOWED_TO_INVEST_WITH_DECIMALS
+            withDecimals(MORE_THAN_EXPECTED_INV_AMOUNT),
+            withDecimals(INVESTMENT_1_MAX_ALLOWED_TO_INVEST)
           );
       });
       it('Status emit event "ContractFilled" and "UserInvested" when we reach the total investment', async () => {
@@ -389,10 +383,10 @@ describe("Investment Contract Tests", async () => {
           .mint(GENERAL_ACCOUNT_AMOUNT);
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+          .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+          .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
 
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
@@ -431,7 +425,7 @@ describe("Investment Contract Tests", async () => {
           .connect(investor1)
           .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST);
         expect(await investmentContract.balanceOf(investor1.address)).to.equal(
-          INVESTMENT_1_MAX_ALLOWED_TO_INVEST_WITH_DECIMALS
+          withDecimals(INVESTMENT_1_MAX_ALLOWED_TO_INVEST)
         );
       });
       it("Investor should not be allowed to surpass totalInvestment when investing", async () => {
@@ -447,10 +441,10 @@ describe("Investment Contract Tests", async () => {
           .mint(GENERAL_ACCOUNT_AMOUNT);
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+          .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+          .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
 
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
@@ -458,9 +452,9 @@ describe("Investment Contract Tests", async () => {
         const contractBalance =
           await investmentContract.totalContractBalanceStable();
 
-        const maxAllowed = BigNumber.from(INVESTMENT_1_AMOUNT_WITH_DECIMALS).div(10);
+        const maxAllowed = BigNumber.from(withDecimals(INVESTMENT_1_AMOUNT)).div(10);
         const remainingToInvest =
-          BigNumber.from(INVESTMENT_1_AMOUNT_WITH_DECIMALS).sub(contractBalance);
+          BigNumber.from(withDecimals(INVESTMENT_1_AMOUNT)).sub(contractBalance);
         const maxToInvest = remainingToInvest.gt(maxAllowed)
           ? maxAllowed
           : remainingToInvest;
@@ -474,7 +468,7 @@ describe("Investment Contract Tests", async () => {
             investmentContract,
             "InvestmentExceedMax"
           )
-          .withArgs(GENERAL_INVEST_AMOUNT_WITH_DECIMALS, maxToInvest);
+          .withArgs(withDecimals(GENERAL_INVEST_AMOUNT), maxToInvest);
       });
     });
     describe("Withdraw && WithdrawSL && Refill", async () => {
@@ -560,7 +554,7 @@ describe("Investment Contract Tests", async () => {
         await paymentTokenContract.mint(INVESTMENT_1_AMOUNT);
         await paymentTokenContract.approve(
           investmentContract.address,
-          INVESTMENT_2_AMOUNT_WITH_DECIMALS
+          withDecimals(INVESTMENT_2_AMOUNT)
         );
         await investmentContract.changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
@@ -608,7 +602,7 @@ describe("Investment Contract Tests", async () => {
         await paymentTokenContract.mint(INVESTMENT_1_AMOUNT);
         await paymentTokenContract.approve(
           investmentContract.address,
-          INVESTMENT_2_AMOUNT_WITH_DECIMALS
+          withDecimals(INVESTMENT_2_AMOUNT)
         );
         await investmentContract.changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
@@ -672,10 +666,10 @@ describe("Investment Contract Tests", async () => {
           .mint(GENERAL_ACCOUNT_AMOUNT);
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+          .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
+          .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
 
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
@@ -708,7 +702,7 @@ describe("Investment Contract Tests", async () => {
         // Allow Investment Contract to transfer the totalInvestment + profit
         await paymentTokenContract.approve(
           investmentContract.address,
-          REFILL_VALUE_WITH_DECIMALS
+          withDecimals(REFILL_VALUE)
         );
 
         const ownerBalance = await paymentTokenContract.balanceOf(
@@ -807,7 +801,7 @@ describe("Investment Contract Tests", async () => {
         ).to.changeTokenBalance(
           paymentTokenContract,
           investor1.address,
-          GENERAL_INVEST_AMOUNT_TO_REFUND_WITH_DECIMALS
+          withDecimals(GENERAL_INVEST_AMOUNT_TO_REFUND)
         );
       });
     });
