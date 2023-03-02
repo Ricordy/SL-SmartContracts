@@ -31,7 +31,9 @@ const INVESTMENT_1_AMOUNT = 100000,
   GENERAL_ACCOUNT_AMOUNT = 20000,
   GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS = GENERAL_ACCOUNT_AMOUNT * 10 ** 6,
   GENERAL_INVEST_AMOUNT = 9500,
+  GENERAL_INVEST_AMOUNT_WITH_DECIMALS = GENERAL_INVEST_AMOUNT * 10 ** 6,
   GENERAL_INVEST_AMOUNT_TO_REFUND = 10000,
+  GENERAL_INVEST_AMOUNT_TO_REFUND_WITH_DECIMALS = GENERAL_INVEST_AMOUNT_TO_REFUND * 10 ** 6,
   LESS_THAN_EXPECTED_INV_AMOUNT = 99,
   MORE_THAN_EXPECTED_INV_AMOUNT = INVESTMENT_1_AMOUNT / 2,
   MORE_THAN_EXPECTED_INV_AMOUNT_WITH_DECIMALS = MORE_THAN_EXPECTED_INV_AMOUNT * 10 ** 6,
@@ -40,7 +42,8 @@ const INVESTMENT_1_AMOUNT = 100000,
   PAYMENT_TOKEN_AMOUNT_WITH_DECIMALS = PAYMENT_TOKEN_AMOUNT * 10 ** 6,
   PROFIT_RATE = 15,
   REFILL_VALUE =
-    INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE;
+    INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE,
+  REFILL_VALUE_WITH_DECIMALS = REFILL_VALUE * 10 ** 6;
 
 describe("Investment Contract Tests", async () => {
   let investmentContract: Investment,
@@ -232,7 +235,7 @@ describe("Investment Contract Tests", async () => {
     // Allow investment contract to spend
     await paymentTokenContract
       .connect(investor1)
-      .approve(investmentContract.address, INVESTMENT_1_MAX_ALLOWED_TO_INVEST);
+      .approve(investmentContract.address, INVESTMENT_1_MAX_ALLOWED_TO_INVEST_WITH_DECIMALS);
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
@@ -266,17 +269,24 @@ describe("Investment Contract Tests", async () => {
       //Approve fake coin spending
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT);
+        .approve(puzzleContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT);
+        .approve(investmentContract.address, GENERAL_ACCOUNT_AMOUNT_WITH_DECIMALS);
       //Buy NFT Entry for each user
       await puzzleContract.connect(accounts[i]).mintEntry();
       // Make 1000 investment
+
+
+
+
+
+      
       await investmentContract
         .connect(accounts[i])
         .invest(GENERAL_INVEST_AMOUNT_TO_REFUND);
     }
+
 
     return {
       investor1,
@@ -391,7 +401,7 @@ describe("Investment Contract Tests", async () => {
 
         maxToInvest = maxToInvest.div(10 ** 6);
 
-        console.log(maxToInvest);
+
         
 
         const newTimestamp = new Date().getTime();
@@ -421,7 +431,7 @@ describe("Investment Contract Tests", async () => {
           .connect(investor1)
           .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST);
         expect(await investmentContract.balanceOf(investor1.address)).to.equal(
-          INVESTMENT_1_MAX_ALLOWED_TO_INVEST
+          INVESTMENT_1_MAX_ALLOWED_TO_INVEST_WITH_DECIMALS
         );
       });
       it("Investor should not be allowed to surpass totalInvestment when investing", async () => {
@@ -446,13 +456,11 @@ describe("Investment Contract Tests", async () => {
         await puzzleContract.connect(crucialInvestor).mintEntry();
 
         const contractBalance =
-          await investmentContract.totalContractBalanceStable(
-            paymentTokenContract.address
-          );
+          await investmentContract.totalContractBalanceStable();
 
-        const maxAllowed = BigNumber.from(INVESTMENT_1_AMOUNT).div(10);
+        const maxAllowed = BigNumber.from(INVESTMENT_1_AMOUNT_WITH_DECIMALS).div(10);
         const remainingToInvest =
-          BigNumber.from(INVESTMENT_1_AMOUNT).sub(contractBalance);
+          BigNumber.from(INVESTMENT_1_AMOUNT_WITH_DECIMALS).sub(contractBalance);
         const maxToInvest = remainingToInvest.gt(maxAllowed)
           ? maxAllowed
           : remainingToInvest;
@@ -466,7 +474,7 @@ describe("Investment Contract Tests", async () => {
             investmentContract,
             "InvestmentExceedMax"
           )
-          .withArgs(GENERAL_INVEST_AMOUNT, maxToInvest);
+          .withArgs(GENERAL_INVEST_AMOUNT_WITH_DECIMALS, maxToInvest);
       });
     });
     describe("Withdraw && WithdrawSL && Refill", async () => {
@@ -527,9 +535,7 @@ describe("Investment Contract Tests", async () => {
           owner.address
         );
         const contractBalance =
-          await investmentContract.totalContractBalanceStable(
-            paymentTokenContract.address
-          );
+          await investmentContract.totalContractBalanceStable();
 
         // Withdraw funds
         await investmentContract.withdrawSL();
@@ -566,11 +572,11 @@ describe("Investment Contract Tests", async () => {
             .refill(REFILL_VALUE, PROFIT_RATE)
         ).to.be.revertedWith("Ownable: caller is not the owner");
       });
-      it("Cannot refill while contract still have funds!", async () => {
-        await expect(
-          investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
-        ).to.be.revertedWith("Contract still have funds");
-      });
+      // it("Cannot refill while contract still have funds!", async () => {
+      //   await expect(
+      //     investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
+      //   ).to.be.revertedWith("Contract still have funds");
+      // }); WE TOOK THIS FUNCTIONALITY OF SINCE IT OPENS A BACKDOR FOR A DoS
       it("Cannot call function with wrong amount to refill (totalInvestment * profitRate) == amount(refilled) ", async () => {
         await investmentContract.withdrawSL();
         await expect(
@@ -675,17 +681,18 @@ describe("Investment Contract Tests", async () => {
         await puzzleContract.connect(crucialInvestor).mintEntry();
 
         const investmentContractBalance =
-          await investmentContract.totalContractBalanceStable(
-            paymentTokenContract.address
-          );
+          await investmentContract.totalContractBalanceStable();
         const totalInvestment = await investmentContract.totalInvestment();
 
-        amountInvested = totalInvestment.sub(investmentContractBalance);
+        amountInvested = totalInvestment.sub(investmentContractBalance).div(10**6);
+    
+
+        
 
         // Invest the remaining amount to fill the contract
         await investmentContract
           .connect(crucialInvestor)
-          .invest(amountInvested);
+          .invest(amountInvested.toNumber());
 
         // Change contract status to process
         await investmentContract.changeStatus(STATUS_PROCESS);
@@ -701,16 +708,22 @@ describe("Investment Contract Tests", async () => {
         // Allow Investment Contract to transfer the totalInvestment + profit
         await paymentTokenContract.approve(
           investmentContract.address,
-          REFILL_VALUE
+          REFILL_VALUE_WITH_DECIMALS
         );
 
         const ownerBalance = await paymentTokenContract.balanceOf(
           owner.address
         );
+        
+
+
         // Add more funds to the owner account to be able to refill
         await paymentTokenContract.mint(
-          ethers.BigNumber.from(REFILL_VALUE).sub(ownerBalance)
+          ethers.BigNumber.from(REFILL_VALUE).sub(ownerBalance.div(10**6))
         );
+
+
+        
 
         // Owner refill the contract
         await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
@@ -718,8 +731,9 @@ describe("Investment Contract Tests", async () => {
         // Change state to withdraw
         await investmentContract.changeStatus(STATUS_WITHDRAW);
 
-        paymentTokenBalanceBeforeWithdraw =
-          await paymentTokenContract.balanceOf(crucialInvestor.address);
+
+        
+        paymentTokenBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(crucialInvestor.address);
         await investmentContract.connect(crucialInvestor).withdraw();
       });
       it("Investor should have all investment tokens (IC) burned", async () => {
@@ -733,10 +747,9 @@ describe("Investment Contract Tests", async () => {
           crucialInvestor.address
         );
         const investorProfit = amountInvested.mul(PROFIT_RATE).div(100);
-
         expect(paymentTokenAfterWithdraw).to.be.equal(
           paymentTokenBalanceBeforeWithdraw.add(
-            amountInvested.add(investorProfit)
+            amountInvested.mul(10**6).add(investorProfit.mul(10**6))
           )
         );
       });
@@ -766,12 +779,11 @@ describe("Investment Contract Tests", async () => {
   });
   describe("STATUS: REFUNDING", async () => {
     describe("Before refunding", async () => {
-      beforeEach(async () => {
+      it("Should be on status REFUNDING", async () => {
         const { investmentContract } = await loadFixture(readyToRefundFixture);
         await investmentContract.changeStatus(STATUS_REFUNDING);
-      });
-      it("Should be on status REFUNDING", async () => {
         const contractStatus = await investmentContract.status();
+        
         expect(contractStatus).to.be.equal(STATUS_REFUNDING);
       });
     });
@@ -795,7 +807,7 @@ describe("Investment Contract Tests", async () => {
         ).to.changeTokenBalance(
           paymentTokenContract,
           investor1.address,
-          GENERAL_INVEST_AMOUNT_TO_REFUND
+          GENERAL_INVEST_AMOUNT_TO_REFUND_WITH_DECIMALS
         );
       });
     });

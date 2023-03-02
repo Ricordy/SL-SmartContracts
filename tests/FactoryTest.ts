@@ -34,6 +34,13 @@ describe("Factory Contract Tests", async () => {
     await factoryContract.deployed();
     paymentTokenContract = await paymentTokenFactory.deploy();
     await paymentTokenContract.deployed();
+    puzzleContract = await puzzleContractFactory.deploy(
+      factoryContract.address,
+      paymentTokenContract.address
+    );
+    await paymentTokenContract.deployed();
+
+    await factoryContract.setEntryAddress(puzzleContract.address);
 
     puzzleContract = await puzzleContractFactory.deploy(
       factoryContract.address,

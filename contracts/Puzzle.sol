@@ -198,7 +198,7 @@ contract Puzzle is ERC1155, Ownable, ReentrancyGuard {
         return true;
     }
 
-    function tokenURI(uint256 tokenId) public view returns (string memory) {
+    function tokenURI(uint256 tokenId) public pure returns (string memory) {
         if (/*isReaveled*/ true) {
             string memory _post_uri = string(
                 abi.encodePacked(

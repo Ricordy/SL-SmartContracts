@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "hardhat/console.sol";
+
 
 /// Investing amount exceeded the maximum allowed
 /// @param amount the amount user is trying to invest
@@ -83,19 +83,16 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----MAIN FUNCTIONS------
     ///
-    function invest(uint256 _amount) public nonReentrant isAllowed {
+    function invest(uint256 _amount) public nonReentrant isAllowed isProgress {
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
 
         uint256 userInvested = _amount * 10 ** decimals() + balanceOf(msg.sender);
         uint256 maxToInvest = getMaxToInvest();
-        console.log("maxToiInvest= ", maxToInvest);
-        uint256 remainingToFill = maxToInvest / 10 ** 6;
-        console.log("remaining to fill= ", remainingToFill, " amount: " , _amount);
         
         if ( userInvested > maxToInvest) {
             revert InvestmentExceedMax(userInvested, maxToInvest);
         }
-        if (remainingToFill - _amount == 0) {
+        if (totalSupply() + _amount * 10 ** 6 == totalInvestment) {
             _changeStatus(Status.Process);
             emit ContractFilled(block.timestamp);
         }
@@ -117,7 +114,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         uint256 finalAmount = calculateFinalAmount(balance);
         
         _burn(msg.sender, balance);
-        require( _token.transfer(msg.sender, finalAmount *  10 ** _token.decimals()) == true, "Puzzle: Error in token transfer");
+        require( _token.transfer(msg.sender, finalAmount) == true, "Puzzle: Error in token transfer");
 
         
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
@@ -137,12 +134,13 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function refill(uint256 _amount, uint256 _profitRate) public nonReentrant onlyOwner isAllowed isProcess isNotPaused {
-        require(totalInvestment + (totalInvestment * _profitRate /100) == _amount, "Not correct value");
         ERC20 _token = ERC20(paymentTokenAddress);
+        require(totalInvestment + (totalInvestment * _profitRate /100) == _amount * 10 **  _token.decimals() , "Not correct value");
+
         
         returnProfit = _profitRate;
         // Change status to withdraw
-        changeStatus(Status.Withdraw);
+        _changeStatus(Status.Withdraw);
 
         require(_token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals()) == true, "Puzzle: Error in token transfer");
         emit ContractRefilled(_amount, _profitRate, block.timestamp);
@@ -163,7 +161,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function calculateFinalAmount(uint256 _amount) internal view returns(uint256 totalAmount) {
-        totalAmount = (_amount + (_amount * returnProfit / 100)) * 10 ** decimals();
+        totalAmount = (_amount + (_amount * returnProfit / 100));
     }
 
     /// 

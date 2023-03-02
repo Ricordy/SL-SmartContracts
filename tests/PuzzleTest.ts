@@ -26,6 +26,10 @@ const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   PAYMENT_TOKEN_ID_0 = 0,
   PAYMENT_TOKEN_ID_1 = 1;
 
+
+function withDecimals(toConvert : number) {
+  return toConvert * 10 ** 6;
+}
 describe("Puzzle Contract", async () => {
   // Variables
   let puzzleContract: Puzzle,
@@ -112,12 +116,12 @@ describe("Puzzle Contract", async () => {
     // Approve Puzzle contract to spend Owner's PaymentTokens
     await paymentTokenContract.approve(
       puzzleContract.address,
-      PAYMENT_TOKEN_AMOUNT
+      withDecimals(PAYMENT_TOKEN_AMOUNT)
     );
     // Approve Puzzle contract to spend Investor1's PaymentTokens
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
     return { paymentTokenContract, puzzleContract };
   }
 
@@ -137,7 +141,7 @@ describe("Puzzle Contract", async () => {
     );
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
     return { paymentTokenContract, puzzleContract };
   }
 
@@ -150,7 +154,7 @@ describe("Puzzle Contract", async () => {
 
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
 
     puzzleContract.connect(investor1).mintEntry();
 
@@ -169,7 +173,7 @@ describe("Puzzle Contract", async () => {
     // Allow investment contract to spend
     await paymentTokenContract
       .connect(investor1)
-      .approve(investmentContract.address, INVESTOR1_INVESTMENT_AMOUNT);
+      .approve(investmentContract.address, withDecimals(INVESTOR1_INVESTMENT_AMOUNT));
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
@@ -187,12 +191,12 @@ describe("Puzzle Contract", async () => {
     // Approve Puzzle contract to spend Owner's PaymentTokens
     await paymentTokenContract.approve(
       puzzleContract.address,
-      PAYMENT_TOKEN_AMOUNT
+      withDecimals(PAYMENT_TOKEN_AMOUNT)
     );
     // Approve Puzzle contract to spend Investor1's PaymentTokens
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
     // Mint Entry NFT for the owner
     await puzzleContract.mintEntry();
     // Mint Entry NFT for the Investor1
@@ -273,7 +277,7 @@ describe("Puzzle Contract", async () => {
         await paymentTokenContract.balanceOf(owner.address);
 
       expect(ownerPaymentTokenBalanceAfter).to.be.equal(
-        ownerPaymentTokenBalanceBefore.add(PAYMENT_TOKEN_AMOUNT)
+        ownerPaymentTokenBalanceBefore.add(withDecimals(PAYMENT_TOKEN_AMOUNT))
       );
     });
 
@@ -337,7 +341,7 @@ describe("Puzzle Contract", async () => {
           .mint(PAYMENT_TOKEN_AMOUNT);
         await paymentTokenContract
           .connect(accounts[i])
-          .approve(puzzleContract.address, PAYMENT_TOKEN_AMOUNT);
+          .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
         if (i < accounts.length - 1) {
           await puzzleContract.connect(accounts[i]).mintEntry();
         }
@@ -494,7 +498,7 @@ describe("Puzzle Contract", async () => {
       );
       await paymentTokenContract
         .connect(investor1)
-        .approve(investmentContract.address, INVESTOR1_INVESTMENT_2_AMOUNT);
+        .approve(investmentContract.address, withDecimals(INVESTOR1_INVESTMENT_2_AMOUNT));
       await investmentContract
         .connect(investor1)
         .invest(INVESTOR1_INVESTMENT_2_AMOUNT);
@@ -502,7 +506,7 @@ describe("Puzzle Contract", async () => {
         investor1.address
       );
       expect(userBalanceOnContracts).to.be.equal(
-        INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_2_AMOUNT
+        withDecimals(INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_2_AMOUNT)
       );
     });
   });
