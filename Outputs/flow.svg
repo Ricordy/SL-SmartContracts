@@ -1,0 +1,345 @@
+<?xml version="1.0" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1061pt" height="701pt" viewBox="0.00 0.00 1061.50 701.00">
+<g id="graph0" class="graph" transform="translate(-6.557264579151365,493.4431634255047) scale(1.0698895860206215)" data-name="G">
+
+<polygon fill="#2e3e56" stroke="none" points="-4,4 -4,-697 1057.5,-697 1057.5,4 -4,4" style=""/>
+<g id="clust1" class="cluster" data-name="clusterSLLevels">
+
+<path fill="rgb(48,64,88)" stroke="rgb(48,64,88)" d="M20,-93C20,-93 1033.5,-93 1033.5,-93 1039.5,-93 1045.5,-99 1045.5,-105 1045.5,-105 1045.5,-536 1045.5,-536 1045.5,-542 1039.5,-548 1033.5,-548 1033.5,-548 20,-548 20,-548 14,-548 8,-542 8,-536 8,-536 8,-105 8,-105 8,-99 14,-93 20,-93" style=""/>
+<text text-anchor="middle" x="526.75" y="-531.4" font-family="Times,serif" font-size="14.00" fill="#f0f0f0" style="">SLLevels</text>
+</g>
+<g id="clust2" class="cluster" data-name="clusterIFactory">
+
+<path fill="rgb(47,63,87)" stroke="rgb(64,67,88)" stroke-dasharray="5,2" d="M332.6,-8C332.6,-8 474.33,-8 474.33,-8 480.33,-8 486.33,-14 486.33,-20 486.33,-20 486.33,-73 486.33,-73 486.33,-79 480.33,-85 474.33,-85 474.33,-85 332.6,-85 332.6,-85 326.6,-85 320.6,-79 320.6,-73 320.6,-73 320.6,-20 320.6,-20 320.6,-14 326.6,-8 332.6,-8" style=""/>
+<text text-anchor="middle" x="403.47" y="-68.4" font-family="Times,serif" font-size="14.00" fill="#f0f0f0" style="">IFactory</text>
+</g>
+<g id="clust3" class="cluster" data-name="cluster_01">
+
+<polygon fill="rgb(46,62,86)" stroke="rgb(41,55,77)" points="58.22,-556 58.22,-685 438.47,-685 438.47,-556 58.22,-556" style=""/>
+<text text-anchor="middle" x="248.34" y="-668.4" font-family="Times,serif" font-size="14.00" style="">Legend</text>
+</g>
+<!-- SLLevels.&lt;Constructor&gt; -->
+<g id="node1" class="node" pointer-events="visible" data-name="SLLevels.&lt;Constructor&gt;">
+
+<ellipse fill="rgb(66,70,92)" stroke="rgb(66,70,92)" stroke-width="3" cx="671.8" cy="-497" rx="67.55" ry="18" style=""/>
+<text text-anchor="middle" x="671.8" y="-492.8" font-family="Times,serif" font-size="14.00" style="">&lt;Constructor&gt;</text>
+</g>
+<!-- SLLevels.mountEntryValue -->
+<g id="node12" class="node" pointer-events="visible" data-name="SLLevels.mountEntryValue">
+
+<ellipse fill="rgb(65,73,86)" stroke="rgb(65,73,86)" stroke-width="3" cx="928.31" cy="-443" rx="80.46" ry="18" style=""/>
+<text text-anchor="middle" x="928.31" y="-438.8" font-family="Times,serif" font-size="14.00" style="">mountEntryValue</text>
+</g>
+<!-- SLLevels.&lt;Constructor&gt;&#45;&gt;SLLevels.mountEntryValue -->
+<g id="edge1" class="edge" data-name="SLLevels.&lt;Constructor&gt;-&gt;SLLevels.mountEntryValue">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M727.09,-485.48C764.18,-477.61 813.78,-467.09 854.32,-458.49" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="854.85,-461.95 863.9,-456.45 853.4,-455.1 854.85,-461.95" style=""/>
+</g>
+<!-- SLLevels._generateEntryBatch -->
+<g id="node2" class="node" pointer-events="visible" data-name="SLLevels._generateEntryBatch">
+
+<ellipse fill="rgb(66,70,92)" stroke="rgb(66,70,92)" stroke-width="3" cx="671.8" cy="-443" rx="92.59" ry="18" style=""/>
+<text text-anchor="middle" x="671.8" y="-438.8" font-family="Times,serif" font-size="14.00" style="">_generateEntryBatch</text>
+</g>
+<!-- SLLevels._generateEntryBatch&#45;&gt;SLLevels.mountEntryValue -->
+<g id="edge2" class="edge" data-name="SLLevels._generateEntryBatch-&gt;SLLevels.mountEntryValue">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M765.77,-443C787.84,-443 811.41,-443 833.52,-443" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="833.33,-446.5 843.33,-443 833.33,-439.5 833.33,-446.5" style=""/>
+</g>
+<!-- SLLevels._buyEntryToken -->
+<g id="node3" class="node" pointer-events="visible" data-name="SLLevels._buyEntryToken">
+
+<ellipse fill="rgb(66,70,92)" stroke="rgb(66,70,92)" stroke-width="3" cx="671.8" cy="-389" rx="76.45" ry="18" style=""/>
+<text text-anchor="middle" x="671.8" y="-384.8" font-family="Times,serif" font-size="14.00" style="">_buyEntryToken</text>
+</g>
+<!-- SLLevels._buyEntryToken&#45;&gt;SLLevels.mountEntryValue -->
+<g id="edge5" class="edge" data-name="SLLevels._buyEntryToken-&gt;SLLevels.mountEntryValue">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M731.51,-401.46C768.12,-409.22 815.53,-419.28 854.52,-427.56" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="853.66,-430.95 864.17,-429.6 855.11,-424.1 853.66,-430.95" style=""/>
+</g>
+<!-- SLLevels.unmountEntryValue -->
+<g id="node13" class="node" pointer-events="visible" data-name="SLLevels.unmountEntryValue">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="928.31" cy="-200" rx="89.77" ry="18" style=""/>
+<text text-anchor="middle" x="928.31" y="-195.8" font-family="Times,serif" font-size="14.00" style="">unmountEntryValue</text>
+</g>
+<!-- SLLevels._buyEntryToken&#45;&gt;SLLevels.unmountEntryValue -->
+<g id="edge3" class="edge" data-name="SLLevels._buyEntryToken-&gt;SLLevels.unmountEntryValue">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M744.81,-382.37C758.83,-378.23 772.46,-371.82 783.12,-362 820.32,-327.71 785.95,-292.21 819.12,-254 831.3,-239.96 848,-229.17 864.64,-221.06" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="865.67,-224.44 873.33,-217.12 862.78,-218.06 865.67,-224.44" style=""/>
+</g>
+<!-- SLLevels.mountEntryID -->
+<g id="node14" class="node" pointer-events="visible" data-name="SLLevels.mountEntryID">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="928.31" cy="-281" rx="67.22" ry="18" style=""/>
+<text text-anchor="middle" x="928.31" y="-276.8" font-family="Times,serif" font-size="14.00" style="">mountEntryID</text>
+</g>
+<!-- SLLevels._buyEntryToken&#45;&gt;SLLevels.mountEntryID -->
+<g id="edge4" class="edge" data-name="SLLevels._buyEntryToken-&gt;SLLevels.mountEntryID">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M733.55,-377.26C749.92,-373.26 767.44,-368.19 783.12,-362 821.14,-346.99 861.47,-323.62 889.78,-305.83" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="891.66,-308.79 898.21,-300.46 887.89,-302.89 891.66,-308.79" style=""/>
+</g>
+<!-- SLLevels._transferTokensOnClaim -->
+<g id="node15" class="node" pointer-events="visible" data-name="SLLevels._transferTokensOnClaim">
+
+<ellipse fill="rgb(65,73,86)" stroke="rgb(65,73,86)" stroke-width="3" cx="928.31" cy="-389" rx="109.38" ry="18" style=""/>
+<text text-anchor="middle" x="928.31" y="-384.8" font-family="Times,serif" font-size="14.00" style="">_transferTokensOnClaim</text>
+</g>
+<!-- SLLevels._buyEntryToken&#45;&gt;SLLevels._transferTokensOnClaim -->
+<g id="edge6" class="edge" data-name="SLLevels._buyEntryToken-&gt;SLLevels._transferTokensOnClaim">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M749.51,-389C766.99,-389 785.99,-389 804.85,-389" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="804.84,-392.5 814.84,-389 804.84,-385.5 804.84,-392.5" style=""/>
+</g>
+<!-- SLLevels.verifyClaim -->
+<g id="node4" class="node" pointer-events="visible" data-name="SLLevels.verifyClaim">
+
+<ellipse fill="rgb(66,70,92)" stroke="rgb(66,70,92)" stroke-width="3" cx="131.22" cy="-338" rx="57.9" ry="18" style=""/>
+<text text-anchor="middle" x="131.22" y="-333.8" font-family="Times,serif" font-size="14.00" style="">verifyClaim</text>
+</g>
+<!-- SLLevels._userAllowedToBurnPuzzle -->
+<g id="node5" class="node" pointer-events="visible" data-name="SLLevels._userAllowedToBurnPuzzle">
+
+<ellipse fill="rgb(65,73,86)" stroke="rgb(65,73,86)" stroke-width="3" cx="403.47" cy="-405" rx="120.99" ry="18" style=""/>
+<text text-anchor="middle" x="403.47" y="-400.8" font-family="Times,serif" font-size="14.00" style="">_userAllowedToBurnPuzzle</text>
+</g>
+<!-- SLLevels.verifyClaim&#45;&gt;SLLevels._userAllowedToBurnPuzzle -->
+<g id="edge7" class="edge" data-name="SLLevels.verifyClaim-&gt;SLLevels._userAllowedToBurnPuzzle">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M176.8,-350.36C206.63,-358.51 246.79,-369.25 282.44,-378 293.99,-380.83 306.19,-383.71 318.21,-386.48" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="317.16,-389.83 327.69,-388.65 318.72,-383.01 317.16,-389.83" style=""/>
+</g>
+<!-- SLLevels.IFactory -->
+<g id="node16" class="node" pointer-events="visible" data-name="SLLevels.IFactory">
+
+<ellipse fill="rgb(65,73,86)" stroke="rgb(65,73,86)" stroke-width="3" cx="403.47" cy="-297" rx="43.5" ry="18" style=""/>
+<text text-anchor="middle" x="403.47" y="-292.8" font-family="Times,serif" font-size="14.00" style="">IFactory</text>
+</g>
+<!-- SLLevels.verifyClaim&#45;&gt;SLLevels.IFactory -->
+<g id="edge8" class="edge" data-name="SLLevels.verifyClaim-&gt;SLLevels.IFactory">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M185.29,-329.95C232.36,-322.81 300.81,-312.42 348.23,-305.23" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="348.65,-308.7 358.02,-303.74 347.6,-301.78 348.65,-308.7" style=""/>
+</g>
+<!-- SLLevels.getPositionXInDivisionByY -->
+<g id="node17" class="node" pointer-events="visible" data-name="SLLevels.getPositionXInDivisionByY">
+
+<ellipse fill="rgb(65,73,86)" stroke="rgb(65,73,86)" stroke-width="3" cx="403.47" cy="-351" rx="121.05" ry="18" style=""/>
+<text text-anchor="middle" x="403.47" y="-346.8" font-family="Times,serif" font-size="14.00" style="">getPositionXInDivisionByY</text>
+</g>
+<!-- SLLevels.verifyClaim&#45;&gt;SLLevels.getPositionXInDivisionByY -->
+<g id="edge10" class="edge" data-name="SLLevels.verifyClaim-&gt;SLLevels.getPositionXInDivisionByY">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M189.86,-340.77C214.37,-341.95 244.02,-343.38 273.29,-344.79" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="273.06,-348.28 283.22,-345.26 273.4,-341.29 273.06,-348.28" style=""/>
+</g>
+<!-- IFactory.getAddressTotal -->
+<g id="node22" class="node" pointer-events="visible" data-name="IFactory.getAddressTotal">
+
+<ellipse fill="rgb(65,73,86)" stroke="rgb(65,73,86)" stroke-width="3" cx="403.47" cy="-34" rx="74.73" ry="18" style=""/>
+<text text-anchor="middle" x="403.47" y="-29.8" font-family="Times,serif" font-size="14.00" style="">getAddressTotal</text>
+</g>
+<!-- SLLevels.verifyClaim&#45;&gt;IFactory.getAddressTotal -->
+<g id="edge9" class="edge" data-name="SLLevels.verifyClaim-&gt;IFactory.getAddressTotal">
+
+<path fill="none" stroke="rgb(66,81,102)" stroke-width="2" d="M180.49,-327.22C203.83,-319.55 230.23,-306.79 246.44,-286 301.16,-215.8 227.8,-159.26 282.44,-89 295.73,-71.91 315.54,-59.95 335.27,-51.65" style=""/>
+<polygon fill="rgb(66,81,102)" stroke="rgb(66,81,102)" stroke-width="2" points="336.25,-55.02 344.32,-48.15 333.73,-48.49 336.25,-55.02" style=""/>
+</g>
+<!-- SLLevels._createUserAddressArray -->
+<g id="node18" class="node" pointer-events="visible" data-name="SLLevels._createUserAddressArray">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="671.8" cy="-227" rx="111.12" ry="18" style=""/>
+<text text-anchor="middle" x="671.8" y="-222.8" font-family="Times,serif" font-size="14.00" style="">_createUserAddressArray</text>
+</g>
+<!-- SLLevels._userAllowedToBurnPuzzle&#45;&gt;SLLevels._createUserAddressArray -->
+<g id="edge11" class="edge" data-name="SLLevels._userAllowedToBurnPuzzle-&gt;SLLevels._createUserAddressArray">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M500.99,-393.37C509.61,-389.46 517.65,-384.44 524.49,-378 566.29,-338.68 519.06,-293.71 560.49,-254 564.01,-250.63 567.87,-247.66 571.99,-245.04" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="573.57,-248.16 580.72,-240.34 570.26,-242 573.57,-248.16" style=""/>
+</g>
+<!-- SLLevels.balanceOf -->
+<g id="node19" class="node" pointer-events="visible" data-name="SLLevels.balanceOf">
+
+<ellipse fill="rgb(65,73,86)" stroke="rgb(65,73,86)" stroke-width="3" cx="671.8" cy="-119" rx="50.92" ry="18" style=""/>
+<text text-anchor="middle" x="671.8" y="-114.8" font-family="Times,serif" font-size="14.00" style="">balanceOf</text>
+</g>
+<!-- SLLevels._userAllowedToBurnPuzzle&#45;&gt;SLLevels.balanceOf -->
+<g id="edge12" class="edge" data-name="SLLevels._userAllowedToBurnPuzzle-&gt;SLLevels.balanceOf">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M487.84,-390.94C501.65,-386.39 514.65,-379.53 524.49,-369 595.75,-292.78 489.95,-213.89 560.49,-137 573.54,-122.78 592.74,-115.48 611.49,-112.4" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="611.77,-115.89 621.3,-111.26 610.96,-108.94 611.77,-115.89" style=""/>
+</g>
+<!-- SLLevels._userAllowedToBurnPuzzle&#45;&gt;SLLevels.balanceOf -->
+<g id="edge15" class="edge" data-name="SLLevels._userAllowedToBurnPuzzle-&gt;SLLevels.balanceOf">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M513.42,-396.53C517.42,-393.75 521.14,-390.59 524.49,-387 595.75,-310.78 489.95,-231.89 560.49,-155 573.6,-140.71 592.93,-133.41 611.76,-129.34" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="612.12,-132.83 621.33,-127.58 610.86,-125.94 612.12,-132.83" style=""/>
+</g>
+<!-- SLLevels.balanceOfBatch -->
+<g id="node20" class="node" pointer-events="visible" data-name="SLLevels.balanceOfBatch">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="671.8" cy="-281" rx="73.47" ry="18" style=""/>
+<text text-anchor="middle" x="671.8" y="-276.8" font-family="Times,serif" font-size="14.00" style="">balanceOfBatch</text>
+</g>
+<!-- SLLevels._userAllowedToBurnPuzzle&#45;&gt;SLLevels.balanceOfBatch -->
+<g id="edge13" class="edge" data-name="SLLevels._userAllowedToBurnPuzzle-&gt;SLLevels.balanceOfBatch">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M479.68,-389.78C495.65,-385.43 511.57,-379 524.49,-369 552.16,-347.59 533.02,-320.67 560.49,-299 567.78,-293.25 576.12,-288.7 584.88,-285.16" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="585.87,-288.53 594.16,-281.94 583.57,-281.91 585.87,-288.53" style=""/>
+</g>
+<!-- SLLevels._userAllowedToBurnPuzzle&#45;&gt;SLLevels.balanceOfBatch -->
+<g id="edge16" class="edge" data-name="SLLevels._userAllowedToBurnPuzzle-&gt;SLLevels.balanceOfBatch">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M510.97,-395.7C515.73,-393.15 520.27,-390.27 524.49,-387 552.16,-365.59 533.02,-338.67 560.49,-317 572.59,-307.46 587.57,-301.23 602.56,-296.92" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="603.33,-300.33 612.15,-294.47 601.59,-293.55 603.33,-300.33" style=""/>
+</g>
+<!-- SLLevels._getPuzzleCollectionIds -->
+<g id="node21" class="node" pointer-events="visible" data-name="SLLevels._getPuzzleCollectionIds">
+
+<ellipse fill="rgb(65,73,86)" stroke="rgb(65,73,86)" stroke-width="3" cx="671.8" cy="-335" rx="105.37" ry="18" style=""/>
+<text text-anchor="middle" x="671.8" y="-330.8" font-family="Times,serif" font-size="14.00" style="">_getPuzzleCollectionIds</text>
+</g>
+<!-- SLLevels._userAllowedToBurnPuzzle&#45;&gt;SLLevels._getPuzzleCollectionIds -->
+<g id="edge14" class="edge" data-name="SLLevels._userAllowedToBurnPuzzle-&gt;SLLevels._getPuzzleCollectionIds">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M455.88,-387.45C477.35,-382.3 502.39,-376.32 524.49,-369 541.11,-363.5 543.92,-358.66 560.49,-353 563.95,-351.82 567.48,-350.67 571.06,-349.55" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="571.88,-352.96 580.47,-346.76 569.89,-346.25 571.88,-352.96" style=""/>
+</g>
+<!-- SLLevels._userAllowedToBurnPuzzle&#45;&gt;SLLevels._getPuzzleCollectionIds -->
+<g id="edge17" class="edge" data-name="SLLevels._userAllowedToBurnPuzzle-&gt;SLLevels._getPuzzleCollectionIds">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M502.51,-393.61C510,-391.56 517.39,-389.35 524.49,-387 541.11,-381.5 543.92,-376.66 560.49,-371 577.31,-365.26 595.96,-360.21 613.06,-355.69" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="613.49,-359.2 622.27,-353.26 611.71,-352.43 613.49,-359.2" style=""/>
+</g>
+<!-- SLLevels._userHasEntryToken -->
+<g id="node6" class="node" pointer-events="visible" data-name="SLLevels._userHasEntryToken">
+
+<ellipse fill="#f2c383" stroke="#f2c383" stroke-width="3" cx="403.47" cy="-243" rx="93.19" ry="18" style=""/>
+<text text-anchor="middle" x="403.47" y="-238.8" font-family="Times,serif" font-size="14.00" style="">_userHasEntryToken</text>
+</g>
+<!-- SLLevels._getEntryTokenIds -->
+<g id="node7" class="node" pointer-events="visible" data-name="SLLevels._getEntryTokenIds">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="671.8" cy="-173" rx="85.68" ry="18" style=""/>
+<text text-anchor="middle" x="671.8" y="-168.8" font-family="Times,serif" font-size="14.00" style="">_getEntryTokenIds</text>
+</g>
+<!-- SLLevels._userHasEntryToken&#45;&gt;SLLevels._getEntryTokenIds -->
+<g id="edge18" class="edge" data-name="SLLevels._userHasEntryToken-&gt;SLLevels._getEntryTokenIds">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M473.34,-229.95C490.24,-226.08 508.17,-221.4 524.49,-216 541.11,-210.5 543.92,-205.66 560.49,-200 571.78,-196.15 583.89,-192.6 595.81,-189.44" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="596.36,-192.92 605.18,-187.04 594.62,-186.14 596.36,-192.92" style=""/>
+</g>
+<!-- SLLevels._userHasEntryToken&#45;&gt;SLLevels._createUserAddressArray -->
+<g id="edge20" class="edge" data-name="SLLevels._userHasEntryToken-&gt;SLLevels._createUserAddressArray">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M494.26,-237.61C513.09,-236.47 533.22,-235.27 552.9,-234.08" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="552.96,-237.59 562.73,-233.49 552.54,-230.6 552.96,-237.59" style=""/>
+</g>
+<!-- SLLevels._userHasEntryToken&#45;&gt;SLLevels.balanceOfBatch -->
+<g id="edge19" class="edge" data-name="SLLevels._userHasEntryToken-&gt;SLLevels.balanceOfBatch">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M481.5,-253.99C516.67,-259.01 558.22,-264.94 593.43,-269.96" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="592.7,-273.39 603.09,-271.34 593.69,-266.46 592.7,-273.39" style=""/>
+</g>
+<!-- SLLevels._getEntryTokenIds&#45;&gt;SLLevels.unmountEntryValue -->
+<g id="edge21" class="edge" data-name="SLLevels._getEntryTokenIds-&gt;SLLevels.unmountEntryValue">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M750.55,-181.25C776.79,-184.03 806.37,-187.17 833.72,-190.07" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="833.19,-193.54 843.51,-191.11 833.93,-186.57 833.19,-193.54" style=""/>
+</g>
+<!-- SLLevels._getEntryTokenIds&#45;&gt;SLLevels.mountEntryID -->
+<g id="edge22" class="edge" data-name="SLLevels._getEntryTokenIds-&gt;SLLevels.mountEntryID">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M740.5,-185C754.94,-188.81 769.84,-193.72 783.12,-200 801.2,-208.55 802.1,-216.49 819.12,-227 838.2,-238.78 860.19,-250.14 879.35,-259.37" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="877.59,-262.4 888.12,-263.53 880.59,-256.08 877.59,-262.4" style=""/>
+</g>
+<!-- SLLevels.userHasEntryToken -->
+<g id="node8" class="node" pointer-events="visible" data-name="SLLevels.userHasEntryToken">
+
+<polygon fill="rgb(65,73,86)" stroke="rgb(44,75,94)" stroke-width="3" points="226.8,-247.54 226.8,-262.46 170.81,-273 91.63,-273 35.64,-262.46 35.64,-247.54 91.63,-237 170.81,-237 226.8,-247.54" style=""/>
+<polygon fill="none" stroke="rgb(44,75,94)" stroke-width="3" points="230.8,-244.23 230.8,-265.77 171.18,-277 91.26,-277 31.64,-265.77 31.64,-244.23 91.26,-233 171.18,-233 230.8,-244.23" style=""/>
+<text text-anchor="middle" x="131.22" y="-250.8" font-family="Times,serif" font-size="14.00" style="">userHasEntryToken</text>
+</g>
+<!-- SLLevels.userHasEntryToken&#45;&gt;SLLevels._userHasEntryToken -->
+<g id="edge23" class="edge" data-name="SLLevels.userHasEntryToken-&gt;SLLevels._userHasEntryToken">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M232.08,-250.57C253.6,-249.61 276.4,-248.6 298.08,-247.63" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="298.2,-251.13 308.04,-247.19 297.89,-244.14 298.2,-251.13" style=""/>
+</g>
+<!-- SLLevels.userNotHasEntryToken -->
+<g id="node9" class="node" pointer-events="visible" data-name="SLLevels.userNotHasEntryToken">
+
+<polygon fill="#edad56" stroke="#1bc6a6" stroke-width="3" points="242.65,-185.54 242.65,-200.46 177.38,-211 85.06,-211 19.79,-200.46 19.79,-185.54 85.06,-175 177.38,-175 242.65,-185.54" style=""/>
+<polygon fill="none" stroke="#1bc6a6" stroke-width="3" points="246.66,-182.14 246.66,-203.86 177.7,-215 84.74,-215 15.78,-203.86 15.78,-182.14 84.74,-171 177.7,-171 246.66,-182.14" style=""/>
+<text text-anchor="middle" x="131.22" y="-188.8" font-family="Times,serif" font-size="14.00" style="">userNotHasEntryToken</text>
+</g>
+<!-- SLLevels.userNotHasEntryToken&#45;&gt;SLLevels._userHasEntryToken -->
+<g id="edge24" class="edge" data-name="SLLevels.userNotHasEntryToken-&gt;SLLevels._userHasEntryToken">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M221.08,-209.44C252.99,-215.34 288.82,-221.97 320.15,-227.77" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="319.37,-231.19 329.84,-229.56 320.65,-224.3 319.37,-231.19" style=""/>
+</g>
+<!-- SLLevels.userHasLevel2Token -->
+<g id="node10" class="node" pointer-events="visible" data-name="SLLevels.userHasLevel2Token">
+
+<polygon fill="rgb(65,73,86)" stroke="rgb(44,75,94)" stroke-width="3" points="504.65,-177.54 504.65,-192.46 445.38,-203 361.55,-203 302.28,-192.46 302.28,-177.54 361.55,-167 445.38,-167 504.65,-177.54" style=""/>
+<polygon fill="none" stroke="rgb(44,75,94)" stroke-width="3" points="508.64,-174.19 508.64,-195.81 445.73,-207 361.2,-207 298.29,-195.81 298.29,-174.19 361.2,-163 445.73,-163 508.64,-174.19" style=""/>
+<text text-anchor="middle" x="403.47" y="-180.8" font-family="Times,serif" font-size="14.00" style="">userHasLevel2Token</text>
+</g>
+<!-- SLLevels.userHasLevel2Token&#45;&gt;SLLevels.balanceOf -->
+<g id="edge25" class="edge" data-name="SLLevels.userHasLevel2Token-&gt;SLLevels.balanceOf">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M476.3,-166.97C502.76,-160.34 532.98,-152.81 560.49,-146 578.36,-141.58 597.86,-136.79 615.43,-132.5" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="616.01,-135.96 624.89,-130.18 614.35,-129.16 616.01,-135.96" style=""/>
+</g>
+<!-- SLLevels.userHasLevel3Token -->
+<g id="node11" class="node" pointer-events="visible" data-name="SLLevels.userHasLevel3Token">
+
+<polygon fill="rgb(65,73,86)" stroke="rgb(44,75,94)" stroke-width="3" points="504.65,-115.54 504.65,-130.46 445.38,-141 361.55,-141 302.28,-130.46 302.28,-115.54 361.55,-105 445.38,-105 504.65,-115.54" style=""/>
+<polygon fill="none" stroke="rgb(44,75,94)" stroke-width="3" points="508.64,-112.19 508.64,-133.81 445.73,-145 361.2,-145 298.29,-133.81 298.29,-112.19 361.2,-101 445.73,-101 508.64,-112.19" style=""/>
+<text text-anchor="middle" x="403.47" y="-118.8" font-family="Times,serif" font-size="14.00" style="">userHasLevel3Token</text>
+</g>
+<!-- SLLevels.userHasLevel3Token&#45;&gt;SLLevels.balanceOf -->
+<g id="edge26" class="edge" data-name="SLLevels.userHasLevel3Token-&gt;SLLevels.balanceOf">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M510.11,-121.41C542.73,-120.92 577.66,-120.4 606.58,-119.96" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="606.45,-123.47 616.4,-119.82 606.35,-116.47 606.45,-123.47" style=""/>
+</g>
+<!-- key -->
+<g id="node23" class="node" pointer-events="visible" data-name="key">
+
+<polygon fill="rgb(65,73,86)" stroke="none" stroke-width="3" points="196.22,-652 66.22,-652 66.22,-564 196.22,-564 196.22,-652" style=""/>
+<text text-anchor="start" x="115.86" y="-633.4" font-family="Times,serif" font-size="14.00" style="">Internal Call</text>
+<text text-anchor="start" x="111.97" y="-613.4" font-family="Times,serif" font-size="14.00" style="">External Call</text>
+<text text-anchor="start" x="89.42" y="-593.4" font-family="Times,serif" font-size="14.00" style="">Defined Contract</text>
+<text text-anchor="start" x="75.82" y="-573.4" font-family="Times,serif" font-size="14.00" style="">Undefined Contract</text>
+</g>
+<!-- key2 -->
+<g id="node24" class="node" pointer-events="visible" data-name="key2">
+
+<polygon fill="rgb(65,73,86)" stroke="none" stroke-width="3" points="430.47,-652 376.47,-652 376.47,-564 430.47,-564 430.47,-652" style=""/>
+<text text-anchor="start" x="393.47" y="-633.4" font-family="Times,serif" font-size="14.00" style="">   </text>
+<text text-anchor="start" x="393.47" y="-613.4" font-family="Times,serif" font-size="14.00" style="">   </text>
+<polygon fill="rgb(48,64,88)" stroke="none" points="391.47,-588 391.47,-608 416.47,-608 416.47,-588 391.47,-588" style=""/>
+<text text-anchor="start" x="393.47" y="-593.4" font-family="Times,serif" font-size="14.00" style="">   </text>
+<polygon fill="none" stroke="rgb(64,67,88)" points="393.47,-570 393.47,-586 414.47,-586 414.47,-570 393.47,-570" style=""/>
+</g>
+<!-- key&#45;&gt;key2 -->
+<g id="edge27" class="edge" data-name="key-&gt;key2">
+
+<path fill="none" stroke="rgb(44,75,94)" stroke-width="2" d="M189.22,-638C274.3,-638 298.68,-638 377.83,-638" style=""/>
+<polygon fill="rgb(44,75,94)" stroke="rgb(44,75,94)" stroke-width="2" points="377.44,-641.5 387.44,-638 377.44,-634.5 377.44,-641.5" style=""/>
+</g>
+<!-- key&#45;&gt;key2 -->
+<g id="edge28" class="edge" data-name="key-&gt;key2">
+
+<path fill="none" stroke="rgb(66,81,102)" stroke-width="2" d="M189.22,-618C274.3,-618 298.68,-618 377.83,-618" style=""/>
+<polygon fill="rgb(66,81,102)" stroke="rgb(66,81,102)" stroke-width="2" points="377.44,-621.5 387.44,-618 377.44,-614.5 377.44,-621.5" style=""/>
+</g>
+</g>
+</svg>
