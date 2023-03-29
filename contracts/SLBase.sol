@@ -7,6 +7,7 @@ import "./SLPermissions.sol";
 
 interface IFactory {
     function getAddressTotal(address user) external view returns(uint userTotal);
+    function getAddressTotalInLevel(address user, uint level) external view returns(uint userTotal);
 }
 
 /// @title Base contract for SL puzzle management
@@ -29,8 +30,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
     uint24[] ENTRY_IDS;
     //Mapping to tack user puzzle pieces 
     mapping(address => uint32) userPuzzlePieces;
-
-
+    //address of the factory
     address factoryAddress;
     constructor () ERC1155("") {
         
@@ -111,10 +111,16 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
         }
     }
 
-    // Function to verify if user has the right to claim the next level (to be replaced)
+    // Function to verify if user has the right to claim the next level
     function _userAllowedToBurnPuzzle(
         address user, 
         uint _tokenId
+    ) internal virtual view {}
+
+    // Function to verify if user has the right to claim a piece 
+    function _userAllowedToClaimPiece(
+        address user, 
+        uint _level
     ) internal virtual view {}
 
     

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./SLLevels.sol";
 
-contract SLPuzzle is SLLevels{
+contract SLPuzzles is SLLevels{
 
     constructor () {
         
@@ -18,17 +18,36 @@ contract SLPuzzle is SLLevels{
         address _claimer,
         uint256 _tokenIdOrPuzzleLevel
     ) public view override { 
+        //TODO: Change factory getters.
         //Check if given piece is a puzzle piece or a level
         if(_tokenIdOrPuzzleLevel == 31 || _tokenIdOrPuzzleLevel == 30 ){
             //Check if user has the ability to burn the puzzle piece
             _userAllowedToBurnPuzzle(_claimer, _tokenIdOrPuzzleLevel);
-        } else if (_tokenIdOrPuzzleLevel == 1) {
-            IFactory factory = IFactory(factoryAddress);
-            uint256 allowedToMint = factory.getAddressTotal(_claimer) /
-                MIN_CLAIM_AMOUNT;
-            require((getPositionXInDivisionByY(userPuzzlePieces[_claimer],1,3) + 1) <= allowedToMint); 
+        } else if (_tokenIdOrPuzzleLevel == 1 || _tokenIdOrPuzzleLevel == 2 || _tokenIdOrPuzzleLevel == 3) {
+            //Check if user has the ability to burn the puzzle piece
+            _userAllowedToClaimPiece(_claimer, _tokenIdOrPuzzleLevel);
+        } else {
+            revert("Not a valid puzzle level id  or puzzle level");
         }
-        //TODO: Understsand if its better to divide level/piece claim logic in different functions
+    }
+
+    // Function to verify if user has the right to claim the next level
+    function _userAllowedToClaimPiece(
+        address user, 
+        uint _tokenId
+    ) internal override view {
+        //Check if user has the right to claim the next level
+        require(_whichLevelUserHas(user) == _tokenId, "SLPuzzles: User does not have the right to claim piece from this level");
+        //Check if user has the right amount of puzzle pieces
+        IFactory factory = IFactory(factoryAddress);
+            uint256 allowedToMint = factory.getAddressTotalInLevel(user, _tokenId) / getMinClaimAmount(_tokenId);
+            require((getPositionXInDivisionByY(userPuzzlePieces[user],_tokenId,3) + 1) <= allowedToMint); 
+    }
+
+    function _random(
+    ) public view override returns (uint8) {
+        uint rnd = (uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % 10);
+        return uint8(rnd);
     }
 
     function _getPuzzleCollectionIds(
