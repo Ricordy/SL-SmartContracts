@@ -17,7 +17,7 @@ const config: HardhatUserConfig = {
       accounts: {
         count: 16,
       },
-      chainId: 31337,
+      chainId: 1337,
     },
     goerli: {
       url: ALCHEMY_API_KEY_URL,

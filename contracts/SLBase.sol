@@ -44,9 +44,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
 
     
     
-    /// OVERRIDES (Maybe be replaced to further cntract in the scheme)
-
-    //Override the claim function to burn the puzzle pieces
+    /// WRITTING FUNCTIONS
     function _claimLevel(
         address _receiver,
         uint256 _tokenId
@@ -73,13 +71,19 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
         emit TokensClaimed(_receiver, _puzzleLevel, 1);
     }
 
+    /// FUNCTIONS TO BE OVERRIDEN
+
     //Override the verify claim function to check if user has the right to claim the next level or puzzle piece
     function verifyClaim(
         address _claimer,
         uint256 _tokenIdOrPuzzleLevel
     ) public view  virtual {}
 
-    /// INTERNAL
+    //To be overriden
+    function _random(
+    ) public view virtual returns (uint8) {}
+
+    /// INTERNAL OVERRIDE FUNCTIONS
 
     function _dealWithPuzzleClaiming(
         address _receiver,
@@ -88,22 +92,11 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
         //Helper Arrays
         uint256[] memory puzzleCollectionIds = _getPuzzleCollectionIds(_puzzleLevel);
         //assuming user passed verifyClaim
-        incrementUserPuzzlePieces(_receiver, _puzzleLevel);
+        _incrementUserPuzzlePieces(_receiver, _puzzleLevel);
         //return the collection to mint
         return(uint8(puzzleCollectionIds[_random()]));
     }
-
-    //To be overriden
-    function _random() public view virtual returns (uint8) {}
-
-    //function to increment user puzzle pieces using SLMicroSlots
-    function incrementUserPuzzlePieces(
-        address _user, 
-        uint256 _puzzleLevel
-    ) private {
-        userPuzzlePieces[_user] = incrementXPositionInFactor3(userPuzzlePieces[_user], uint32(_puzzleLevel));
-    }
-
+       
     //Auxiliary function to burn user puzzle depending on his level
     function _dealWithPuzzleBurning(
         address user ,
@@ -125,25 +118,75 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
         }
     }
 
-
     // Function to verify if user has the right to claim the next level (to be replaced)
     function _userAllowedToBurnPuzzle(
         address user, 
         uint _tokenId
     ) internal virtual view {}
-    
 
-    //funtion to get puzzle collection ids
+     /// INTERNAL NON-OVERRIDE FUNCTIONS
+
+    //function to increment user puzzle pieces using SLMicroSlots
+    function _incrementUserPuzzlePieces(
+        address _user, 
+        uint256 _puzzleLevel
+    ) private {
+        userPuzzlePieces[_user] = incrementXPositionInFactor3(userPuzzlePieces[_user], uint32(_puzzleLevel));
+    }
+
+    function _transferTokensOnClaim(
+        address _receiver,
+        uint256 _tokenId,
+        uint256 _quantity
+    ) internal {
+        _mint(_receiver, _tokenId, _quantity, "");
+    }
+
+
+
+    ///GETTERS
+
+    //Function to verify if the user has an entry token returns boolean
+    function _userHasEntryToken(
+        address _user
+    ) internal view returns (bool) {
+        //Get the entry token ids
+        uint256[] memory entryTokenIds = _getEntryTokenIds();
+        //Get the balance of the user for each entry token id
+        uint256[] memory userBalance = balanceOfBatch(_createUserAddressArray(_user, entryTokenIds.length), entryTokenIds);
+        //Verify if the user has any entry token
+        for(uint i = 0; i < userBalance.length; i++) {
+            if(userBalance[i] > 0) {
+                return true;
+            }
+        }
+        return false;   
+    }
+
+    //function to get entry token ids
+    function _getEntryTokenIds(
+    ) internal view returns (uint256[] memory) {
+        uint256[] memory entryTokenIds = new uint256[](ENTRY_IDS.length);
+        for(uint i = 0; i < ENTRY_IDS.length; i++) {
+            //i is the batch number
+            //get the entry token cap to mount the entry token id
+            (uint256 entryTokenCap, ) = unmountEntryValue(ENTRY_IDS[i]);
+            entryTokenIds[i] = mountEntryID(i, entryTokenCap);
+        }
+        return entryTokenIds;
+    }
+
+        //funtion to get puzzle collection ids
     function _getPuzzleCollectionIds(
         uint256 level
-    ) internal view returns(uint256[] memory) {
+    ) public view returns(uint256[] memory) {
         uint256[] memory ids = new uint256[](10);
         if(level == 1) {
             ids = getMultiplePositionsXInDivisionByY(COLLECTION_IDS, 1, 10, 2);
         } else if (level == 2) {
-            ids = getMultiplePositionsXInDivisionByY(COLLECTION_IDS, 11, 10, 2);
+            ids = getMultiplePositionsXInDivisionByY(COLLECTION_IDS, 11, 20, 2);
         } else if (level == 3) {
-            ids = getMultiplePositionsXInDivisionByY(COLLECTION_IDS, 21, 10, 2);
+            ids = getMultiplePositionsXInDivisionByY(COLLECTION_IDS, 21, 30, 2);
         } else {
             revert("Not a valid puzzle level");
         }
@@ -162,13 +205,6 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
         return userAddress;
     }
 
-    function _transferTokensOnClaim(
-        address _receiver,
-        uint256 _tokenId,
-        uint256 _quantity
-    ) internal {
-        _mint(_receiver, _tokenId, _quantity, "");
-    }
 }
 
 
