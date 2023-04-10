@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
@@ -56,6 +56,14 @@ contract SLMicroSlots{
         }
         //remount the number with new number
         _final = uint32((number / 10 ** (position * 3)) * 10 ** (position * 3) + digit * 10 ** (position * 3 - 3) + (number % (10 ** (position * 3 - 3))));
+    }
+
+    function changetXPositionInFactor5(uint number, uint32 position, uint newNumber) view public returns(uint _final){
+        //Verify if digit is incrementable
+        require(newNumber < 99999, "SLBase: Value to high");
+          
+        //remount the number with new number using internal function
+        _final = (number / 10 ** (position * 5)) * 10 ** (position * 5) + newNumber * 10 ** (position * 5 - 5) + (number % (10 ** (position * 5 - 5)));
     }
     
 }

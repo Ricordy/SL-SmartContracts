@@ -22,9 +22,11 @@ contract SLPermissions {
     // The addresses of the accounts (or contracts) that can execute actions within each roles.
     address public ceoAddress;
     address public cfoAddress;
+    mapping(address => bool) public allowedContracts;
 
     // @dev Keeps track whether the contract is paused. When that is true, most actions are blocked
     bool public paused = false;
+    bool public pausedEntryMint = false;
 
     /// @dev Access modifier for CEO-only functionality
     modifier onlyCEO() {
@@ -47,6 +49,11 @@ contract SLPermissions {
         _;
     }
 
+    modifier onlyAllowedContracts() {
+        require(allowedContracts[msg.sender],"Not allowed");
+        _;
+    }
+
     /// @dev Assigns a new address to act as the CEO. Only available to the current CEO.
     /// @param _newCEO The address of the new CEO
     function setCEO(address _newCEO) external onlyCEO {
@@ -61,6 +68,10 @@ contract SLPermissions {
         require(_newCFO != address(0));
 
         cfoAddress = _newCFO;
+    }
+
+    function setAllowedContracts(address _contractAddress, bool _allowed) external onlyCEO {
+        allowedContracts[_contractAddress] = _allowed;
     }
 
 
@@ -78,10 +89,26 @@ contract SLPermissions {
         _;
     }
 
+        /// @dev Modifier to allow actions only when the contract IS NOT paused
+    modifier whenEntryNotPaused() {
+        require(!pausedEntryMint);
+        _;
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS paused
+    modifier whenEntryPaused {
+        require(pausedEntryMint);
+        _;
+    }
+
     /// @dev Called by any "C-level" role to pause the contract. Used only when
     ///  a bug or exploit is detected and we need to limit damage.
     function pause() external onlyCLevel whenNotPaused {
         paused = true;
+    }
+
+    function pauseEntryMint() external onlyCLevel whenNotPaused {
+        pausedEntryMint = true;
     }
 
     /// @dev Unpauses the smart contract. Can only be called by the CEO, since
@@ -92,5 +119,9 @@ contract SLPermissions {
     function unpause() public onlyCEO whenPaused {
         // can't unpause if contract was upgraded
         paused = false;
+    }
+
+    function unpauseEntryMint() external onlyCLevel whenNotPaused {
+        pausedEntryMint = false;
     }
 }

@@ -1,16 +1,14 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./SLLevels.sol";
 
 contract SLPuzzles is SLLevels{
 
+
     constructor () {
         
     }
-
-
-
 
 
     //OVERRIDES
@@ -18,36 +16,22 @@ contract SLPuzzles is SLLevels{
         address _claimer,
         uint256 _tokenIdOrPuzzleLevel
     ) public view override { 
-        //TODO: Change factory getters.
         //Check if given piece is a puzzle piece or a level
         if(_tokenIdOrPuzzleLevel == 31 || _tokenIdOrPuzzleLevel == 30 ){
             //Check if user has the ability to burn the puzzle piece
             _userAllowedToBurnPuzzle(_claimer, _tokenIdOrPuzzleLevel);
         } else if (_tokenIdOrPuzzleLevel == 1 || _tokenIdOrPuzzleLevel == 2 || _tokenIdOrPuzzleLevel == 3) {
             //Check if user has the ability to burn the puzzle piece
-            _userAllowedToClaimPiece(_claimer, _tokenIdOrPuzzleLevel);
+            ISLLogics(slLogicsAddress)._userAllowedToClaimPiece(_claimer, _tokenIdOrPuzzleLevel, _whichLevelUserHas(_claimer) ,getUserPuzzlePiecesForUserCurrentLevel(_claimer));
         } else {
             revert("Not a valid puzzle level id  or puzzle level");
         }
     }
 
-    // Function to verify if user has the right to claim the next level
-    function _userAllowedToClaimPiece(
-        address user, 
-        uint _tokenId
-    ) internal override view {
-        //Check if user has the right to claim the next level
-        require(_whichLevelUserHas(user) == _tokenId, "SLPuzzles: User does not have the right to claim piece from this level");
-        //Check if user has the right amount of puzzle pieces
-        IFactory factory = IFactory(factoryAddress);
-            uint256 allowedToMint = factory.getAddressTotalInLevel(user, _tokenId) / getMinClaimAmount(_tokenId);
-            require((getPositionXInDivisionByY(userPuzzlePieces[user],_tokenId,3) + 1) <= allowedToMint); 
-    }
-
     function _random(
     ) public view override returns (uint8) {
-        uint rnd = (uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % 10);
-        return uint8(rnd);
+        return uint8(uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % 10);
+
     }
 
     function _getPuzzleCollectionIds(
@@ -70,12 +54,10 @@ contract SLPuzzles is SLLevels{
         address _receiver,
         uint256 _puzzleLevel
     ) internal override returns (uint8 _collectionToMint) {
-        //Helper Arrays
-        uint256[] memory puzzleCollectionIds = _getPuzzleCollectionIds(_puzzleLevel);
         //assuming user passed verifyClaim
         _incrementUserPuzzlePieces(_receiver, _puzzleLevel);
         //return the collection to mint
-        return(uint8(puzzleCollectionIds[_random()]));
+        return(uint8(_getPuzzleCollectionIds(_puzzleLevel)[_random()]));
     }
 
 
@@ -87,12 +69,7 @@ contract SLPuzzles is SLLevels{
         return getPositionXInDivisionByY(userPuzzlePieces[_user], _whichLevelUserHas(_user), 3);
     }
 
-    //Get minimum claim amount per level
-    function getMinClaimAmount( 
-        uint256 _level
-    ) public view returns (uint256) {
-        return getPositionXInDivisionByY(MIN_CLAIM_AMOUNT, _level, 5);
-    }
+
 
 
 

@@ -2,13 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "./SLBase.sol";
-import "hardhat/console.sol";
 
 contract SLLevels is SLBase {
     
     constructor () {
-        uint24 nextEntryID = mountEntryValue(1000, 0);
-        ENTRY_IDS.push(nextEntryID);
     }
 
     
@@ -19,7 +16,7 @@ contract SLLevels is SLBase {
     //Done by creating a new position in the inherited ENTRY_IDS array
     function _generateEntryBatch(
         uint256 _cap
-    ) public userHasLevel(1) {
+    ) internal {
         ENTRY_IDS.push(mountEntryValue(_cap, 0));
     }
 
@@ -27,18 +24,18 @@ contract SLLevels is SLBase {
     //Call the function and add needed logic (Payment, etc)
     function _buyEntryToken(
         address _receiver
-    ) public userNotHasEntryToken {
+    ) internal {
+        require(ENTRY_IDS.length > 0, "SLCore: No entry tokens available");
+        require(getCurrentEntryBatchRemainingTokens() > 0, "SLCore: No entry tokens available");
         uint batch = ENTRY_IDS.length - 1;
         //Get the entry token cap and currentID
         (uint256 entryTokenCap, uint256 entryTokenCurrentId ) = unmountEntryValue(ENTRY_IDS[batch]);
-        //Get the entry token id
-        uint256 entryTokenId = mountEntryID(batch, entryTokenCap);
         //Verify if the entry token is still available
         require(entryTokenCurrentId < entryTokenCap, "SLLevels: Entry token is not available");
         //Increment the entry token current id
         ENTRY_IDS[batch] = mountEntryValue(entryTokenCap, entryTokenCurrentId + 1);
         //Mint the entry token to the user
-        _transferTokensOnClaim(_receiver, entryTokenId, 1);
+        _transferTokensOnClaim(_receiver, mountEntryID(batch, entryTokenCap), 1);
     }
 
     ///OVERWRITTEN FUNCTIONS
@@ -46,10 +43,11 @@ contract SLLevels is SLBase {
     function _userAllowedToBurnPuzzle(
         address user, 
         uint _tokenId
-    ) internal override view {
+    ) internal view override {
         //Helper Arrays
         address[] memory userAddress = _createUserAddressArray(user,10);
         uint256[] memory amountsForBurn = new uint256[](10);
+        uint[] memory balance;
         //Fill needed arrays
         for (uint i = 0; i < amountsForBurn.length; i++) {
             amountsForBurn[i] = 1;
@@ -60,7 +58,7 @@ contract SLLevels is SLBase {
             //Check for user level token ownership
             require(balanceOf(user, _tokenId) == 0, "User already has the LEVEL2 NFT" );
             //Get balance of the user
-            uint[] memory balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(1));
+            balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(1));
             //verify if balance meets the condition
             for (uint i = 0; i < balance.length; i++) {
                     require(balance[i] != 0, "SLBase: User must have all Level1 pieces to claim next level");
@@ -70,7 +68,7 @@ contract SLLevels is SLBase {
             //Check for user level token ownership
             require(balanceOf(user, _tokenId) == 0, "User already has the LEVEL2 NFT" );
             //Get balance of the user
-            uint[] memory balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(2));
+            balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(2));
             //verify if balance meets the condition
             for (uint i = 0; i < balance.length; i++) {
                     require(balance[i] != 0, "SLBase: User must have all Level2 pieces to claim next level");
@@ -126,6 +124,7 @@ contract SLLevels is SLBase {
         //check if user has level 2 or 3 
         //call function to check user balance of token id 30 and 31
     
+        //Verify level 2 and 3 token ownership
         uint256[] memory userBalance = balanceOfBatch(_createUserAddressArray(user,2), _getLevel2And3Ids());
         for(uint i = 0; i < userBalance.length; i++){
             if(userBalance[i] > 0){
@@ -133,25 +132,35 @@ contract SLLevels is SLBase {
             }
         }
 
+        //If user doesnt have level 2 or 3, check if user has entry token
         if(_userHasEntryToken(user)){
             return 1;
         }
         return 0;
     } 
 
-    ///MODIFIERS
-
-    //user doenst have entry token
-    modifier userNotHasEntryToken() {
-        require(!_userHasEntryToken(msg.sender), "SLLevels: User already have an entry token");
-        _;
+    function whichLevelUserHas(
+        address user
+    ) external view returns(uint){
+        return(_whichLevelUserHas(user));
     }
+
+    ///GETTERS
+    //function to verify how much tokens current entry collection has left
+    function getCurrentEntryBatchRemainingTokens(
+    ) public view returns(uint256) {
+        (uint256 entryTokenCap, uint entryTokenCurrentId ) = unmountEntryValue(ENTRY_IDS[ENTRY_IDS.length - 1]);
+        return (entryTokenCap - entryTokenCurrentId);
+    }
+
+    ///MODIFIERS
 
     modifier userHasLevel(uint _level) {
         //use _whichLevelUserHas to check if user has the level
         require(_whichLevelUserHas(msg.sender) == _level, "SLLevels: User doesnt have the level");
         _;
     }
+
 
 }
 

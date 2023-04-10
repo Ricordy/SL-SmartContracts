@@ -38,6 +38,12 @@ contract Factory is Ownable {
         }
     }
 
+    function getAddressTotalInLevel(address user, uint level) external view returns(uint userTotal){
+        for(uint i = 0; i < deployedContracts.length; i++){
+            userTotal += ERC20(deployedContracts[i]).balanceOf(user);
+        }
+    }
+
     function getAddressOnContract(address contractAddress) external view returns(uint userTotal){
             userTotal = ERC20(contractAddress).balanceOf(msg.sender);
     }

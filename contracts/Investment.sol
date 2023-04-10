@@ -12,6 +12,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /// @param maxAllowed max amount allowed to invest
 error InvestmentExceedMax(uint256 amount, uint256 maxAllowed);
 
+interface ISLCore{
+    function whichLevelUserHas(
+        address user
+    ) external view returns(uint);
+
+}
+
 contract Investment is ERC20, Ownable, ReentrancyGuard {
 
     ///
@@ -193,7 +200,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     modifier isAllowed() {
-        require(ERC1155(entryNFTAddress).balanceOf(msg.sender, LEVEL1) > 0, "User does not have the Entry NFT");
+        require(ISLCore(entryNFTAddress).whichLevelUserHas(msg.sender) >= 1, "User does not have the Entry NFT");
         _;
     }
 

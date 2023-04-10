@@ -5,9 +5,22 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./SLMicroSlots.sol";
 import "./SLPermissions.sol";
 
-interface IFactory {
-    function getAddressTotal(address user) external view returns(uint userTotal);
-    function getAddressTotalInLevel(address user, uint level) external view returns(uint userTotal);
+//interface for SLLogics
+interface ISLLogics {
+    function _userAllowedToClaimPiece(
+        address user, 
+        uint _tokenId,
+        uint _currentUserLevel,
+        uint _userPuzzlePiecesForUserCurrentLevel
+    ) external view;
+
+    function payEntryFee(
+        address _user
+    ) external;
+
+     function setEntryPrice(
+        uint256 _newPrice
+    ) external;
 }
 
 /// @title Base contract for SL puzzle management
@@ -24,14 +37,18 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
     
     //Array to store the Levels batchs 
     uint256 COLLECTION_IDS = 3130292827262524232221201918171615141312111009080706050403020100;
-    //Uint to store minimum claim amount for all levels
-    uint256 MIN_CLAIM_AMOUNT = 150001000005000;
     //Array to store the Puzzles batchs 
     uint24[] ENTRY_IDS;
     //Mapping to tack user puzzle pieces 
     mapping(address => uint32) userPuzzlePieces;
     //address of the factory
     address factoryAddress;
+    //address of the payment token
+    address paymentTokenAddress;
+    //Address of the SLLogics contract
+    address slLogicsAddress;
+
+    
     constructor () ERC1155("") {
         
     }
@@ -65,8 +82,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
         require(_puzzleLevel == 1 || _puzzleLevel == 2 || _puzzleLevel == 3, "SLBase: Not a valid puzzle level");
         verifyClaim(msg.sender, _puzzleLevel); //Check if user has the right to claim the next level or puzzle piece
         
-        uint8 collectionToMint = _dealWithPuzzleClaiming(_receiver ,_puzzleLevel); //Burn puzzle pieces
-        _transferTokensOnClaim(_receiver, collectionToMint, 1); //Transfer tokens to user
+        _transferTokensOnClaim(_receiver, _dealWithPuzzleClaiming(_receiver ,_puzzleLevel), 1); //Transfer tokens to user
         
         emit TokensClaimed(_receiver, _puzzleLevel, 1);
     }
@@ -116,13 +132,6 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
         address user, 
         uint _tokenId
     ) internal virtual view {}
-
-    // Function to verify if user has the right to claim a piece 
-    function _userAllowedToClaimPiece(
-        address user, 
-        uint _level
-    ) internal virtual view {}
-
     
     /// INTERNAL NON-OVERRIDE FUNCTIONS
     //function to increment user puzzle pieces using SLMicroSlots
@@ -133,6 +142,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
         userPuzzlePieces[_user] = incrementXPositionInFactor3(userPuzzlePieces[_user], uint32(_puzzleLevel));
     }
 
+    //function to mint tokens on claim
     function _transferTokensOnClaim(
         address _receiver,
         uint256 _tokenId,
@@ -172,6 +182,8 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
         }
         return userAddress;
     }
+    
+
 
 
 
