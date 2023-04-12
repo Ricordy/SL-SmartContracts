@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract Factory is Ownable {
 
-    Investment[] public deployedContracts;
+    mapping(uint => Investment[]) public deployedContracts;    
     address lgentry;
-    uint public counter;
+    uint[] public counter = new uint[](3);
 
     event ContractCreated (
         uint256 ContractID,
@@ -19,28 +19,34 @@ contract Factory is Ownable {
     constructor() {
     }
 
-    function deployNew(uint256 _totalInvestment, address _paymentTokenAddress) onlyOwner external returns (address) {
+    function deployNew(uint256 _totalInvestment, address _paymentTokenAddress, uint8 level) onlyOwner external returns (address) {
         require(lgentry != address(0), "Factory: First provide the entry contract address");
         require(_paymentTokenAddress != address(0), "Factory: Provide a real paymentTokenAddress");
-        counter++;
-        Investment inv = new Investment(_totalInvestment, lgentry, _paymentTokenAddress);
-        deployedContracts.push(inv);
+        require(level > 0 && level <= 3, "Factory: Provide an existing level");
+       
+        counter[level]++;
+        Investment inv = new Investment(_totalInvestment, lgentry, _paymentTokenAddress, level);
+       
+        deployedContracts[level].push(inv);
+        emit ContractCreated(counter[level], address(inv));
+
         inv.transferOwnership(msg.sender);
-        // console.log('Contract created',address(inv));
-        // console.log(msg.sender);
-        emit ContractCreated(counter, address(inv));
+       
+       
         return address(inv);
     }
 
     function getAddressTotal(address user) external view returns(uint userTotal){
-        for(uint i = 0; i < deployedContracts.length; i++){
-            userTotal += ERC20(deployedContracts[i]).balanceOf(user);
+        for(uint i = 1; i <= 3 ; i++){
+            for(uint j = 0; j < deployedContracts[i].length; j++){
+                userTotal += ERC20(deployedContracts[i][j]).balanceOf(user);
+            }
         }
     }
 
     function getAddressTotalInLevel(address user, uint level) external view returns(uint userTotal){
-        for(uint i = 0; i < deployedContracts.length; i++){
-            userTotal += ERC20(deployedContracts[i]).balanceOf(user);
+        for(uint i = 0; i < deployedContracts[level].length; i++){
+            userTotal += ERC20(deployedContracts[level][i]).balanceOf(user);
         }
     }
 
@@ -53,9 +59,9 @@ contract Factory is Ownable {
         lgentry= _lgentry;
     }
 
-    function getLastDeployedContract() external view returns(address contractAddress) {
-        if (deployedContracts.length > 0) {
-            contractAddress = address(deployedContracts[deployedContracts.length -1]);
+    function getLastDeployedContract(uint level) external view returns(address contractAddress) {
+        if (deployedContracts[level].length > 0) {
+            contractAddress = address(deployedContracts[level][deployedContracts[level].length -1]);
         } else {
             contractAddress = address(0);
         }

@@ -41,7 +41,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     address public immutable paymentTokenAddress;
     address public immutable entryNFTAddress;
     uint256 public constant MINIMUM_INVESTMENT = 100;
-    uint8 public constant LEVEL1 = 10;
+    uint8 public immutable CONTRACT_LEVEL;
 
     ///
     //-----EVENTS------
@@ -76,7 +76,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress) ERC20("InvestmentCurrency", "IC"){
+    constructor(uint256 _totalInvestment, address _entryNFTAddress, address _paymentTokenAddress, uint8 _contractLevel) ERC20("InvestmentCurrency", "IC"){
         require(
             _entryNFTAddress != address(0) && _paymentTokenAddress != address(0),
             "Investment: Check the parameters and redeploy"
@@ -85,6 +85,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         entryNFTAddress = _entryNFTAddress;
         paymentTokenAddress = _paymentTokenAddress;
         changeStatus(Status.Progress);
+        CONTRACT_LEVEL = _contractLevel;
     }
 
     ///
@@ -107,7 +108,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         _mint(msg.sender, _amount * 10 ** decimals());
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        require(_token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals()) == true, "Puzzle: Error in token transfer");
+        require(_token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals()), "Puzzle: Error in token transfer");
         
         
         emit UserInvest(msg.sender, _amount, block.timestamp);
@@ -121,7 +122,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         uint256 finalAmount = calculateFinalAmount(balance);
         
         _burn(msg.sender, balance);
-        require( _token.transfer(msg.sender, finalAmount) == true, "Puzzle: Error in token transfer");
+        require( _token.transfer(msg.sender, finalAmount), "Puzzle: Error in token transfer");
 
         
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
@@ -136,7 +137,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         require(_token.balanceOf(address(this)) >= totalInvestment * 80 / 100 , "Total not reached"); //Maybe to be removed 
 
         emit SLWithdraw(totalBalance, block.timestamp);
-        require(_token.transfer(msg.sender, totalContractBalanceStable()) == true, "Puzzle: Error in token transfer");
+        require(_token.transfer(msg.sender, totalContractBalanceStable()), "Puzzle: Error in token transfer");
     
     }
 
@@ -149,7 +150,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
 
-        require(_token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals()) == true, "Puzzle: Error in token transfer");
+        require(_token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals()), "Puzzle: Error in token transfer");
         emit ContractRefilled(_amount, _profitRate, block.timestamp);
     }
 
@@ -200,7 +201,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     modifier isAllowed() {
-        require(ISLCore(entryNFTAddress).whichLevelUserHas(msg.sender) >= 1, "User does not have the Entry NFT");
+        require(ISLCore(entryNFTAddress).whichLevelUserHas(msg.sender) >= CONTRACT_LEVEL, "User does not have the required level NFT");
         _;
     }
 

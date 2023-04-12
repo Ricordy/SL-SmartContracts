@@ -5,6 +5,7 @@ import "./SLPuzzles.sol";
 
 contract SLCore is SLPuzzles {
     constructor(address _factoryAddress, address _paymentTokenAddress, address _slLogicsAddress) {
+        require(_factoryAddress != address(0) && _paymentTokenAddress != address(0) && _slLogicsAddress != address(0), "SLCore: Re-check input parameters");
         // the creator of the contract is the initial CEO
         ceoAddress = msg.sender;
 
@@ -13,7 +14,6 @@ contract SLCore is SLPuzzles {
 
         factoryAddress = _factoryAddress;
 
-        paymentTokenAddress = _paymentTokenAddress;
 
         slLogicsAddress = _slLogicsAddress;
 
@@ -23,10 +23,10 @@ contract SLCore is SLPuzzles {
     
     function mintEntry() public whenNotPaused whenEntryNotPaused {
         require(!_userHasEntryToken(msg.sender), "SLLevels: User already have an entry token");
-        //Initiliaze token and Ask for payment
-        ISLLogics(slLogicsAddress).payEntryFee(msg.sender);
         //run internal logic to mint entry token
         _buyEntryToken(msg.sender);
+        //Initiliaze token and Ask for payment
+        ISLLogics(slLogicsAddress).payEntryFee(msg.sender);
 
     }
 

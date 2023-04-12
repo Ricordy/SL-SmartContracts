@@ -22,6 +22,8 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
     uint256 MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE = 100150001000005000;
 
     constructor (address _factoryAddress, address _paymentTokenAddress) ERC20("", ""){
+        require(_factoryAddress != address(0) && _paymentTokenAddress != address(0), "SLLogics: Re-check input parameters");
+
         // the creator of the contract is the initial CEO
         ceoAddress = msg.sender;
 
@@ -43,7 +45,7 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
     //Function to pay the entry fee
     function payEntryFee(
         address _user
-    ) external nonReentrant {
+    ) external onlyAllowedContracts nonReentrant {
         require(IERC20(paymentTokenAddress).transferFrom(_user, address(this), _getEntryPrice()), "SLLOGIC: Transfer failed");
     }
 
@@ -54,7 +56,7 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
     ) external onlyCEO {
         //Transfer tokens to the user
         IERC20 paymentToken = IERC20(paymentTokenAddress);
-        paymentToken.transfer(_user, paymentToken.balanceOf(address(this)));
+        require(paymentToken.transfer(_user, paymentToken.balanceOf(address(this))), "SLLogics: Transfer incompleted");
         //Emit event
 
     }
@@ -70,12 +72,12 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
         uint _userPuzzlePiecesForUserCurrentLevel
     ) external view {
         //Check if user has the right to claim the next level
-        require(_currentUserLevel == _tokenId, "SLPuzzles: User does not have the right to claim piece from this level");
+        require(_currentUserLevel == _tokenId, "SLLogics: User does not have the right to claim piece from this level");
         //Check if user is allowed to claim more pieces in current level
-        require(_userPuzzlePiecesForUserCurrentLevel < 999, "SLPuzzles: User has already claimed the max amount of pieces for this level");
+        require(_userPuzzlePiecesForUserCurrentLevel < 999, "SLLogics: User has already claimed the max amount of pieces for this level");
         //Check if user has the right amount of puzzle pieces
         IFactory factory = IFactory(factoryAddress);
-        uint256 allowedToMint = factory.getAddressTotalInLevel(user, _tokenId) / getMinClaimAmount(_tokenId);
+        uint256 allowedToMint = (factory.getAddressTotalInLevel(user, _tokenId)/ 10 ** 6) / getMinClaimAmount(_tokenId);
         require((_userPuzzlePiecesForUserCurrentLevel + 1) <= allowedToMint); 
     }
 
