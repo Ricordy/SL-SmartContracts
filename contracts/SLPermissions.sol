@@ -50,7 +50,7 @@ contract SLPermissions {
     }
 
     modifier onlyAllowedContracts() {
-        require(allowedContracts[msg.sender],"Not allowed");
+        require(allowedContracts[msg.sender]);
         _;
     }
 

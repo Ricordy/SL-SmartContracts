@@ -24,7 +24,7 @@ contract SLPuzzles is SLLevels{
             //Check if user has the ability to burn the puzzle piece
             ISLLogics(slLogicsAddress)._userAllowedToClaimPiece(_claimer, _tokenIdOrPuzzleLevel, _whichLevelUserHas(_claimer) ,getUserPuzzlePiecesForUserCurrentLevel(_claimer));
         } else {
-            revert("Not a valid puzzle level id  or puzzle level");
+            revert("Not a valid id");
         }
     }
 

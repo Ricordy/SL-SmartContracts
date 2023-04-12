@@ -10,23 +10,14 @@ contract SLLevels is SLBase {
 
     
     
-    ///Entry Management
 
-    //Function to create a new vbtach of entry tokens
-    //Done by creating a new position in the inherited ENTRY_IDS array
-    function _generateEntryBatch(
-        uint256 _cap
-    ) internal {
-        ENTRY_IDS.push(mountEntryValue(_cap, 0));
-    }
 
     //Function to deal with data of buying a new NFT entry token 
     //Call the function and add needed logic (Payment, etc)
     function _buyEntryToken(
         address _receiver
     ) internal {
-        require(ENTRY_IDS.length > 0, "SLCore: No entry tokens available");
-        require(getCurrentEntryBatchRemainingTokens() > 0, "SLCore: No entry tokens available");
+        require(getCurrentEntryBatchRemainingTokens() > 0 && ENTRY_IDS.length > 0, "SLLevels: No entry tokens available");
         uint batch = ENTRY_IDS.length - 1;
         //Get the entry token cap and currentID
         (uint256 entryTokenCap, uint256 entryTokenCurrentId ) = unmountEntryValue(ENTRY_IDS[batch]);
@@ -61,7 +52,7 @@ contract SLLevels is SLBase {
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(1));
             //verify if balance meets the condition
             for (uint i = 0; i < balance.length; i++) {
-                    require(balance[i] != 0, "SLBase: User must have all Level1 pieces to claim next level");
+                    require(balance[i] != 0, "SLBase: User must have all Level1 pieces");
             }
         //Puzzle verification for passing to level3
         } else if (_tokenId == 31) {
@@ -71,7 +62,7 @@ contract SLLevels is SLBase {
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(2));
             //verify if balance meets the condition
             for (uint i = 0; i < balance.length; i++) {
-                    require(balance[i] != 0, "SLBase: User must have all Level2 pieces to claim next level");
+                    require(balance[i] != 0, "SLBase: User must have all Level2 pieces");
             }
         } else {
             //revert is for some reason the ID is not Level2 or 3 ID

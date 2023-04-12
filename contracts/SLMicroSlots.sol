@@ -1,15 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "hardhat/console.sol";
+
 
 contract SLMicroSlots{
 
 // TODO This contract needs modifiers for security 
 
-    //Get digit in x position of a number
-    function getXDigit(uint256 number, uint256 position) view public returns(uint){
-        return getPositionXInDivisionByY(number, position, 1);
-    }
     //Get a number of digits in x position of a number
     function getPositionXInDivisionByY(uint256 number, uint256 position, uint factor) view public returns(uint){
         return ((number % (10 ** (factor * position))) - (number % (10 ** ((factor * position) - factor)))) / (10 ** (position * factor - factor));
@@ -18,14 +14,9 @@ contract SLMicroSlots{
     function getMultiplePositionsXInDivisionByY(uint256 number, uint256 startPosition,uint numberOfResults ,uint factor) view public returns(uint[] memory){
         uint[] memory results = new uint[](numberOfResults);
         for (uint i = 0; i < numberOfResults; i++) {
-            console.log("Numero do positions", i);
             results[i] = (getPositionXInDivisionByY(number,startPosition+i, factor));
         }
         return results;
-    }
-    //get multiple digits in x position of a number
-    function getPositionXInDivisionBy2(uint256 number, uint256 position) view public returns(uint){
-        return getPositionXInDivisionByY(number, position, 2);
     }
     //mount entry value
     function mountEntryValue(uint cap, uint currentID) view public returns(uint24){

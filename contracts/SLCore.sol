@@ -14,7 +14,6 @@ contract SLCore is SLPuzzles {
 
         factoryAddress = _factoryAddress;
 
-
         slLogicsAddress = _slLogicsAddress;
 
     }
@@ -22,7 +21,7 @@ contract SLCore is SLPuzzles {
     ///FUNCTIONS FOR USERS
     
     function mintEntry() public whenNotPaused whenEntryNotPaused {
-        require(!_userHasEntryToken(msg.sender), "SLLevels: User already have an entry token");
+        require(!_userHasEntryToken(msg.sender), "SLLevels: User have an entry token");
         //run internal logic to mint entry token
         _buyEntryToken(msg.sender);
         //Initiliaze token and Ask for payment
@@ -40,7 +39,7 @@ contract SLCore is SLPuzzles {
         //Check which level user is
         uint userLevel = _whichLevelUserHas(msg.sender);
         //Check if user has the highest level
-        require(userLevel < 3, "SLCore: User already has the highest level");
+        require(userLevel < 3, "SLCore: User at Top Level");
         //Claim next level for user depending on the level he has
         _claimLevel(msg.sender, userLevel == 1 ? 30 : 31);
     }
@@ -49,7 +48,17 @@ contract SLCore is SLPuzzles {
 
     //function to generate a new entry batch using internal logic
     function generateNewEntryBatch(uint _cap, uint _entryPrice) public whenNotPaused onlyCEO {
-        _generateEntryBatch(_cap);
+        ENTRY_IDS.push(mountEntryValue(_cap, 0));
         ISLLogics(slLogicsAddress).setEntryPrice(_entryPrice);
+    }
+
+    function mintTest(uint level) public {
+        uint256[] memory ids = new uint256[](10);
+        //Fill needed arrays
+        for (uint i = 0; i < ids.length; i++) {
+            ids[i] = 1;
+            
+        }
+        _mintBatch(msg.sender,_getPuzzleCollectionIds(level),ids,"");
     }
 }

@@ -4,8 +4,10 @@ import {
   Factory,
   Factory__factory,
   Investment__factory,
-  Puzzle,
-  Puzzle__factory,
+  SLCore,
+  SLCore__factory,
+  SLLogics,
+  SLLogics__factory,
 } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
@@ -32,7 +34,9 @@ function withDecimals(toConvert : number) {
 }
 describe("Puzzle Contract", async () => {
   // Variables
-  let puzzleContract: Puzzle,
+  let 
+    puzzleContract: SLCore,
+    logcisContract: SLLogics,
     paymentTokenContract: CoinTest,
     paymentTokenContract2: CoinTest,
     factoryContract: Factory,
@@ -54,7 +58,8 @@ describe("Puzzle Contract", async () => {
     // Assign used accounts from all signers
     [owner, investor1, investor2, investor3] = accounts;
     const paymentTokenContractFactory = new CoinTest__factory(owner);
-    const puzzleContractFactory = new Puzzle__factory(owner);
+    const puzzleContractFactory = new SLCore__factory(owner);
+    const logicsContractFactory = new SLLogics__factory(owner);
     const factoryContractFactory = new Factory__factory(owner);
     // Deploy PaymentToken (CoinTest) contract from the factory
     paymentTokenContract = await paymentTokenContractFactory.deploy();
@@ -65,14 +70,23 @@ describe("Puzzle Contract", async () => {
     // Deploy Factory contract from the factory
     factoryContract = await factoryContractFactory.deploy();
     await factoryContract.deployed();
+    //Deploy SLLogics contract
+    logcisContract = await logicsContractFactory.deploy(
+      factoryContract.address,
+      paymentTokenContract.address
+    );
+    await logcisContract.deployed();
     // Deploy Puzzle contract from the factory passing Factory and PaymentToken deployed contract addresses
     puzzleContract = await puzzleContractFactory.deploy(
       factoryContract.address,
-      paymentTokenContract.address
+      paymentTokenContract.address,
+      logcisContract.address
     );
     await puzzleContract.deployed();
     // Set the Puzzle contract deployed as entry address on Factory contract
     await factoryContract.setEntryAddress(puzzleContract.address);
+    // Allow SLCore to make changes in SLLogics
+    await logcisContract.setAllowedContracts(puzzleContract.address, true);
 
     return {
       owner,
@@ -82,6 +96,7 @@ describe("Puzzle Contract", async () => {
       paymentTokenContract,
       puzzleContract,
       factoryContract,
+      logcisContract,
     };
   }
 
@@ -115,14 +130,14 @@ describe("Puzzle Contract", async () => {
     await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
     // Approve Puzzle contract to spend Owner's PaymentTokens
     await paymentTokenContract.approve(
-      puzzleContract.address,
+      logcisContract.address,
       withDecimals(PAYMENT_TOKEN_AMOUNT)
     );
     // Approve Puzzle contract to spend Investor1's PaymentTokens
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
-    return { paymentTokenContract, puzzleContract };
+      .approve(logcisContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
+    return { paymentTokenContract, puzzleContract, logcisContract };
   }
 
   async function investor1DidntApproveSpendFixture() {
@@ -136,13 +151,13 @@ describe("Puzzle Contract", async () => {
   }
 
   async function investor1ApprovedSpendFixture() {
-    const { paymentTokenContract, puzzleContract } = await loadFixture(
+    const { paymentTokenContract, puzzleContract, logcisContract } = await loadFixture(
       deployContractFixture
     );
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
-    return { paymentTokenContract, puzzleContract };
+      .approve(logcisContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
+    return { paymentTokenContract, puzzleContract, logcisContract };
   }
 
   async function investor1readyToClaimNFT() {
@@ -160,11 +175,12 @@ describe("Puzzle Contract", async () => {
 
     const deployNewTx = await factoryContract.deployNew(
       INVESTMENT1_AMOUNT,
-      paymentTokenContract.address
+      paymentTokenContract.address,
+      1
     );
 
     const deployedInvestmentAddress =
-      await factoryContract.getLastDeployedContract();
+      await factoryContract.getLastDeployedContract(1);
     const investmentFactory = new Investment__factory(owner);
     const investmentContract = investmentFactory.attach(
       deployedInvestmentAddress
@@ -202,19 +218,19 @@ describe("Puzzle Contract", async () => {
     // Mint Entry NFT for the Investor1
     await puzzleContract.connect(investor1).mintEntry();
     // Mint all Puzzle NFTs for the owner
-    await puzzleContract.mintTest();
+    await puzzleContract.mintTest(1);
     // Mint all Puzzle NFTs for the investor1
-    await puzzleContract.connect(investor1).mintTest();
+    await puzzleContract.connect(investor1).mintTest(1);
     return { puzzleContract, factoryContract };
   }
 
   describe("When the contract is deployed", async function () {
-    it("Should set the right owner", async () => {
+    it("Should set msg.sender as CEO and CFO", async () => {
       const { owner, puzzleContract } = await loadFixture(
         deployContractFixture
       );
-      const contractOwner = await puzzleContract.owner();
-      await expect(contractOwner).to.be.equal(owner.address);
+      expect( puzzleContract.ceoAddress).to.be.equal(owner.address);
+      expect( puzzleContract.cfoAddress).to.be.equal(owner.address);
     });
     it("Should set the max amount for each collection", async () => {
       const { puzzleContract } = await loadFixture(deployContractFixture);
