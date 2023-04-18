@@ -5,6 +5,7 @@ import "./SLBase.sol";
 
 contract SLLevels is SLBase {
     
+
     constructor () {
     }
 
@@ -27,6 +28,7 @@ contract SLLevels is SLBase {
         ENTRY_IDS[batch] = mountEntryValue(entryTokenCap, entryTokenCurrentId + 1);
         //Mint the entry token to the user
         _transferTokensOnClaim(_receiver, mountEntryID(batch, entryTokenCap), 1);
+        emit TokensClaimed(_receiver,mountEntryID(batch, entryTokenCap), 1);
     }
 
     ///OVERWRITTEN FUNCTIONS
@@ -52,7 +54,7 @@ contract SLLevels is SLBase {
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(1));
             //verify if balance meets the condition
             for (uint i = 0; i < balance.length; i++) {
-                    require(balance[i] != 0, "SLBase: User must have all Level1 pieces");
+                    require(balance[i] != 0, "SLLevels: User must have all Level1 pieces");
             }
         //Puzzle verification for passing to level3
         } else if (_tokenId == 31) {
@@ -62,7 +64,7 @@ contract SLLevels is SLBase {
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(2));
             //verify if balance meets the condition
             for (uint i = 0; i < balance.length; i++) {
-                    require(balance[i] != 0, "SLBase: User must have all Level2 pieces");
+                    require(balance[i] != 0, "SLLevels: User must have all Level2 pieces");
             }
         } else {
             //revert is for some reason the ID is not Level2 or 3 ID
@@ -70,42 +72,26 @@ contract SLLevels is SLBase {
         }
     }
 
-    function _getEntryTokenIds(
+    function _getLevelTokenIds(
+        uint level
     ) internal view override returns (uint256[] memory) {
-        uint256[] memory entryTokenIds = new uint256[](ENTRY_IDS.length);
-        for(uint i = 0; i < ENTRY_IDS.length; i++) {
-            //i is the batch number
-            //get the entry token cap to mount the entry token id
-            (uint256 entryTokenCap, ) = unmountEntryValue(ENTRY_IDS[i]);
-            entryTokenIds[i] = mountEntryID(i, entryTokenCap);
-        }
-        return entryTokenIds;
-    }
-
-    function _getLevel2And3Ids(
-    ) internal pure override returns(uint256[] memory) {
-        uint256[] memory level2And3Ids = new uint256[](2);
-        level2And3Ids[0] = 30;
-        level2And3Ids[1] = 31;
-        return level2And3Ids;
-    }
-
-    function _userHasEntryToken(
-        address _user
-    ) internal view override returns (bool) {
-        //Get the entry token ids
-        uint256[] memory entryTokenIds = _getEntryTokenIds();
-        //Get the balance of the user for each entry token id
-        uint256[] memory userBalance = balanceOfBatch(_createUserAddressArray(_user, entryTokenIds.length), entryTokenIds);
-        //Verify if the user has any entry token
-        for(uint i = 0; i < userBalance.length; i++) {
-            if(userBalance[i] > 0) {
-                return true;
+        if(level == 1){
+            uint256[] memory entryTokenIds = new uint256[](ENTRY_IDS.length);
+            for(uint i = 0; i < ENTRY_IDS.length; i++) {
+                //i is the batch number
+                //get the entry token cap to mount the entry token id
+                (uint256 entryTokenCap, ) = unmountEntryValue(ENTRY_IDS[i]);
+                entryTokenIds[i] = mountEntryID(i, entryTokenCap);
             }
+            return entryTokenIds;
+        } else if (level == 2 || level == 3) {
+            uint256[] memory level2And3Ids = new uint256[](2);
+            level2And3Ids[0] = 30;
+            level2And3Ids[1] = 31;
+            return level2And3Ids;
         }
-        return false;   
-    }
 
+    }
     //INTERNAL FUNCTIONS
 
     //fucntion to read in which level the user is
@@ -116,7 +102,7 @@ contract SLLevels is SLBase {
         //call function to check user balance of token id 30 and 31
     
         //Verify level 2 and 3 token ownership
-        uint256[] memory userBalance = balanceOfBatch(_createUserAddressArray(user,2), _getLevel2And3Ids());
+        uint256[] memory userBalance = balanceOfBatch(_createUserAddressArray(user,2), _getLevelTokenIds(2));
         for(uint i = 0; i < userBalance.length; i++){
             if(userBalance[i] > 0){
                 return i + 2;
@@ -124,8 +110,13 @@ contract SLLevels is SLBase {
         }
 
         //If user doesnt have level 2 or 3, check if user has entry token
-        if(_userHasEntryToken(user)){
-            return 1;
+        //Get the balance of the user for each entry token id
+        userBalance = balanceOfBatch(_createUserAddressArray(user, _getLevelTokenIds(1).length),_getLevelTokenIds(1));
+        //Verify if the user has any entry token
+        for(uint i = 0; i < userBalance.length; i++) {
+            if(userBalance[i] > 0) {
+                return 1;
+            }
         }
         return 0;
     } 
@@ -148,7 +139,7 @@ contract SLLevels is SLBase {
 
     modifier userHasLevel(uint _level) {
         //use _whichLevelUserHas to check if user has the level
-        require(_whichLevelUserHas(msg.sender) == _level, "SLLevels: User doesnt have the level");
+        require(_whichLevelUserHas(msg.sender) >= _level, "SLLevels: User doesnt have the level");
         _;
     }
 

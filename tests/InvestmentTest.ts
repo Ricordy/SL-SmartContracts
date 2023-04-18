@@ -5,8 +5,10 @@ import {
   Factory,
   Factory__factory,
   Investment,
-  Puzzle,
-  Puzzle__factory,
+  SLCore,
+  SLCore__factory,
+  SLLogics,
+  SLLogics__factory,
 } from "../typechain-types";
 import { Investment__factory } from "../typechain-types/factories/contracts/Investment.sol/Investment__factory";
 import { CoinTest__factory } from "../typechain-types/factories/contracts/CoinTest__factory";
@@ -29,11 +31,13 @@ const INVESTMENT_1_AMOUNT = 100000,
   GENERAL_INVEST_AMOUNT_TO_REFUND = 10000,
   LESS_THAN_EXPECTED_INV_AMOUNT = 99,
   MORE_THAN_EXPECTED_INV_AMOUNT = INVESTMENT_1_AMOUNT / 2,
-  ENTRY_LEVEL_NFT_ID = 10,
+  ENTRY_LEVEL_NFT_ID = 1000,
   PAYMENT_TOKEN_AMOUNT = 200000,
   PROFIT_RATE = 15,
   REFILL_VALUE =
-    INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE;
+    INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE,
+  ENTRY_BATCH_CAP = 999,
+  ENTRY_BATCH_PRICE = 100;
 
 
   function withDecimals(toConvert : number) {
@@ -44,7 +48,8 @@ describe("Investment Contract Tests", async () => {
     paymentTokenContract: CoinTest,
     paymentTokenContract2: CoinTest,
     factoryContract: Factory,
-    puzzleContract: Puzzle,
+    puzzleContract: SLCore,
+    logcisContract: SLLogics,
     accounts: SignerWithAddress[],
     owner: SignerWithAddress,
     investor1: SignerWithAddress,
@@ -58,7 +63,8 @@ describe("Investment Contract Tests", async () => {
     const paymentTokenContractFactory = new CoinTest__factory(owner);
     const investmentContractFactory = new Investment__factory(owner);
     const factoryContractFactory = new Factory__factory(owner);
-    const puzzleContractFactory = new Puzzle__factory(owner);
+    const logicsContractFactory = new SLLogics__factory(owner);
+    const puzzleContractFactory = new SLCore__factory(owner);
 
     // Deploy PaymentToken (CoinTest) contract from the factory
     paymentTokenContract = await paymentTokenContractFactory.deploy();
@@ -68,21 +74,32 @@ describe("Investment Contract Tests", async () => {
     factoryContract = await factoryContractFactory.deploy();
     await factoryContract.deployed();
 
-    // Deploy Puzzle contract from the factory passing Factory and PaymentToken deployed contract addresses
-    puzzleContract = await puzzleContractFactory.deploy(
+    await factoryContract.deployed();
+    //Deploy SLLogics contract
+    logcisContract = await logicsContractFactory.deploy(
       factoryContract.address,
       paymentTokenContract.address
     );
+    await logcisContract.deployed();
+    // Deploy Puzzle contract from the factory passing Factory and PaymentToken deployed contract addresses
+    puzzleContract = await puzzleContractFactory.deploy(
+      factoryContract.address,
+      logcisContract.address
+    );
     await puzzleContract.deployed();
-
     // Set the Puzzle contract deployed as entry address on Factory contract
     await factoryContract.setEntryAddress(puzzleContract.address);
+    // Allow SLCore to make changes in SLLogics
+    await logcisContract.setAllowedContracts(puzzleContract.address, true);
+    // Create a new entry batch
+    await puzzleContract.generateNewEntryBatch(ENTRY_BATCH_CAP, ENTRY_BATCH_PRICE);
 
     //Deploy investment contract through factory
     investmentContract = await investmentContractFactory.deploy(
       INVESTMENT_1_AMOUNT,
       puzzleContract.address,
-      paymentTokenContract.address
+      paymentTokenContract.address,
+      1
     );
     minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
 
@@ -94,6 +111,7 @@ describe("Investment Contract Tests", async () => {
       paymentTokenContract,
       paymentTokenContract2,
       puzzleContract,
+      logcisContract,
       factoryContract,
       investmentContract,
       minimunInvestment,
@@ -106,6 +124,7 @@ describe("Investment Contract Tests", async () => {
       investmentContract,
       paymentTokenContract,
       puzzleContract,
+      logcisContract,
       minimunInvestment,
     } = await loadFixture(deployContractFixture);
     await paymentTokenContract.mint(INVESTOR1_INVESTMENT_AMOUNT);
@@ -114,7 +133,7 @@ describe("Investment Contract Tests", async () => {
       withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
     );
     await paymentTokenContract.approve(
-      puzzleContract.address,
+      logcisContract.address,
       withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
     );
     await puzzleContract.mintEntry();
@@ -126,7 +145,7 @@ describe("Investment Contract Tests", async () => {
       .approve(investmentContract.address, withDecimals(INVESTOR1_INVESTMENT_AMOUNT));
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, withDecimals(INVESTOR1_INVESTMENT_AMOUNT));
+      .approve(logcisContract.address, withDecimals(INVESTOR1_INVESTMENT_AMOUNT));
     await puzzleContract.connect(investor1).mintEntry();
 
     return {
@@ -143,6 +162,7 @@ describe("Investment Contract Tests", async () => {
       investor1,
       accounts,
       investmentContract,
+      logcisContract,
       paymentTokenContract,
       puzzleContract,
     } = await loadFixture(deployContractFixture);
@@ -157,7 +177,7 @@ describe("Investment Contract Tests", async () => {
       //Approve fake coin spending
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+        .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
       await paymentTokenContract
         .connect(accounts[i])
         .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
@@ -189,13 +209,13 @@ describe("Investment Contract Tests", async () => {
     await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
     // Approve Puzzle contract to spend Owner's PaymentTokens
     await paymentTokenContract.approve(
-      puzzleContract.address,
+      logcisContract.address,
       withDecimals(PAYMENT_TOKEN_AMOUNT)
     );
     // Approve Puzzle contract to spend Investor1's PaymentTokens
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
+      .approve(logcisContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
     return { paymentTokenContract, puzzleContract };
   }
 
@@ -208,17 +228,18 @@ describe("Investment Contract Tests", async () => {
 
     await paymentTokenContract
       .connect(investor1)
-      .approve(puzzleContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
+      .approve(logcisContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
 
     await puzzleContract.connect(investor1).mintEntry();
 
     await factoryContract.deployNew(
       INVESTMENT_1_AMOUNT,
-      paymentTokenContract.address
+      paymentTokenContract.address,
+      1
     );
 
     const deployedInvestmentAddress =
-      await factoryContract.getLastDeployedContract();
+      await factoryContract.getLastDeployedContract(1);
 
     const investmentFactory = new Investment__factory(owner);
 
@@ -343,7 +364,7 @@ describe("Investment Contract Tests", async () => {
           investmentContract
             .connect(investor1)
             .invest(LESS_THAN_EXPECTED_INV_AMOUNT)
-        ).to.be.revertedWith("User does not have the Entry NFT");
+        ).to.be.revertedWith("User does not have the required level NFT");
       });
       it("Investor should not be allowed to invest less than the minimum required", async () => {
         const { investmentContract, investor1 } = await loadFixture(
@@ -383,7 +404,7 @@ describe("Investment Contract Tests", async () => {
           .mint(GENERAL_ACCOUNT_AMOUNT);
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+          .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
         await paymentTokenContract
           .connect(crucialInvestor)
           .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
@@ -441,7 +462,7 @@ describe("Investment Contract Tests", async () => {
           .mint(GENERAL_ACCOUNT_AMOUNT);
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+          .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
         await paymentTokenContract
           .connect(crucialInvestor)
           .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));

@@ -88,6 +88,7 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
         uint256 _newPrice
     ) external onlyAllowedContracts {
         MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE = changetXPositionInFactor5(MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE, 4, _newPrice);
+        
     }
     ///GETTERS
 

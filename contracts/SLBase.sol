@@ -30,6 +30,7 @@ interface ISLLogics {
 /// @dev Extra details about storage: https://app.diagrams.net/#G1Wi7A1SK0y8F9X-XDm65IUdfRJ81Fo7bF
 contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
 
+
     //Mapping to store the Levels batchs 
     // mapping (uint => mapping (uint => uint)) Levels;
     //Mapping to store the Puzzles batchs 
@@ -42,9 +43,9 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
     //Mapping to tack user puzzle pieces 
     mapping(address => uint32) userPuzzlePieces;
     //address of the factory
-    address factoryAddress;
+    address public factoryAddress;
     //Address of the SLLogics contract
-    address slLogicsAddress;
+    address public slLogicsAddress;
 
     
     constructor () ERC1155("") {
@@ -63,7 +64,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
     function _claimLevel(
         address _receiver,
         uint256 _tokenId
-    ) internal nonReentrant {
+    ) internal {
         require(_tokenId == 31 || _tokenId == 30, "SLBase: Not a valid level ID");
         verifyClaim(msg.sender, _tokenId); //Check if user has the right to claim the next level or puzzle piece
         
@@ -76,7 +77,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
     function _claimPiece(
         address _receiver,
         uint256 _puzzleLevel
-    ) internal nonReentrant {
+    ) internal {
         require(_puzzleLevel == 1 || _puzzleLevel == 2 || _puzzleLevel == 3, "SLBase: Not a valid puzzle level");
         verifyClaim(msg.sender, _puzzleLevel); //Check if user has the right to claim the next level or puzzle piece
         
@@ -152,22 +153,16 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
 
     ///GETTERS MOST OVERRIDEN
     //Function to verify if the user has an entry token returns boolean
-    function _userHasEntryToken(
-        address _user
-    ) internal view virtual returns (bool) {}
 
     //function to get entry token ids
-    function _getEntryTokenIds(
+    function _getLevelTokenIds( 
+        uint level
     ) internal view virtual returns (uint256[] memory) {}
 
         //funtion to get puzzle collection ids
     function _getPuzzleCollectionIds(
         uint256 level
     ) public view virtual returns(uint256[] memory) {}
-
-        //function to retrieve level2 and level3 ids
-    function _getLevel2And3Ids(
-    ) internal pure virtual returns(uint256[] memory) {}
 
     //function to create a user address array with the given size 
     function _createUserAddressArray(
