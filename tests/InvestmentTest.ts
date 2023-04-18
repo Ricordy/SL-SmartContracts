@@ -36,7 +36,7 @@ const INVESTMENT_1_AMOUNT = 100000,
   PROFIT_RATE = 15,
   REFILL_VALUE =
     INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE,
-  ENTRY_BATCH_CAP = 999,
+  ENTRY_BATCH_CAP = 1000,
   ENTRY_BATCH_PRICE = 100;
 
 
@@ -197,6 +197,7 @@ describe("Investment Contract Tests", async () => {
       paymentTokenContract,
       crucialInvestor,
       puzzleContract,
+      logcisContract,
     };
   }
   async function ownerAndInvestor1AbleToMintFixture() {
@@ -680,6 +681,7 @@ describe("Investment Contract Tests", async () => {
           crucialInvestor,
           paymentTokenContract,
           puzzleContract,
+          logcisContract,
         } = await loadFixture(oneInvestCallLeftToFill);
         //Min and approve crucialInvestor TestCoin
         await paymentTokenContract
@@ -687,7 +689,7 @@ describe("Investment Contract Tests", async () => {
           .mint(GENERAL_ACCOUNT_AMOUNT);
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+          .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
         await paymentTokenContract
           .connect(crucialInvestor)
           .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));

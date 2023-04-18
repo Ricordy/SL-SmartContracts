@@ -19,7 +19,7 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 // Constants
 const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   PAYMENT_TOKEN_AMOUNT = 20000,
-  ENTRY_LEVEL_NFT_ID = 999, // 01000 batch - 0, cap - 1000
+  ENTRY_LEVEL_NFT_ID = 1000, // 01000 batch - 0, cap - 1000
   LEVEL2_NFT_ID = 11,
   INVESTMENT1_AMOUNT = 100000,
   INVESTMENT_2_AMOUNT = 150000,
@@ -27,7 +27,7 @@ const COLLECTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   INVESTOR1_INVESTMENT_2_AMOUNT = 5000,
   PAYMENT_TOKEN_ID_0 = 0,
   PAYMENT_TOKEN_ID_1 = 1,
-  ENTRY_BATCH_CAP = 999,
+  ENTRY_BATCH_CAP = 1000,
   ENTRY_BATCH_PRICE = 100;
 
 
