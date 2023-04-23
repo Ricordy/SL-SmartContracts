@@ -499,6 +499,11 @@ describe("Puzzle Contract", async () => {
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, anyValue, 1);
     });
+    it("user should not be able to reclaim while he hasnt invested enough", async () => {
+      await expect(puzzleContract.connect(investor1).claimPiece()).to.emit(puzzleContract, "TokensClaimed")
+      .withArgs(investor1.address, anyValue, 1);
+      await expect(puzzleContract.connect(investor1).claimPiece()).to.be.revertedWith("SLLogics: User does not have enough investment to claim this piece");
+    });
   });
   describe("Pre-claim LEVEL2 NFT", async () => {
     beforeEach(async () => {

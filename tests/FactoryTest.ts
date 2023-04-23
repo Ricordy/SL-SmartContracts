@@ -174,6 +174,14 @@ describe("Factory Contract Tests", async () => {
       await loadFixture(UserInvestedInAllLevels);
     expect(await factoryContract.getAddressTotal(investor1.address)).to.be.equal(withDecimals(INVESTED_LEVEL_1+INVESTED_LEVEL_2+INVESTED_LEVEL_3));
     });
+    it("Assure that the differed valued are set correctly", async () => {
+      const {investmentContractLevel1, investmentContractLevel2, investmentContractLevel3 } =
+        await loadFixture(UserInvestedInAllLevels);
+      expect(await investmentContractLevel1.CONTRACT_LEVEL()).to.be.equal(1);
+      expect(await investmentContractLevel2.CONTRACT_LEVEL()).to.be.equal(2);
+      expect(await investmentContractLevel3.CONTRACT_LEVEL()).to.be.equal(3);
+      
+    });
 
   });
 });
