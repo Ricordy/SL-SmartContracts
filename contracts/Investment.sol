@@ -42,6 +42,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     address public immutable entryNFTAddress;
     uint256 public constant MINIMUM_INVESTMENT = 100;
     uint8 public immutable CONTRACT_LEVEL;
+    mapping(address => bool) public userWithdrawed;
 
     ///
     //-----EVENTS------
@@ -115,13 +116,12 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     }
 
     function withdraw() external nonReentrant isNotPaused isAllowed isWithdrawOrRefunding {
-        uint256 balance = balanceOf(msg.sender);
-        require(balance > 0, "Not enough balance");
+        require(!userWithdrawed[msg.sender], "Investment: User already withdrawed");
+        userWithdrawed[msg.sender] = true;
         
         ERC20 _token = ERC20(paymentTokenAddress);
-        uint256 finalAmount = calculateFinalAmount(balance);
+        uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
         
-        _burn(msg.sender, balance);
         require( _token.transfer(msg.sender, finalAmount), "Puzzle: Error in token transfer");
 
         

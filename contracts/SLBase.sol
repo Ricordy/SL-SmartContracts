@@ -19,8 +19,13 @@ interface ISLLogics {
     ) external;
 
      function setEntryPrice(
-        uint256 _newPrice
+        uint256 _newPrice,
+        string memory tokenUri
     ) external;
+
+    function uri(
+        uint256 _id
+    ) external view returns (string memory);
 }
 
 /// @title Base contract for SL puzzle management

@@ -102,23 +102,24 @@ contract SLLevels is SLBase {
         //call function to check user balance of token id 30 and 31
     
         //Verify level 2 and 3 token ownership
-        uint256[] memory userBalance = balanceOfBatch(_createUserAddressArray(user,2), _getLevelTokenIds(2));
-        for(uint i = 0; i < userBalance.length; i++){
-            if(userBalance[i] > 0){
-                return i + 2;
+        if(balanceOf(user, 31) > 0) {
+            return 3;
+        } else if( balanceOf(user, 30) > 0){
+            return 2;
+        } else {
+            //If user doesnt have level 2 or 3, check if user has entry token
+            //Get the balance of the user for each entry token id
+            uint256[] memory userBalance = balanceOfBatch(_createUserAddressArray(user, _getLevelTokenIds(1).length),_getLevelTokenIds(1));
+            //Verify if the user has any entry token
+            for(uint i = 0; i < userBalance.length; i++) {
+                if(userBalance[i] > 0) {
+                    return 1;
+                }
             }
+            return 0;
         }
 
-        //If user doesnt have level 2 or 3, check if user has entry token
-        //Get the balance of the user for each entry token id
-        userBalance = balanceOfBatch(_createUserAddressArray(user, _getLevelTokenIds(1).length),_getLevelTokenIds(1));
-        //Verify if the user has any entry token
-        for(uint i = 0; i < userBalance.length; i++) {
-            if(userBalance[i] > 0) {
-                return 1;
-            }
-        }
-        return 0;
+        
     } 
 
     function whichLevelUserHas(

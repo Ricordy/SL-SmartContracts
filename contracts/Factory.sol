@@ -10,11 +10,12 @@ contract Factory is Ownable {
 
     mapping(uint => Investment[]) public deployedContracts;    
     address lgentry;
-    uint[] public counter = new uint[](3);
+    uint[] public counter = new uint[](4);
 
     event ContractCreated (
         uint256 ContractID,
-        address conAddress
+        address conAddress,
+        uint conLevel
     );
     constructor() {
     }
@@ -22,13 +23,13 @@ contract Factory is Ownable {
     function deployNew(uint256 _totalInvestment, address _paymentTokenAddress, uint8 level) onlyOwner external returns (address) {
         require(lgentry != address(0), "Factory: First provide the entry contract address");
         require(_paymentTokenAddress != address(0), "Factory: Provide a real paymentTokenAddress");
-        require(level > 0 && level <= 3, "Factory: Provide an existing level");
+        require(level > 0 && level < 4, "Factory: Provide an existing level");
        
         counter[level]++;
         Investment inv = new Investment(_totalInvestment, lgentry, _paymentTokenAddress, level);
        
         deployedContracts[level].push(inv);
-        emit ContractCreated(counter[level], address(inv));
+        emit ContractCreated(counter[level], address(inv), level);
 
         inv.transferOwnership(msg.sender);
        

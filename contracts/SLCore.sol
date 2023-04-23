@@ -49,9 +49,9 @@ contract SLCore is SLPuzzles {
     ///FUNCTIONS FOR ADMINS
 
     //function to generate a new entry batch using internal logic
-    function generateNewEntryBatch(uint _cap, uint _entryPrice) public whenNotPaused onlyCEO {
+    function generateNewEntryBatch(uint _cap, uint _entryPrice, string memory _tokenUri) public whenNotPaused onlyCEO {
         ENTRY_IDS.push(mountEntryValue(_cap, 0));
-        ISLLogics(slLogicsAddress).setEntryPrice(_entryPrice);
+        ISLLogics(slLogicsAddress).setEntryPrice(_entryPrice, _tokenUri);
 
     }
 
@@ -62,11 +62,9 @@ contract SLCore is SLPuzzles {
         }
         
     }
+
+    function uri(uint256 _tokenId) public view override returns (string memory) {
+        return ISLLogics(slLogicsAddress).uri(_tokenId);
+    }
 }
 
-/**
- * if metadata is better in SLCore or logics?  Same 
- * if in SLLogics, if we need it to be dynamic or manual
- *  - This does not need to be dynamic, it can be manual, simplifying the amount of transactions
- * - reducing the external transactions bring security. 
- */

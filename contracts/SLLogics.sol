@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./SLMicroSlots.sol";
 import "./SLPermissions.sol";
 
@@ -20,6 +21,8 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
     address paymentTokenAddress;
     //Uint to store minimum claim amount for all levels and the entry price
     uint256 MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE = 100150001000005000;
+    string URI = "INSERT_HERE";
+    string[] batches_uri;
 
     constructor (address _factoryAddress, address _paymentTokenAddress) ERC20("", ""){
         require(_factoryAddress != address(0) && _paymentTokenAddress != address(0), "SLLogics: Re-check input parameters");
@@ -78,16 +81,18 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
         //Check if user has the right amount of puzzle pieces
         IFactory factory = IFactory(factoryAddress);
         uint256 allowedToMint = (factory.getAddressTotalInLevel(user, _tokenId)/ 10 ** 6) / getMinClaimAmount(_tokenId);
-        require((_userPuzzlePiecesForUserCurrentLevel + 1) <= allowedToMint); 
+        require((_userPuzzlePiecesForUserCurrentLevel + 1) <= allowedToMint, "SLLogics: User does not have enough investment to claim this piece");
     }
 
     ///SETTERS
     //function to set the entry price
     //function to rewrite the price of the entry token
     function setEntryPrice(
-        uint256 _newPrice
+        uint256 _newPrice,
+        string memory _tokenURI
     ) external onlyAllowedContracts {
         MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE = changetXPositionInFactor5(MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE, 4, _newPrice);
+        batches_uri.push(_tokenURI);
         
     }
     ///GETTERS
@@ -96,6 +101,7 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
     function _getEntryPrice(
     ) public view returns (uint256) {
         return getPositionXInDivisionByY(MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE, 4, 5);
+
     }
 
      //Get minimum claim amount per level
@@ -106,11 +112,19 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
         return getPositionXInDivisionByY(MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE, _level, 5);
     }
 
-
-
-
-        
-    
-
-
+    function uri(uint _tokenID) external view returns (string memory) {
+        if(_tokenID <= 32) {
+            return string(
+                abi.encodePacked(
+                    URI,
+                    "/",
+                    Strings.toString(_tokenID),
+                    ".json"
+                )
+            );
+        } else {
+            (uint batch,) = unmountEntryID(_tokenID);
+            return batches_uri[batch];
+        }
+    }
 }

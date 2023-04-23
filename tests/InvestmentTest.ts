@@ -37,7 +37,8 @@ const INVESTMENT_1_AMOUNT = 100000,
   REFILL_VALUE =
     INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE,
   ENTRY_BATCH_CAP = 1000,
-  ENTRY_BATCH_PRICE = 100;
+  ENTRY_BATCH_PRICE = 100,
+  ENTRY_TOKEN_URI = "TOKEN_URI";
 
 
   function withDecimals(toConvert : number) {
@@ -92,7 +93,7 @@ describe("Investment Contract Tests", async () => {
     // Allow SLCore to make changes in SLLogics
     await logcisContract.setAllowedContracts(puzzleContract.address, true);
     // Create a new entry batch
-    await puzzleContract.generateNewEntryBatch(ENTRY_BATCH_CAP, ENTRY_BATCH_PRICE);
+    await puzzleContract.generateNewEntryBatch(ENTRY_BATCH_CAP, ENTRY_BATCH_PRICE, ENTRY_TOKEN_URI);
 
     //Deploy investment contract through factory
     investmentContract = await investmentContractFactory.deploy(
@@ -273,6 +274,7 @@ describe("Investment Contract Tests", async () => {
       investmentContract,
       paymentTokenContract,
       puzzleContract,
+      logcisContract,
     } = await loadFixture(deployContractFixture);
 
     // Make a 10000 investment on 5 accounts (total of 50.000 invested)
@@ -285,7 +287,7 @@ describe("Investment Contract Tests", async () => {
       //Approve fake coin spending
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(puzzleContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+        .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
       await paymentTokenContract
         .connect(accounts[i])
         .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
@@ -753,12 +755,6 @@ describe("Investment Contract Tests", async () => {
         paymentTokenBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(crucialInvestor.address);
         await investmentContract.connect(crucialInvestor).withdraw();
       });
-      it("Investor should have all investment tokens (IC) burned", async () => {
-        const investmentTokenAfterWithdraw = await investmentContract.balanceOf(
-          crucialInvestor.address
-        );
-        expect(investmentTokenAfterWithdraw.toNumber()).to.be.equal(0);
-      });
       it("Investor should receive payment tokens invested + profit", async () => {
         const paymentTokenAfterWithdraw = await paymentTokenContract.balanceOf(
           crucialInvestor.address
@@ -780,7 +776,7 @@ describe("Investment Contract Tests", async () => {
       it("Investor should not be able to withdraw again", async () => {
         await expect(
           investmentContract.connect(crucialInvestor).withdraw()
-        ).to.be.revertedWith("Not enough balance");
+        ).to.be.revertedWith("Investment: User already withdrawed");
       });
       it("Owner should not be able to withdraw again", async () => {
         await expect(investmentContract.withdrawSL()).to.be.revertedWith(
@@ -811,20 +807,11 @@ describe("Investment Contract Tests", async () => {
         // Change status to refunding
         await investmentContract.changeStatus(STATUS_REFUNDING);
       });
-      it("Investor should have all investment tokens (IC) burned", async () => {
-        await investmentContract.connect(investor1).withdraw();
 
-        expect(
-          await investmentContract.balanceOf(investor1.address)
-        ).changeTokenBalance(investmentContract, investor1.address, 1);
-      });
       it("Investor should receive payment tokens invested", async () => {
         await expect(() =>
           investmentContract.connect(investor1).withdraw()
-        ).to.changeTokenBalance(
-          paymentTokenContract,
-          investor1.address,
-          withDecimals(GENERAL_INVEST_AMOUNT_TO_REFUND)
+        ).to.changeTokenBalance(paymentTokenContract,investor1.address,withDecimals(GENERAL_INVEST_AMOUNT_TO_REFUND)
         );
       });
     });
