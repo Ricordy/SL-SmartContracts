@@ -4,14 +4,6 @@ pragma solidity ^0.8.0;
 import "./SLBase.sol";
 
 contract SLLevels is SLBase {
-    
-
-    constructor () {
-    }
-
-    
-    
-
 
     //Function to deal with data of buying a new NFT entry token 
     //Call the function and add needed logic (Payment, etc)

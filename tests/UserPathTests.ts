@@ -30,6 +30,11 @@ const INVESTMENT_1_AMOUNT = 100000,
   INVESTED_LEVEL_1 = INVESTMENT_1_AMOUNT / 10,
   INVESTED_LEVEL_2 = INVESTMENT_2_AMOUNT / 10,
   INVESTED_LEVEL_3 = INVESTMENT_3_AMOUNT / 10,
+  STATUS_PAUSE = 0,
+  STATUS_PROGRESS = 1,
+  STATUS_PROCESS = 2,
+  STATUS_WITHDRAW = 3,
+  STATUS_REFUNDING = 4,
   ENTRY_TOKEN_URI = 'TOKEN_URI',
   ENTRY_LEVEL_NFT_ID_1 = 1000, // 01000 batch - 0, cap - 1000
   ENTRY_LEVEL_NFT_ID_2 = 10100, // 10100 batch - 1, cap - 0100
@@ -1007,6 +1012,48 @@ describe('User Paths Testing', async () => {
         .emit(factoryContract , "ContractCreated")
         .withArgs(anyValue, anyValue, 3)
       }
+    })
+
+    it('Pause and unpause running investment contracts', async () => {
+      const {
+        paymentTokenContract,
+        investor1,
+        investor2,
+        investor3,
+        investor4,
+        puzzleContract,
+        logicsContract,
+        investmentContractLevel1,
+      } = await loadFixture(entryNftReadyAndLevel1InvestmentDeployed)
+        await investmentContractLevel1.connect(investor1).invest(INVESTED_LEVEL_1 / 2);
+        await investmentContractLevel1.connect(investor2).invest(INVESTED_LEVEL_1 / 2);
+        await investmentContractLevel1.changeStatus(STATUS_PAUSE);
+        await expect(investmentContractLevel1.connect(investor2).invest(INVESTED_LEVEL_1 / 2)).to.be.revertedWith('Not on progress');
+        await investmentContractLevel1.changeStatus(STATUS_PROGRESS);
+        await expect(investmentContractLevel1.connect(investor2).invest(INVESTED_LEVEL_1 / 2)).not.to.be.reverted;
+        await expect(investmentContractLevel1.connect(investor1).invest(INVESTED_LEVEL_1 / 2)).not.to.be.reverted;
+
+
+    })
+
+    it('Set running contract to refund status, users should be able to withdraw', async () => {
+        const {
+          paymentTokenContract,
+          investor1,
+          investor2,
+          investor3,
+          investor4,
+          puzzleContract,
+          logicsContract,
+          investmentContractLevel1,
+        } = await loadFixture(entryNftReadyAndLevel1InvestmentDeployed)
+          await investmentContractLevel1.connect(investor1).invest(INVESTED_LEVEL_1 / 2);
+          await investmentContractLevel1.connect(investor2).invest(INVESTED_LEVEL_1 / 2);
+          await investmentContractLevel1.changeStatus(STATUS_REFUNDING);
+          await expect(investmentContractLevel1.connect(investor2).withdraw()).to.changeTokenBalance(paymentTokenContract, investor2, withDecimals(INVESTED_LEVEL_1 / 2));
+          await expect(investmentContractLevel1.connect(investor1).withdraw()).to.changeTokenBalance(paymentTokenContract, investor1, withDecimals(INVESTED_LEVEL_1 / 2));
+  
+  
     })
   })
 })

@@ -5,12 +5,6 @@ import "./SLLevels.sol";
 
 contract SLPuzzles is SLLevels{
 
-
-    constructor () {
-        
-    }
-
-
     //OVERRIDES
     function verifyClaim(
         address _claimer,
