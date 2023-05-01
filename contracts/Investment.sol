@@ -224,6 +224,18 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         return 6;
     }
 
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public override returns (bool) {
+        return false;
+    }
+
+    function transfer(address to, uint256 amount) public override returns (bool) {
+        return false;
+    }
+
 
     
 }
