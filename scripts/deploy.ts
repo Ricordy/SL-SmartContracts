@@ -6,74 +6,60 @@ import {
   CoinTest__factory,
   Factory,
   Factory__factory,
-  Puzzle,
-  Puzzle__factory,
   Investment,
   Investment__factory,
+  SLCore,
+  SLCore__factory,
+  SLLogics__factory,
 } from "../typechain-types";
 
-const INVESTMENT_AMOUNT_1 = 100000;
-const INVESTMENT_AMOUNT_2 = 250000;
-const INVESTMENT_AMOUNT_3 = 300000;
+const ENTRY_BATCH_CAP = 1000,
+      ENTRY_BATCH_PRICE = 100,
+      ENTRY_TOKEN_URI = "TOKEN_URI";
 
 async function main() {
   const accounts: SignerWithAddress[] = await ethers.getSigners();
   const owner: SignerWithAddress = accounts[0];
 
-  const paymentTokenFactory = new CoinTest__factory(owner);
+  const paymentTokenContractFactory = new CoinTest__factory(owner);
+  const puzzleContractFactory = new SLCore__factory(owner);
+  const logicsContractFactory = new SLLogics__factory(owner);
   const factoryContractFactory = new Factory__factory(owner);
-  const puzzleContractFactory = new Puzzle__factory(owner);
-  const investmentFactory = new Investment__factory(owner);
 
-  const paymentTokenContract: CoinTest = await paymentTokenFactory.deploy();
+  // Deploy PaymentToken (CoinTest) contract from the factory
+  let paymentTokenContract = await paymentTokenContractFactory.deploy();
+  await paymentTokenContract.deployed();
 
-  const factoryContract: Factory = await factoryContractFactory.deploy();
-  const puzzleContract: Puzzle = await puzzleContractFactory.deploy(
+  // Deploy Factory contract from the factory
+  let factoryContract = await factoryContractFactory.deploy();
+  await factoryContract.deployed();
+
+  await factoryContract.deployed();
+  //Deploy SLLogics contract
+  let logcisContract = await logicsContractFactory.deploy(
     factoryContract.address,
     paymentTokenContract.address
   );
-  // Set entry address
-  const setEntryTx = await factoryContract.setEntryAddress(
-    puzzleContract.address
+  await logcisContract.deployed();
+  // Deploy Puzzle contract from the factory passing Factory and PaymentToken deployed contract addresses
+  let puzzleContract = await puzzleContractFactory.deploy(
+    factoryContract.address,
+    logcisContract.address
   );
-  const deployNewTx = await factoryContract.deployNew(
-    INVESTMENT_AMOUNT_1,
-    paymentTokenContract.address
-  );
-  const deployedInvestmentAddress1 =
-    await factoryContract.getLastDeployedContract();
+  await puzzleContract.deployed();
+  // Set the Puzzle contract deployed as entry address on Factory contract
+  await factoryContract.setEntryAddress(puzzleContract.address);
+  // Allow SLCore to make changes in SLLogics
+  await logcisContract.setAllowedContracts(puzzleContract.address, true);
+  // Create a new entry batch
+  await puzzleContract.generateNewEntryBatch(ENTRY_BATCH_CAP, ENTRY_BATCH_PRICE, ENTRY_TOKEN_URI);
 
-  const deployNewTx2 = await factoryContract.deployNew(
-    INVESTMENT_AMOUNT_2,
-    paymentTokenContract.address
-  );
-  const deployedInvestmentAddress2 =
-    await factoryContract.getLastDeployedContract();
-  const deployNewTx3 = await factoryContract.deployNew(
-    INVESTMENT_AMOUNT_3,
-    paymentTokenContract.address
-  );
-  const deployedInvestmentAddress3 =
-    await factoryContract.getLastDeployedContract();
-  // const investmentContract: Investment = await investmentFactory.deploy(
-  //   100000,
-  //   puzzleContract.address,
-  //   paymentTokenContract.address
-  // );
-  // const investmentContract2: Investment = await investmentFactory.deploy(
-  //   250000,
-  //   puzzleContract.address,
-  //   paymentTokenContract.address
-  // );
-  console.log(
-    "Payment Token address deployed at: ",
-    paymentTokenContract.address
-  );
-  console.log("Puzzle deployed at: ", puzzleContract.address);
-  console.log("Factory deployed at: ", factoryContract.address);
-  console.log("Investment 1 deployed at: ", deployedInvestmentAddress1);
-  console.log("Investment 2 deployed at: ", deployedInvestmentAddress2);
-  console.log("Investment 3 deployed at: ", deployedInvestmentAddress3);
+  console.log("PaymentToken deployed to:", paymentTokenContract.address);
+  console.log("Factory deployed to:", factoryContract.address);
+  console.log("SLLogics deployed to:", logcisContract.address);
+  console.log("Puzzle deployed to:", puzzleContract.address);
+  console.log("Entry batch created with cap:", ENTRY_BATCH_CAP, "price:", ENTRY_BATCH_PRICE, "and tokenURI:", ENTRY_TOKEN_URI);
+  
 }
 
 main().catch((error) => {
