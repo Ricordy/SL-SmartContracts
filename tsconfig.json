@@ -10,4 +10,5 @@
     "skipLibCheck": true,
     "rootDirs": ["./scripts", "./tests", "./typechain-types"]
   }
+  
 }

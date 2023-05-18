@@ -16,7 +16,7 @@ contract SLPuzzles is SLLevels{
             _userAllowedToBurnPuzzle(_claimer, _tokenIdOrPuzzleLevel);
         } else if (_tokenIdOrPuzzleLevel == 1 || _tokenIdOrPuzzleLevel == 2 || _tokenIdOrPuzzleLevel == 3) {
             //Check if user has the ability to burn the puzzle piece
-            ISLLogics(slLogicsAddress)._userAllowedToClaimPiece(_claimer, _tokenIdOrPuzzleLevel, _whichLevelUserHas(_claimer) ,getUserPuzzlePiecesForUserCurrentLevel(_claimer));
+            ISLLogics(slLogicsAddress)._userAllowedToClaimPiece(_claimer, _tokenIdOrPuzzleLevel, _whichLevelUserHas(_claimer) ,getUserPuzzlePiecesForUserCurrentLevel(_claimer,  _whichLevelUserHas(_claimer)));
         } else {
             revert("Not a valid id");
         }
@@ -58,14 +58,9 @@ contract SLPuzzles is SLLevels{
     ///GETTERS
     //Function to get how many puzzle pieces a user has from current level
     function getUserPuzzlePiecesForUserCurrentLevel(
-        address _user
+        address _user,
+        uint level
     ) public view returns (uint256) {
-        return getPositionXInDivisionByY(userPuzzlePieces[_user], _whichLevelUserHas(_user), 3);
+        return getPositionXInDivisionByY(userPuzzlePieces[_user], level, 3);
     }
-
-
-
-
-
-
 }

@@ -36,30 +36,11 @@ async function main() {
 
   const puzzleContract: SLCore = puzzleContractFactory.attach(puzzleAddress);
 
-  const decimals = await paymentTokenContract.decimals();
-  // console.log(decimals);
+  console.log("Minting puzzle pieces for Investor1: ");
+  const mintTx = await puzzleContract.connect(firstInvestor).mintTest(1);
+  mintTx.wait(1);
 
-  const valueWithDecimals = ethers.utils.parseUnits(
-    investmentValue.toString(),
-    decimals
-  );
-  console.log("Minting 10K tokens to Investor1: ");
-  await paymentTokenContract.connect(firstInvestor).mint(valueWithDecimals);
-  console.log(
-    "Approving 10K tokens to be spend by Puzzle and Investment Contract from Investor1: "
-  );
-  const approveTx = await paymentTokenContract
-    .connect(firstInvestor)
-    .approve(sllogicsAddress, valueWithDecimals);
-  approveTx.wait();
-  // await paymentTokenContract
-  //   .connect(firstInvestor)
-  //   .approve(investmentAddress, investmentValue);
-  console.log("Minting entry for Investor1: ");
-  await puzzleContract.connect(firstInvestor).mintEntry();
-  // const factoryContract = await factoryFactory.attach(factoryAddress);
-  // const deployed = await factoryContract.deployedContracts(0);
-  // console.log(deployed);
+
 }
 
 main().catch((error) => {

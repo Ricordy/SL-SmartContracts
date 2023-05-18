@@ -20,7 +20,7 @@ const paymentTokenAddress: Address =
   puzzleAddress: Address = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
   factoryAddress: Address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   sllogicsAddress: Address = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-  investmentValue: number = 1000;
+  investmentValue: number = 2500;
 
 async function main() {
   const accounts: SignerWithAddress[] = await ethers.getSigners();
@@ -30,11 +30,19 @@ async function main() {
   const paymentTokenFactory = new CoinTest__factory(owner);
   const puzzleContractFactory = new SLCore__factory(owner);
   const factoryFactory = new Factory__factory(owner);
+  const investmentFactory = new Investment__factory(owner);
 
   const paymentTokenContract: CoinTest =
     paymentTokenFactory.attach(paymentTokenAddress);
 
   const puzzleContract: SLCore = puzzleContractFactory.attach(puzzleAddress);
+  const factoryContract: Factory = factoryFactory.attach(factoryAddress);
+  
+  await factoryContract.deployNew(100000, paymentTokenAddress, 1);
+
+  const investmentAddress = await factoryContract.getLastDeployedContract(1);
+
+  const investmentContract: Investment = investmentFactory.attach(investmentAddress);
 
   const decimals = await paymentTokenContract.decimals();
   // console.log(decimals);
@@ -46,20 +54,13 @@ async function main() {
   console.log("Minting 10K tokens to Investor1: ");
   await paymentTokenContract.connect(firstInvestor).mint(valueWithDecimals);
   console.log(
-    "Approving 10K tokens to be spend by Puzzle and Investment Contract from Investor1: "
+    "Approving 10K tokens to be spend by Investment Contract from Investor1: "
   );
-  const approveTx = await paymentTokenContract
+  await paymentTokenContract
     .connect(firstInvestor)
-    .approve(sllogicsAddress, valueWithDecimals);
-  approveTx.wait();
-  // await paymentTokenContract
-  //   .connect(firstInvestor)
-  //   .approve(investmentAddress, investmentValue);
-  console.log("Minting entry for Investor1: ");
-  await puzzleContract.connect(firstInvestor).mintEntry();
-  // const factoryContract = await factoryFactory.attach(factoryAddress);
-  // const deployed = await factoryContract.deployedContracts(0);
-  // console.log(deployed);
+    .approve(investmentAddress, valueWithDecimals);
+  console.log("Investing 2500... ");
+  await investmentContract.connect(firstInvestor).invest(investmentValue);
 }
 
 main().catch((error) => {
