@@ -15,7 +15,8 @@ import {
 
 const ENTRY_BATCH_CAP = 1000,
       ENTRY_BATCH_PRICE = 100,
-      ENTRY_TOKEN_URI = "TOKEN_URI";
+      ENTRY_TOKEN_URI = "TOKEN_URI",
+      TOTAL_INVESTMENT_LEVEL1 = 1000000;
 
 async function main() {
   const accounts: SignerWithAddress[] = await ethers.getSigners();
@@ -41,7 +42,7 @@ async function main() {
     paymentTokenContract.address
   );
   await logcisContract.deployed();
-  // Deploy Puzzle contract from the factory passing Factory and PaymentToken deployed contract addresses
+  // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
   let puzzleContract = await puzzleContractFactory.deploy(
     factoryContract.address,
     logcisContract.address
@@ -53,11 +54,14 @@ async function main() {
   await logcisContract.setAllowedContracts(puzzleContract.address, true);
   // Create a new entry batch
   await puzzleContract.generateNewEntryBatch(ENTRY_BATCH_CAP, ENTRY_BATCH_PRICE, ENTRY_TOKEN_URI);
+  // Deploy Investment contract from the factory 
+  // let investmentContract = await factoryContract.deployNew(TOTAL_INVESTMENT_LEVEL1,paymentTokenContract.address, 1);
 
   console.log("PaymentToken deployed to:", paymentTokenContract.address);
   console.log("Factory deployed to:", factoryContract.address);
   console.log("SLLogics deployed to:", logcisContract.address);
   console.log("Puzzle deployed to:", puzzleContract.address);
+  // console.log("Investment deployed to:", await factoryContract.getLastDeployedContract(1));
   console.log("Entry batch created with cap:", ENTRY_BATCH_CAP, "price:", ENTRY_BATCH_PRICE, "and tokenURI:", ENTRY_TOKEN_URI);
   
 }

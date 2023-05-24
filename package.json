@@ -4,7 +4,8 @@
     "deploy": "hardhat run scripts/deploy.ts --network localhost",
     "mint": "hardhat run scripts/mint.ts --network localhost",
     "mintPuzzle": "hardhat run scripts/mintPuzzle.ts --network localhost",
-    "invest": "hardhat run scripts/Invest2500.ts --network localhost"
+    "invest": "hardhat run scripts/Invest2500.ts --network localhost",
+    "deployInvest": "hardhat run scripts/deployInvest.ts --network localhost"
   },
   "packageManager": "yarn@3.3.0",
   "devDependencies": {

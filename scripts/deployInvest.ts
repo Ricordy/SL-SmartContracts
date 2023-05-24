@@ -38,30 +38,13 @@ async function main() {
   const puzzleContract: SLCore = puzzleContractFactory.attach(puzzleAddress);
   const factoryContract: Factory = factoryFactory.attach(factoryAddress);
   
+  console.log("deploying new investment contract... ");
   await factoryContract.deployNew(100000, paymentTokenAddress, 1);
 
   const investmentAddress = await factoryContract.getLastDeployedContract(1);
+  
+  console.log("Investment 2 address: ", investmentAddress);
 
-
-  const investmentContract: Investment = investmentFactory.attach(investmentAddress);
-
-  const decimals = await paymentTokenContract.decimals();
-  // console.log(decimals);
-
-  const valueWithDecimals = ethers.utils.parseUnits(
-    investmentValue.toString(),
-    decimals
-  );
-  console.log("Minting 10K tokens to Investor1: ");
-  await paymentTokenContract.connect(firstInvestor).mint(valueWithDecimals);
-  console.log(
-    "Approving 10K tokens to be spend by Investment Contract from Investor1: "
-  );
-  await paymentTokenContract
-    .connect(firstInvestor)
-    .approve(investmentAddress, valueWithDecimals);
-  console.log("Investing 2500... ");
-  await investmentContract.connect(firstInvestor).invest(investmentValue);
 }
 
 main().catch((error) => {
