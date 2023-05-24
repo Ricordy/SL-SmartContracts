@@ -28,7 +28,7 @@ contract SLLevels is SLBase {
     function _userAllowedToBurnPuzzle(
         address user, 
         uint _tokenId
-    ) internal view override {
+    ) public view override {
         //Helper Arrays
         address[] memory userAddress = _createUserAddressArray(user,10);
         uint256[] memory amountsForBurn = new uint256[](10);

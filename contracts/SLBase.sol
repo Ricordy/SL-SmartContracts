@@ -135,7 +135,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, SLPermissions {
     function _userAllowedToBurnPuzzle(
         address user, 
         uint _tokenId
-    ) internal virtual view {}
+    ) public virtual view {}
     
     /// INTERNAL NON-OVERRIDE FUNCTIONS
     //function to increment user puzzle pieces using SLMicroSlots
