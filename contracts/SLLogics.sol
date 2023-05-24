@@ -73,7 +73,7 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
         uint _tokenId,
         uint _currentUserLevel,
         uint _userPuzzlePiecesForUserCurrentLevel
-    ) external view {
+    ) public view {
         //Check if user has the right to claim the next level
         require(_currentUserLevel == _tokenId, "SLLogics: User does not have the right to claim piece from this level");
         //Check if user is allowed to claim more pieces in current level
@@ -83,6 +83,14 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots, SLPermissions {
         uint256 allowedToMint = (factory.getAddressTotalInLevel(user, _tokenId)/ 10 ** 6) / getMinClaimAmount(_tokenId);
         require((_userPuzzlePiecesForUserCurrentLevel + 1) <= allowedToMint, "SLLogics: User does not have enough investment to claim this piece");
     }
+
+    function userAllowedToClaimPiece(address _user, 
+        uint _tokenId,
+        uint _currentUserLevel,
+        uint _userPuzzlePiecesForUserCurrentLevel) public view returns (bool) {
+    _userAllowedToClaimPiece(_user, _tokenId, _currentUserLevel, _userPuzzlePiecesForUserCurrentLevel);
+    return true;
+}
 
     ///SETTERS
     //function to set the entry price
