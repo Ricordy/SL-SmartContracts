@@ -41,8 +41,10 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
     address public immutable paymentTokenAddress;
     address public immutable entryNFTAddress;
     uint256 public constant MINIMUM_INVESTMENT = 100;
+    uint256 public investors;
     uint8 public immutable CONTRACT_LEVEL;
     mapping(address => bool) public userWithdrawed;
+
 
     ///
     //-----EVENTS------
@@ -107,7 +109,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         }
 
         _mint(msg.sender, _amount * 10 ** decimals());
-        
+        investors++;
         ERC20 _token = ERC20(paymentTokenAddress);
         require(_token.transferFrom(msg.sender, address(this), _amount *  10 ** _token.decimals()), "Puzzle: Error in token transfer");
         
