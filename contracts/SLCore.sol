@@ -55,14 +55,6 @@ contract SLCore is SLPuzzles {
 
     }
 
-    function mintTest(uint level) public {
-        for (uint i = 0; i < 10; i++) {
-            _mint(msg.sender,_getPuzzleCollectionIds(level)[i],1,"");
-            _incrementUserPuzzlePieces(msg.sender, level);
-        }
-        
-    }
-
     function uri(uint256 _tokenId) public view override returns (string memory) {
         return ISLLogics(slLogicsAddress).uri(_tokenId);
     }
