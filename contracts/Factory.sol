@@ -2,12 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "./Investment.sol";
-import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract Factory is Ownable2Step {
+contract Factory {
     mapping(uint => Investment[]) public deployedContracts;
     address lgentry;
+    address public slPermissionsAddress;
     uint[] public counter = new uint[](4);
 
     event ContractCreated(
@@ -16,13 +16,15 @@ contract Factory is Ownable2Step {
         uint conLevel
     );
 
-    constructor() {}
+    constructor(address _slPermissionsAddress) {
+        slPermissionsAddress = _slPermissionsAddress;
+    }
 
     function deployNew(
         uint256 _totalInvestment,
         address _paymentTokenAddress,
         uint8 level
-    ) external onlyOwner returns (address) {
+    ) external isCEO returns (address) {
         require(
             lgentry != address(0),
             "Factory: First provide the entry contract address"
@@ -36,6 +38,7 @@ contract Factory is Ownable2Step {
         counter[level]++;
         Investment inv = new Investment(
             _totalInvestment,
+            slPermissionsAddress,
             lgentry,
             _paymentTokenAddress,
             level
@@ -43,9 +46,6 @@ contract Factory is Ownable2Step {
 
         deployedContracts[level].push(inv);
         emit ContractCreated(counter[level], address(inv), level);
-
-        inv.transferOwnership(msg.sender);
-
         return address(inv);
     }
 
@@ -74,7 +74,7 @@ contract Factory is Ownable2Step {
         userTotal = ERC20(contractAddress).balanceOf(msg.sender);
     }
 
-    function setEntryAddress(address _lgentry) external onlyOwner {
+    function setEntryAddress(address _lgentry) external isCEO {
         require(
             _lgentry != address(0),
             "Factory: Provide a real address in the parameters."
@@ -92,5 +92,13 @@ contract Factory is Ownable2Step {
         } else {
             contractAddress = address(0);
         }
+    }
+
+    modifier isCEO() {
+        require(
+            ISLPermissions(slPermissionsAddress).isCEO(msg.sender),
+            "User not CEO"
+        );
+        _;
     }
 }
