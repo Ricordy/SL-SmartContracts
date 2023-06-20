@@ -27,9 +27,11 @@ interface ISLPermissions {
 
     function isCLevel(address _address) external view returns (bool);
 
-    function isPlatformPaused() external view returns (bool);
+    function isPuzzleMintPaused() external view returns (bool);
 
-    function isMintingPaused() external view returns (bool);
+    function isEntryMintPaused() external view returns (bool);
+
+    function isPlatformPaused() external view returns (bool);
 }
 
 /// @title Base contract for SL puzzle management
@@ -195,14 +197,26 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         _;
     }
 
+    modifier isEntryMintNotPaused() {
+        require(
+            !ISLPermissions(slPermissionsAddress).isEntryMintPaused(),
+            "Entry Minting globally stoped"
+        );
+        _;
+    }
+
+    modifier isPuzzleMintNotPaused() {
+        require(
+            !ISLPermissions(slPermissionsAddress).isPuzzleMintPaused(),
+            "Puzzle Minting globally stoped"
+        );
+        _;
+    }
+
     modifier isNotGloballyStoped() {
         require(
             !ISLPermissions(slPermissionsAddress).isPlatformPaused(),
-            "Platform globally stoped"
-        );
-        require(
-            !ISLPermissions(slPermissionsAddress).isMintingPaused(),
-            "Minting globally stoped"
+            "Platform Stopped"
         );
         _;
     }

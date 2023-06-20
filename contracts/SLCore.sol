@@ -23,7 +23,7 @@ contract SLCore is SLPuzzles {
 
     ///FUNCTIONS FOR USERS
 
-    function mintEntry() public isNotGloballyStoped nonReentrant {
+    function mintEntry() public isEntryMintNotPaused nonReentrant {
         require(
             _whichLevelUserHas(msg.sender) == 0,
             "SLCore: User have an entry token"
@@ -36,7 +36,7 @@ contract SLCore is SLPuzzles {
 
     function claimPiece()
         public
-        isNotGloballyStoped
+        isPuzzleMintNotPaused
         nonReentrant
         userHasLevel(1)
     {
@@ -47,7 +47,7 @@ contract SLCore is SLPuzzles {
     //function to claim level
     function claimLevel()
         public
-        isNotGloballyStoped
+        isPuzzleMintNotPaused
         nonReentrant
         userHasLevel(1)
     {

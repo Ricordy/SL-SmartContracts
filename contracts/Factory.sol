@@ -24,7 +24,7 @@ contract Factory {
         uint256 _totalInvestment,
         address _paymentTokenAddress,
         uint8 level
-    ) external isCEO returns (address) {
+    ) external isCEO isNotGloballyStoped returns (address) {
         require(
             lgentry != address(0),
             "Factory: First provide the entry contract address"
@@ -74,7 +74,9 @@ contract Factory {
         userTotal = ERC20(contractAddress).balanceOf(msg.sender);
     }
 
-    function setEntryAddress(address _lgentry) external isCEO {
+    function setEntryAddress(
+        address _lgentry
+    ) external isCEO isNotGloballyStoped {
         require(
             _lgentry != address(0),
             "Factory: Provide a real address in the parameters."
@@ -94,6 +96,13 @@ contract Factory {
         }
     }
 
+    modifier isNotGloballyStoped() {
+        require(
+            !ISLPermissions(slPermissionsAddress).isPlatformPaused(),
+            "Platform paused"
+        );
+        _;
+    }
     modifier isCEO() {
         require(
             ISLPermissions(slPermissionsAddress).isCEO(msg.sender),

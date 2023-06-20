@@ -223,12 +223,8 @@ contract Investment is ERC20, ReentrancyGuard {
 
     modifier isNotGloballyStoped() {
         require(
-            !ISLPermissions(slPermissionsAddress).isPlatformPaused(),
-            "Platform globally stoped"
-        );
-        require(
             !ISLPermissions(slPermissionsAddress).isInvestmentsPaused(),
-            "Investments globally stoped"
+            "InvestmentsPaused"
         );
         _;
     }

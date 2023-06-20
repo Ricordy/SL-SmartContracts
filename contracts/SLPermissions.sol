@@ -27,7 +27,8 @@ contract SLPermissions {
 
     // @dev Keeps track whether the contract is paused. When that is true, most actions are blocked
     bool public paused = false;
-    bool public pausedMinting = false;
+    bool public pausedEntryMint = false;
+    bool public pausedPuzzleMint = false;
     bool public pausedInvestments = false;
 
     /// @dev Access modifier for CEO-only functionality
@@ -97,13 +98,18 @@ contract SLPermissions {
     }
 
     /// @dev Modifier to allow actions only when the contract IS NOT paused
-    function isMintingPaused() external view returns (bool) {
-        return(pausedMinting);
+    function isEntryMintPaused() external view returns (bool) {
+        return(pausedEntryMint || paused);
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    function isPuzzleMintPaused() external view returns (bool) {
+        return(pausedPuzzleMint || paused);
     }
 
     /// @dev Modifier to allow actions only when the contract IS paused
     function isInvestmentsPaused() external view returns (bool) {
-        return(pausedInvestments);
+        return(pausedInvestments || paused);
     }
 
     /// @dev Called by any "C-level" role to pause the contract. Used only when
@@ -112,8 +118,8 @@ contract SLPermissions {
         paused = true;
     }
 
-    function pauseMinting() external onlyCLevel  {
-        pausedMinting = true;
+    function pauseEntryMint() external onlyCLevel  {
+        pausedEntryMint = true;
     }
 
     function pauseInvestments() external onlyCLevel  {
@@ -130,8 +136,8 @@ contract SLPermissions {
         paused = false;
     }
 
-    function unpauseMinting() external onlyCEO  {
-        pausedMinting = false;
+    function unpauseEntryMint() external onlyCEO  {
+        pausedEntryMint = false;
     }
 
     function unpauseInvestments() external onlyCEO  {
