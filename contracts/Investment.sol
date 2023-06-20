@@ -16,6 +16,7 @@ interface ISLCore {
     function whichLevelUserHas(address user) external view returns (uint);
 }
 
+
 interface IToken is IERC20 {}
 
 contract Investment is ERC20, Ownable, ReentrancyGuard {
@@ -105,6 +106,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
             msg.sender,
             address(this),
             _amount * 10 ** _token.decimals()
+
         );
 
         emit UserInvest(msg.sender, _amount, block.timestamp);
@@ -126,12 +128,14 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         ERC20 _token = ERC20(paymentTokenAddress);
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
 
+
         IERC20(paymentTokenAddress).safeTransfer(msg.sender, finalAmount);
+
 
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
 
-    function withdrawSL() external onlyOwner isAllowed isProcess isNotPaused {
+    function withdrawSL() external onlyOwner isProcess isNotPaused {
         uint256 totalBalance;
         ERC20 _token = ERC20(paymentTokenAddress);
         totalBalance = totalContractBalanceStable();
@@ -146,6 +150,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         ); //Maybe to be removed
 
         emit SLWithdraw(totalBalance, block.timestamp);
+
 
         IERC20(paymentTokenAddress).safeTransfer(
             msg.sender,
@@ -167,7 +172,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         returnProfit = _profitRate;
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
-
+        
         IERC20(paymentTokenAddress).transferFrom(
             msg.sender,
             address(this),
