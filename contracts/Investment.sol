@@ -23,6 +23,8 @@ interface ISLPermissions {
     function isCLevel(address _address) external view returns (bool);
 
     function isPlatformPaused() external view returns (bool);
+
+    function isInvestmentsPaused() external view returns (bool);
 }
 
 interface IToken is IERC20 {}
@@ -223,6 +225,10 @@ contract Investment is ERC20, ReentrancyGuard {
         require(
             !ISLPermissions(slPermissionsAddress).isPlatformPaused(),
             "Platform globally stoped"
+        );
+        require(
+            !ISLPermissions(slPermissionsAddress).isInvestmentsPaused(),
+            "Investments globally stoped"
         );
         _;
     }
