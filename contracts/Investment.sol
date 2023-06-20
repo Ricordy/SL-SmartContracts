@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./ISLPermissions.sol";
 
 /// Investing amount exceeded the maximum allowed
 /// @param amount the amount user is trying to invest
@@ -14,19 +15,6 @@ error InvestmentExceedMax(uint256 amount, uint256 maxAllowed);
 interface ISLCore {
     function whichLevelUserHas(address user) external view returns (uint);
 }
-
-interface ISLPermissions {
-    function isCEO(address _address) external view returns (bool);
-
-    function isCFO(address _address) external view returns (bool);
-
-    function isCLevel(address _address) external view returns (bool);
-
-    function isPlatformPaused() external view returns (bool);
-
-    function isInvestmentsPaused() external view returns (bool);
-}
-
 interface IToken is IERC20 {}
 
 contract Investment is ERC20, ReentrancyGuard {

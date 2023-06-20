@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./SLMicroSlots.sol";
+import "./ISLPermissions.sol";
 
 //interface for SLLogics
 interface ISLLogics {
@@ -18,20 +19,6 @@ interface ISLLogics {
     function setEntryPrice(uint256 _newPrice, string memory tokenUri) external;
 
     function uri(uint256 _id) external view returns (string memory);
-}
-
-interface ISLPermissions {
-    function isCEO(address _address) external view returns (bool);
-
-    function isCFO(address _address) external view returns (bool);
-
-    function isCLevel(address _address) external view returns (bool);
-
-    function isPuzzleMintPaused() external view returns (bool);
-
-    function isEntryMintPaused() external view returns (bool);
-
-    function isPlatformPaused() external view returns (bool);
 }
 
 /// @title Base contract for SL puzzle management

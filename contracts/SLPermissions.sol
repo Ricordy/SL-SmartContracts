@@ -131,7 +131,7 @@ contract SLPermissions {
     ///  compromised.
     /// @notice This is public rather than external so it can be called by
     ///  derived contracts.
-    function unpausePlatform() public onlyCEO  {
+    function unpausePlatform() external onlyCEO  {
         // can't unpause if contract was upgraded
         paused = false;
     }
