@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -15,7 +16,11 @@ interface ISLCore {
     function whichLevelUserHas(address user) external view returns (uint);
 }
 
+
+interface IToken is IERC20 {}
+
 contract Investment is ERC20, Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
     ///
     //-----STATUS------
     ///
@@ -95,14 +100,13 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
 
         _mint(msg.sender, _amount * 10 ** decimals());
         investors++;
+
         ERC20 _token = ERC20(paymentTokenAddress);
-        require(
-            _token.transferFrom(
-                msg.sender,
-                address(this),
-                _amount * 10 ** _token.decimals()
-            ),
-            "Puzzle: Error in token transfer"
+        IERC20(paymentTokenAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amount * 10 ** _token.decimals()
+
         );
 
         emit UserInvest(msg.sender, _amount, block.timestamp);
@@ -124,10 +128,9 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         ERC20 _token = ERC20(paymentTokenAddress);
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
 
-        require(
-            _token.transfer(msg.sender, finalAmount),
-            "Puzzle: Error in token transfer"
-        );
+
+        IERC20(paymentTokenAddress).safeTransfer(msg.sender, finalAmount);
+
 
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
@@ -147,16 +150,18 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         ); //Maybe to be removed
 
         emit SLWithdraw(totalBalance, block.timestamp);
-        require(
-            _token.transfer(msg.sender, totalContractBalanceStable()),
-            "Puzzle: Error in token transfer"
+
+
+        IERC20(paymentTokenAddress).safeTransfer(
+            msg.sender,
+            totalContractBalanceStable()
         );
     }
 
     function refill(
         uint256 _amount,
         uint256 _profitRate
-    ) public nonReentrant onlyOwner isProcess isNotPaused {
+    ) public nonReentrant onlyOwner isAllowed isProcess isNotPaused {
         ERC20 _token = ERC20(paymentTokenAddress);
         require(
             totalInvestment + ((totalInvestment * _profitRate) / 100) ==
@@ -167,14 +172,11 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         returnProfit = _profitRate;
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
-
-        require(
-            _token.transferFrom(
-                msg.sender,
-                address(this),
-                _amount * 10 ** _token.decimals()
-            ),
-            "Puzzle: Error in token transfer"
+        
+        IERC20(paymentTokenAddress).transferFrom(
+            msg.sender,
+            address(this),
+            _amount * 10 ** _token.decimals()
         );
         emit ContractRefilled(_amount, _profitRate, block.timestamp);
     }

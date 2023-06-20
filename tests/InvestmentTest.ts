@@ -40,10 +40,9 @@ const INVESTMENT_1_AMOUNT = 100000,
   ENTRY_BATCH_PRICE = 100,
   ENTRY_TOKEN_URI = "TOKEN_URI";
 
-
-  function withDecimals(toConvert : number) {
-    return toConvert * 10 ** 6;
-  }
+function withDecimals(toConvert: number) {
+  return toConvert * 10 ** 6;
+}
 describe("Investment Contract Tests", async () => {
   let investmentContract: Investment,
     paymentTokenContract: CoinTest,
@@ -93,7 +92,11 @@ describe("Investment Contract Tests", async () => {
     // Allow SLCore to make changes in SLLogics
     await logcisContract.setAllowedContracts(puzzleContract.address, true);
     // Create a new entry batch
-    await puzzleContract.generateNewEntryBatch(ENTRY_BATCH_CAP, ENTRY_BATCH_PRICE, ENTRY_TOKEN_URI);
+    await puzzleContract.generateNewEntryBatch(
+      ENTRY_BATCH_CAP,
+      ENTRY_BATCH_PRICE,
+      ENTRY_TOKEN_URI
+    );
 
     //Deploy investment contract through factory
     investmentContract = await investmentContractFactory.deploy(
@@ -143,10 +146,16 @@ describe("Investment Contract Tests", async () => {
       .mint(INVESTOR1_INVESTMENT_AMOUNT);
     await paymentTokenContract
       .connect(investor1)
-      .approve(investmentContract.address, withDecimals(INVESTOR1_INVESTMENT_AMOUNT));
+      .approve(
+        investmentContract.address,
+        withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
+      );
     await paymentTokenContract
       .connect(investor1)
-      .approve(logcisContract.address, withDecimals(INVESTOR1_INVESTMENT_AMOUNT));
+      .approve(
+        logcisContract.address,
+        withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
+      );
     await puzzleContract.connect(investor1).mintEntry();
 
     return {
@@ -181,7 +190,10 @@ describe("Investment Contract Tests", async () => {
         .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+        .approve(
+          investmentContract.address,
+          withDecimals(GENERAL_ACCOUNT_AMOUNT)
+        );
       //Buy NFT Entry for each user
       await puzzleContract.connect(accounts[i]).mintEntry();
       //Make 9500 investment
@@ -252,7 +264,10 @@ describe("Investment Contract Tests", async () => {
     // Allow investment contract to spend
     await paymentTokenContract
       .connect(investor1)
-      .approve(investmentContract.address, withDecimals(INVESTMENT_1_MAX_ALLOWED_TO_INVEST));
+      .approve(
+        investmentContract.address,
+        withDecimals(INVESTMENT_1_MAX_ALLOWED_TO_INVEST)
+      );
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
@@ -290,21 +305,18 @@ describe("Investment Contract Tests", async () => {
         .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
       await paymentTokenContract
         .connect(accounts[i])
-        .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+        .approve(
+          investmentContract.address,
+          withDecimals(GENERAL_ACCOUNT_AMOUNT)
+        );
       //Buy NFT Entry for each user
       await puzzleContract.connect(accounts[i]).mintEntry();
       // Make 1000 investment
 
-
-
-
-
-      
       await investmentContract
         .connect(accounts[i])
         .invest(GENERAL_INVEST_AMOUNT_TO_REFUND);
     }
-
 
     return {
       investor1,
@@ -407,10 +419,16 @@ describe("Investment Contract Tests", async () => {
           .mint(GENERAL_ACCOUNT_AMOUNT);
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+          .approve(
+            logcisContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+          .approve(
+            investmentContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
 
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
@@ -418,9 +436,6 @@ describe("Investment Contract Tests", async () => {
         let maxToInvest = await investmentContract.getMaxToInvest();
 
         maxToInvest = maxToInvest.div(10 ** 6);
-
-
-        
 
         const newTimestamp = new Date().getTime();
         await time.setNextBlockTimestamp(newTimestamp);
@@ -465,10 +480,16 @@ describe("Investment Contract Tests", async () => {
           .mint(GENERAL_ACCOUNT_AMOUNT);
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+          .approve(
+            logcisContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+          .approve(
+            investmentContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
 
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
@@ -476,9 +497,12 @@ describe("Investment Contract Tests", async () => {
         const contractBalance =
           await investmentContract.totalContractBalanceStable();
 
-        const maxAllowed = BigNumber.from(withDecimals(INVESTMENT_1_AMOUNT)).div(10);
-        const remainingToInvest =
-          BigNumber.from(withDecimals(INVESTMENT_1_AMOUNT)).sub(contractBalance);
+        const maxAllowed = BigNumber.from(
+          withDecimals(INVESTMENT_1_AMOUNT)
+        ).div(10);
+        const remainingToInvest = BigNumber.from(
+          withDecimals(INVESTMENT_1_AMOUNT)
+        ).sub(contractBalance);
         const maxToInvest = remainingToInvest.gt(maxAllowed)
           ? maxAllowed
           : remainingToInvest;
@@ -543,9 +567,7 @@ describe("Investment Contract Tests", async () => {
       it("Owner should be able to withdraw all funds and contract balance should be 0", async () => {
         await investmentContract.withdrawSL();
         expect(
-          await paymentTokenContract.balanceOf(
-            investmentContract.address
-          )
+          await paymentTokenContract.balanceOf(investmentContract.address)
         ).to.equal(0);
       });
       it("Owner's Payment Token balance should be increased by the balance in the contract", async () => {
@@ -691,10 +713,16 @@ describe("Investment Contract Tests", async () => {
           .mint(GENERAL_ACCOUNT_AMOUNT);
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+          .approve(
+            logcisContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
         await paymentTokenContract
           .connect(crucialInvestor)
-          .approve(investmentContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
+          .approve(
+            investmentContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
 
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
@@ -703,10 +731,9 @@ describe("Investment Contract Tests", async () => {
           await investmentContract.totalContractBalanceStable();
         const totalInvestment = await investmentContract.totalInvestment();
 
-        amountInvested = totalInvestment.sub(investmentContractBalance).div(10**6);
-    
-
-        
+        amountInvested = totalInvestment
+          .sub(investmentContractBalance)
+          .div(10 ** 6);
 
         // Invest the remaining amount to fill the contract
         await investmentContract
@@ -733,16 +760,11 @@ describe("Investment Contract Tests", async () => {
         const ownerBalance = await paymentTokenContract.balanceOf(
           owner.address
         );
-        
-
 
         // Add more funds to the owner account to be able to refill
         await paymentTokenContract.mint(
-          ethers.BigNumber.from(REFILL_VALUE).sub(ownerBalance.div(10**6))
+          ethers.BigNumber.from(REFILL_VALUE).sub(ownerBalance.div(10 ** 6))
         );
-
-
-        
 
         // Owner refill the contract
         await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
@@ -750,9 +772,8 @@ describe("Investment Contract Tests", async () => {
         // Change state to withdraw
         await investmentContract.changeStatus(STATUS_WITHDRAW);
 
-
-        
-        paymentTokenBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(crucialInvestor.address);
+        paymentTokenBalanceBeforeWithdraw =
+          await paymentTokenContract.balanceOf(crucialInvestor.address);
         await investmentContract.connect(crucialInvestor).withdraw();
       });
       it("Investor should receive payment tokens invested + profit", async () => {
@@ -762,7 +783,7 @@ describe("Investment Contract Tests", async () => {
         const investorProfit = amountInvested.mul(PROFIT_RATE).div(100);
         expect(paymentTokenAfterWithdraw).to.be.equal(
           paymentTokenBalanceBeforeWithdraw.add(
-            amountInvested.mul(10**6).add(investorProfit.mul(10**6))
+            amountInvested.mul(10 ** 6).add(investorProfit.mul(10 ** 6))
           )
         );
       });
@@ -796,7 +817,7 @@ describe("Investment Contract Tests", async () => {
         const { investmentContract } = await loadFixture(readyToRefundFixture);
         await investmentContract.changeStatus(STATUS_REFUNDING);
         const contractStatus = await investmentContract.status();
-        
+
         expect(contractStatus).to.be.equal(STATUS_REFUNDING);
       });
     });
@@ -811,7 +832,10 @@ describe("Investment Contract Tests", async () => {
       it("Investor should receive payment tokens invested", async () => {
         await expect(() =>
           investmentContract.connect(investor1).withdraw()
-        ).to.changeTokenBalance(paymentTokenContract,investor1.address,withDecimals(GENERAL_INVEST_AMOUNT_TO_REFUND)
+        ).to.changeTokenBalance(
+          paymentTokenContract,
+          investor1.address,
+          withDecimals(GENERAL_INVEST_AMOUNT_TO_REFUND)
         );
       });
     });
