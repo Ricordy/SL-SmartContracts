@@ -15,6 +15,7 @@ error InvestmentExceedMax(uint256 amount, uint256 maxAllowed);
 interface ISLCore {
     function whichLevelUserHas(address user) external view returns (uint);
 }
+
 interface IToken is IERC20 {}
 
 contract Investment is ERC20, ReentrancyGuard {
@@ -251,7 +252,7 @@ contract Investment is ERC20, ReentrancyGuard {
 
     modifier isCEO() {
         require(
-            ISLPermissions(slPermissionsAddress).isCEO(msg.sender),
+            ISLPermissions(slPermissionsAddress).isCEO(tx.origin),
             "User not CEO"
         );
         _;
@@ -259,7 +260,7 @@ contract Investment is ERC20, ReentrancyGuard {
 
     modifier isCFO() {
         require(
-            ISLPermissions(slPermissionsAddress).isCFO(msg.sender),
+            ISLPermissions(slPermissionsAddress).isCFO(tx.origin),
             "User not CFO"
         );
         _;

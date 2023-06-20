@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
+
 contract SLPermissions {
     // This facet controls access control for Something Legendary. There are three roles managed here:
     //
@@ -31,6 +33,11 @@ contract SLPermissions {
     bool public pausedPuzzleMint = false;
     bool public pausedInvestments = false;
 
+    constructor(address _ceoAddress, address _cfoAddress) {
+        ceoAddress = _ceoAddress;
+        cfoAddress = _cfoAddress;
+    }
+
     /// @dev Access modifier for CEO-only functionality
     modifier onlyCEO() {
         require(msg.sender == ceoAddress);
@@ -49,6 +56,8 @@ contract SLPermissions {
     }
 
     function isCEO(address _address) external view returns (bool) {
+        console.log("input ceo:", _address);
+        console.log("real ceo:", ceoAddress);
         return (_address == ceoAddress);
     }
 
@@ -94,35 +103,35 @@ contract SLPermissions {
 
     /// @dev Modifier to allow actions only when the contract IS NOT paused
     function isPlatformPaused() external view returns (bool) {
-        return(paused);
+        return (paused);
     }
 
     /// @dev Modifier to allow actions only when the contract IS NOT paused
     function isEntryMintPaused() external view returns (bool) {
-        return(pausedEntryMint || paused);
+        return (pausedEntryMint || paused);
     }
 
     /// @dev Modifier to allow actions only when the contract IS NOT paused
     function isPuzzleMintPaused() external view returns (bool) {
-        return(pausedPuzzleMint || paused);
+        return (pausedPuzzleMint || paused);
     }
 
     /// @dev Modifier to allow actions only when the contract IS paused
     function isInvestmentsPaused() external view returns (bool) {
-        return(pausedInvestments || paused);
+        return (pausedInvestments || paused);
     }
 
     /// @dev Called by any "C-level" role to pause the contract. Used only when
     ///  a bug or exploit is detected and we need to limit damage.
-    function pausePlatform() external onlyCLevel  {
+    function pausePlatform() external onlyCLevel {
         paused = true;
     }
 
-    function pauseEntryMint() external onlyCLevel  {
+    function pauseEntryMint() external onlyCLevel {
         pausedEntryMint = true;
     }
 
-    function pauseInvestments() external onlyCLevel  {
+    function pauseInvestments() external onlyCLevel {
         pausedInvestments = true;
     }
 
@@ -131,16 +140,16 @@ contract SLPermissions {
     ///  compromised.
     /// @notice This is public rather than external so it can be called by
     ///  derived contracts.
-    function unpausePlatform() external onlyCEO  {
+    function unpausePlatform() external onlyCEO {
         // can't unpause if contract was upgraded
         paused = false;
     }
 
-    function unpauseEntryMint() external onlyCEO  {
+    function unpauseEntryMint() external onlyCEO {
         pausedEntryMint = false;
     }
 
-    function unpauseInvestments() external onlyCEO  {
+    function unpauseInvestments() external onlyCEO {
         pausedInvestments = false;
     }
 }

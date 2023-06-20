@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "./Investment.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+import "hardhat/console.sol";
+
 contract Factory {
     mapping(uint => Investment[]) public deployedContracts;
     address lgentry;
@@ -104,6 +106,7 @@ contract Factory {
         _;
     }
     modifier isCEO() {
+        console.log(msg.sender);
         require(
             ISLPermissions(slPermissionsAddress).isCEO(msg.sender),
             "User not CEO"

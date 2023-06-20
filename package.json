@@ -10,7 +10,8 @@
     "invest10kl2": "hardhat run scripts/Invest10kL2.ts --network localhost",
     "invest15kl3": "hardhat run scripts/Invest15kL3.ts --network localhost",
     "deployInvest": "hardhat run scripts/deployInvest.ts --network localhost",
-    "compile": "hardhat clean && hardhat compile"
+    "compile": "hardhat clean && hardhat compile",
+    "bc": "hardhat node"
   },
   "packageManager": "yarn@3.3.0",
   "devDependencies": {

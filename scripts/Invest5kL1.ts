@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { Address } from "wagmi";
-
+import addresses from "../utils/addresses";
 import {
   CoinTest,
   CoinTest__factory,
@@ -11,27 +11,30 @@ import {
   Investment__factory,
 } from "../typechain-types";
 
-const paymentTokenAddress: Address =
-    "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  factoryAddress: Address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-  investmentValue: number = 6000;
+const investmentValue: number = 6000;
 
 async function main() {
   const accounts: SignerWithAddress[] = await ethers.getSigners();
-  const owner: SignerWithAddress = accounts[0];
+  const ceo: SignerWithAddress = accounts[0];
   const firstInvestor: SignerWithAddress = accounts[1];
 
-  const paymentTokenFactory = new CoinTest__factory(owner);
-  const factoryFactory = new Factory__factory(owner);
-  const investmentFactory = new Investment__factory(owner);
+  const paymentTokenFactory = new CoinTest__factory(ceo);
+  const factoryFactory = new Factory__factory(ceo);
+  const investmentFactory = new Investment__factory(ceo);
 
-  const paymentTokenContract: CoinTest =
-    paymentTokenFactory.attach(paymentTokenAddress);
+  const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
+    addresses.paymentTokenAddress
+  );
 
-  const factoryContract: Factory = factoryFactory.attach(factoryAddress);
+  const factoryContract: Factory = factoryFactory.attach(
+    addresses.factoryAddress
+  );
+  console.log("Deploying investment contract.....");
+  await factoryContract
+    .connect(ceo)
+    .deployNew(100000, addresses.paymentTokenAddress, 1);
 
-  await factoryContract.deployNew(100000, paymentTokenAddress, 1);
-
+  console.log("Getting last investment contract address.....");
   const investmentAddress = await factoryContract.getLastDeployedContract(1);
 
   console.log("Investment address:", investmentAddress);
