@@ -78,7 +78,7 @@ contract Investment is ERC20, ReentrancyGuard {
         slPermissionsAddress = _slPermissionsAddress;
         entryNFTAddress = _entryNFTAddress;
         paymentTokenAddress = _paymentTokenAddress;
-        changeStatus(Status.Progress);
+        _changeStatus(Status.Progress);
         CONTRACT_LEVEL = _contractLevel;
     }
 
