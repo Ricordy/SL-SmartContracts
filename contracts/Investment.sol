@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// Investing amount exceeded the maximum allowed
@@ -17,10 +17,12 @@ interface ISLCore {
 }
 
 
+
 interface IToken is IERC20 {}
 
-contract Investment is ERC20, Ownable, ReentrancyGuard {
+contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
     using SafeERC20 for IERC20;
+
     ///
     //-----STATUS------
     ///
@@ -107,6 +109,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
             address(this),
             _amount * 10 ** _token.decimals()
 
+
         );
 
         emit UserInvest(msg.sender, _amount, block.timestamp);
@@ -128,9 +131,7 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         ERC20 _token = ERC20(paymentTokenAddress);
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
 
-
         IERC20(paymentTokenAddress).safeTransfer(msg.sender, finalAmount);
-
 
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
@@ -150,7 +151,6 @@ contract Investment is ERC20, Ownable, ReentrancyGuard {
         ); //Maybe to be removed
 
         emit SLWithdraw(totalBalance, block.timestamp);
-
 
         IERC20(paymentTokenAddress).safeTransfer(
             msg.sender,
