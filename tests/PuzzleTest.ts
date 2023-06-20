@@ -267,10 +267,10 @@ describe("Puzzle Contract", async () => {
       .connect(investor1)
       .invest(INVESTOR1_INVESTMENT_AMOUNT);
 
-    return { paymentTokenContract, puzzleContract, factoryContract };
+    return { paymentTokenContract, puzzleContract, factoryContract, ceo };
   }
   async function ownerAndInvestor1ReadyToBurnLevel2NFT() {
-    const { paymentTokenContract, puzzleContract, factoryContract } =
+    const { paymentTokenContract, puzzleContract, factoryContract, ceo } =
       await loadFixture(deployContractFixture);
     // Mint PaymentTokens to the owner
     await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
@@ -293,7 +293,7 @@ describe("Puzzle Contract", async () => {
     await puzzleContract.mintTest(1);
     // Mint all Puzzle NFTs for the investor1
     await puzzleContract.connect(investor1).mintTest(1);
-    return { puzzleContract, factoryContract, paymentTokenContract };
+    return { puzzleContract, factoryContract, paymentTokenContract, ceo };
   }
 
   async function investor1NotReadyToClaimLevel2Piece() {
@@ -306,7 +306,7 @@ describe("Puzzle Contract", async () => {
   }
 
   async function investor1ReadyToClaimLevel2Piece() {
-    const { paymentTokenContract, factoryContract, puzzleContract } =
+    const { paymentTokenContract, factoryContract, puzzleContract, ceo } =
       await loadFixture(ownerAndInvestor1ReadyToBurnLevel2NFT);
     //User in level 2
     await puzzleContract.connect(investor1).claimLevel();
@@ -315,11 +315,9 @@ describe("Puzzle Contract", async () => {
       .mint(INVESTOR1_INVESTMENT_LEVEL_2_AMOUNT);
 
     //generate level 2 investment contract
-    const deployNewTx = await factoryContract.deployNew(
-      INVESTMENT_LEVEL_2_AMOUNT,
-      paymentTokenContract.address,
-      2
-    );
+    const deployNewTx = await factoryContract
+      .connect(ceo)
+      .deployNew(INVESTMENT_LEVEL_2_AMOUNT, paymentTokenContract.address, 2);
     const deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract(2);
     const investmentFactory = new Investment__factory(owner);
@@ -337,16 +335,16 @@ describe("Puzzle Contract", async () => {
     await investmentContract2
       .connect(investor1)
       .invest(INVESTOR1_INVESTMENT_LEVEL_2_AMOUNT);
-    return { puzzleContract, paymentTokenContract, factoryContract };
+    return { puzzleContract, paymentTokenContract, factoryContract, ceo };
   }
 
   async function investor1ReadyToClaimLevel3() {
-    const { paymentTokenContract, factoryContract } = await loadFixture(
+    const { paymentTokenContract, factoryContract, ceo } = await loadFixture(
       investor1ReadyToClaimLevel2Piece
     );
     //User in level 3
     await puzzleContract.connect(investor1).mintTest(2);
-    return { puzzleContract, paymentTokenContract, factoryContract };
+    return { puzzleContract, paymentTokenContract, factoryContract, ceo };
   }
 
   async function investor1NotReadyToClaimLevel3Piece() {
@@ -357,7 +355,7 @@ describe("Puzzle Contract", async () => {
   }
 
   async function investor1ReadyToClaimLevel3Piece() {
-    const { paymentTokenContract, factoryContract, puzzleContract } =
+    const { paymentTokenContract, factoryContract, puzzleContract, ceo } =
       await loadFixture(investor1ReadyToClaimLevel3);
     //User in level 3
     await puzzleContract.connect(investor1).claimLevel();
@@ -367,11 +365,9 @@ describe("Puzzle Contract", async () => {
       .mint(INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT);
 
     //generate level 3 investment contract
-    const deployNewTx = await factoryContract.deployNew(
-      INVESTMENT_LEVEL_2_AMOUNT,
-      paymentTokenContract.address,
-      3
-    );
+    const deployNewTx = await factoryContract
+      .connect(ceo)
+      .deployNew(INVESTMENT_LEVEL_2_AMOUNT, paymentTokenContract.address, 3);
 
     await deployNewTx.wait();
     const deployedInvestmentAddress =
@@ -392,7 +388,7 @@ describe("Puzzle Contract", async () => {
     await investmentContract2
       .connect(investor1)
       .invest(INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT);
-    return { puzzleContract, paymentTokenContract, factoryContract };
+    return { puzzleContract, paymentTokenContract, factoryContract, ceo };
   }
 
   describe("When the contract is deployed", async function () {
@@ -805,15 +801,13 @@ describe("Puzzle Contract", async () => {
 
   describe("Puzzle && Factory", async () => {
     beforeEach(async () => {
-      ({ factoryContract } = await loadFixture(investor1readyToClaimNFT));
+      ({ factoryContract, ceo } = await loadFixture(investor1readyToClaimNFT));
     });
     it("Should get Investor's balance from Factory", async () => {
       // Create new investment
-      await factoryContract.deployNew(
-        INVESTMENT_2_AMOUNT,
-        paymentTokenContract.address,
-        1
-      );
+      await factoryContract
+        .connect(ceo)
+        .deployNew(INVESTMENT_2_AMOUNT, paymentTokenContract.address, 1);
 
       const deployedInvestmentAddress =
         await factoryContract.getLastDeployedContract(1);
