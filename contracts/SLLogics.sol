@@ -27,8 +27,8 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots {
     address factoryAddress;
     address paymentTokenAddress;
     //Uint to store minimum claim amount for all levels and the entry price
-    uint256 MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE = 100150001000005000;
-    string URI = "INSERT_HERE";
+    uint256 min_claim_amount_and_entry_price = 100150001000005000;
+    string constant URI = "INSERT_HERE";
     string[] batches_uri;
 
     constructor(
@@ -132,8 +132,8 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots {
         uint256 _newPrice,
         string memory _tokenURI
     ) external isAllowedContract {
-        MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE = changetXPositionInFactor5(
-            MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE,
+        min_claim_amount_and_entry_price = changetXPositionInFactor5(
+            min_claim_amount_and_entry_price,
             4,
             _newPrice
         );
@@ -145,7 +145,7 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots {
     //function to get entry price
     function _getEntryPrice() public view returns (uint256) {
         return
-            getPositionXInDivisionByY(MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE, 4, 5);
+            getPositionXInDivisionByY(min_claim_amount_and_entry_price, 4, 5);
     }
 
     //Get minimum claim amount per level
@@ -156,7 +156,7 @@ contract SLLogics is ERC20, ReentrancyGuard, SLMicroSlots {
         );
         return
             getPositionXInDivisionByY(
-                MIN_CLAIM_AMOUNT_AND_ENTRY_PRICE,
+                min_claim_amount_and_entry_price,
                 _level,
                 5
             );

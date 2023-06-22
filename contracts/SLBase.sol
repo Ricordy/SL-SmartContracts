@@ -36,7 +36,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     uint256 constant COLLECTION_IDS =
         3130292827262524232221201918171615141312111009080706050403020100;
     //Array to store the Puzzles batchs
-    uint24[] ENTRY_IDS;
+    uint24[] entryIdsArray;
     //Mapping to tack user puzzle pieces
     mapping(address => uint32) userPuzzlePieces;
     //address of the factory

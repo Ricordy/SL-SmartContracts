@@ -19,9 +19,6 @@ contract SLPermissions {
     // convenience. The less we use an address, the less likely it is that we somehow compromise the
     // account.
 
-    /// @dev Emited when contract is upgraded - See README.md for updgrade plan
-    event ContractUpgrade(address newContract);
-
     // The addresses of the accounts (or contracts) that can execute actions within each roles.
     address public ceoAddress;
     address public cfoAddress;

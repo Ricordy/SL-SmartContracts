@@ -359,7 +359,7 @@ describe("Investment Contract Tests", async () => {
   describe("When the contract is deployed", async function () {
     it("Should set the total Investment", async () => {
       const { investmentContract } = await loadFixture(deployContractFixture);
-      const totalInvestment = await investmentContract.totalInvestment();
+      const totalInvestment = await investmentContract.TOTAL_INVESTMENT();
       expect(totalInvestment).to.be.equal(withDecimals(INVESTMENT_1_AMOUNT));
     });
     it("Should set the Entry NFT address", async () => {
@@ -367,7 +367,7 @@ describe("Investment Contract Tests", async () => {
         deployContractFixture
       );
       const entryNFTContractAddress =
-        await investmentContract.entryNFTAddress();
+        await investmentContract.SLCORE_ADDRESS();
       expect(entryNFTContractAddress).to.be.equal(puzzleContract.address);
     });
     it("Should set the PaymentToken address", async () => {
@@ -376,7 +376,7 @@ describe("Investment Contract Tests", async () => {
       );
       // Get the PaymentToken address from the Puzzle contract
       const paymentTokenAddressFromContract =
-        await investmentContract.paymentTokenAddress();
+        await investmentContract.PAYMENT_TOKEN_ADDRESS();
       expect(paymentTokenAddressFromContract).to.be.equal(
         paymentTokenContract.address
       );

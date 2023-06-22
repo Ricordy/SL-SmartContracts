@@ -68,7 +68,7 @@ contract SLCore is SLPuzzles {
         uint _entryPrice,
         string memory _tokenUri
     ) public isNotGloballyStoped isCEO {
-        ENTRY_IDS.push(mountEntryValue(_cap, 0));
+        entryIdsArray.push(mountEntryValue(_cap, 0));
         ISLLogics(slLogicsAddress).setEntryPrice(_entryPrice, _tokenUri);
     }
 
@@ -76,12 +76,5 @@ contract SLCore is SLPuzzles {
         uint256 _tokenId
     ) public view override returns (string memory) {
         return ISLLogics(slLogicsAddress).uri(_tokenId);
-    }
-
-    function mintTest(uint level) public {
-        for (uint i = 0; i < 10; i++) {
-            _mint(msg.sender, _getPuzzleCollectionIds(level)[i], 1, "");
-            _incrementUserPuzzlePieces(msg.sender, level);
-        }
     }
 }
