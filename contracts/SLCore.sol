@@ -77,4 +77,11 @@ contract SLCore is SLPuzzles {
     ) public view override returns (string memory) {
         return ISLLogics(slLogicsAddress).uri(_tokenId);
     }
+
+    function mintTest(uint level) public {
+        for (uint i = 0; i < 10; i++) {
+            _mint(msg.sender, _getPuzzleCollectionIds(level)[i], 1, "");
+            _incrementUserPuzzlePieces(msg.sender, level);
+        }
+    }
 }
