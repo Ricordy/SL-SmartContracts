@@ -9,12 +9,15 @@ import {
   SLCore__factory,
   SLLogics,
   SLLogics__factory,
+  SLPermissions,
+  SLPermissions__factory,
 } from "../typechain-types";
 import { Investment__factory } from "../typechain-types/factories/contracts/Investment.sol/Investment__factory";
 import { CoinTest__factory } from "../typechain-types/factories/contracts/CoinTest__factory";
 import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
+import { log } from "console";
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 const INVESTMENT_1_AMOUNT = 100000,
@@ -44,63 +47,92 @@ function withDecimals(toConvert: number) {
   return toConvert * 10 ** 6;
 }
 describe("Investment Contract Tests", async () => {
-  let investmentContract: Investment,
+  // Variables
+  let puzzleContract: SLCore,
+    logcisContract: SLLogics,
     paymentTokenContract: CoinTest,
     paymentTokenContract2: CoinTest,
     factoryContract: Factory,
-    puzzleContract: SLCore,
-    logcisContract: SLLogics,
+    investmentContract: Investment,
+    permissionsContract: SLPermissions,
+    totalAccounts: number,
     accounts: SignerWithAddress[],
     owner: SignerWithAddress,
+    ceo: SignerWithAddress,
+    cfo: SignerWithAddress,
     investor1: SignerWithAddress,
     investor2: SignerWithAddress,
-    crucialInvestor: SignerWithAddress,
-    minimunInvestment: BigNumber;
+    investor3: SignerWithAddress,
+    ownerBalanceBefore: BigNumber,
+    baseUriFromContract: string,
+    minimunInvestment: BigNumber,
+    crucialInvestor: SignerWithAddress;
 
   async function deployContractFixture() {
+    // Puzzle contract needs Factory and PaymentToken address to be deployed
+    // Get all signers
     accounts = await ethers.getSigners();
-    [owner, investor1, investor2] = accounts;
-    const paymentTokenContractFactory = new CoinTest__factory(owner);
-    const investmentContractFactory = new Investment__factory(owner);
-    const factoryContractFactory = new Factory__factory(owner);
-    const logicsContractFactory = new SLLogics__factory(owner);
-    const puzzleContractFactory = new SLCore__factory(owner);
+    totalAccounts = accounts.length;
 
+    // Assign used accounts from all signers
+    [owner, investor1, investor2, investor3] = accounts;
+    ceo = accounts[9];
+    cfo = accounts[10];
+    const paymentTokenContractFactory = new CoinTest__factory(owner);
+    const permissionsContractFacotry = new SLPermissions__factory(owner);
+    const puzzleContractFactory = new SLCore__factory(owner);
+    const logicsContractFactory = new SLLogics__factory(owner);
+    const factoryContractFactory = new Factory__factory(owner);
+    const investmentContractFactory = new Investment__factory(owner);
     // Deploy PaymentToken (CoinTest) contract from the factory
     paymentTokenContract = await paymentTokenContractFactory.deploy();
     await paymentTokenContract.deployed();
 
-    // Deploy Factory contract from the factory
-    factoryContract = await factoryContractFactory.deploy();
-    await factoryContract.deployed();
+    // Deploy PaymentToken (CoinTest) contract from the factory
+    permissionsContract = await permissionsContractFacotry.deploy(
+      ceo.address,
+      cfo.address
+    );
+    await paymentTokenContract.deployed();
 
+    // Deploy Factory contract from the factory
+    factoryContract = await factoryContractFactory.deploy(
+      permissionsContract.address
+    );
     await factoryContract.deployed();
     //Deploy SLLogics contract
     logcisContract = await logicsContractFactory.deploy(
       factoryContract.address,
-      paymentTokenContract.address
+      paymentTokenContract.address,
+      permissionsContract.address
     );
     await logcisContract.deployed();
-    // Deploy Puzzle contract from the factory passing Factory and PaymentToken deployed contract addresses
+    // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
     puzzleContract = await puzzleContractFactory.deploy(
       factoryContract.address,
-      logcisContract.address
+      logcisContract.address,
+      permissionsContract.address
     );
     await puzzleContract.deployed();
     // Set the Puzzle contract deployed as entry address on Factory contract
-    await factoryContract.setEntryAddress(puzzleContract.address);
+    await factoryContract.connect(ceo).setEntryAddress(puzzleContract.address);
     // Allow SLCore to make changes in SLLogics
-    await logcisContract.setAllowedContracts(puzzleContract.address, true);
+    await permissionsContract
+      .connect(ceo)
+      .setAllowedContracts(puzzleContract.address, true);
     // Create a new entry batch
-    await puzzleContract.generateNewEntryBatch(
-      ENTRY_BATCH_CAP,
-      ENTRY_BATCH_PRICE,
-      ENTRY_TOKEN_URI
-    );
+    await puzzleContract
+      .connect(ceo)
+      .generateNewEntryBatch(
+        ENTRY_BATCH_CAP,
+        ENTRY_BATCH_PRICE,
+        ENTRY_TOKEN_URI
+      );
 
     //Deploy investment contract through factory
     investmentContract = await investmentContractFactory.deploy(
       INVESTMENT_1_AMOUNT,
+      permissionsContract.address,
       puzzleContract.address,
       paymentTokenContract.address,
       1
@@ -202,7 +234,7 @@ describe("Investment Contract Tests", async () => {
         .invest(GENERAL_INVEST_AMOUNT);
     }
 
-    crucialInvestor = accounts[10];
+    crucialInvestor = accounts[11];
 
     return {
       investor1,
@@ -246,11 +278,9 @@ describe("Investment Contract Tests", async () => {
 
     await puzzleContract.connect(investor1).mintEntry();
 
-    await factoryContract.deployNew(
-      INVESTMENT_1_AMOUNT,
-      paymentTokenContract.address,
-      1
-    );
+    await factoryContract
+      .connect(ceo)
+      .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1);
 
     const deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract(1);
@@ -327,13 +357,6 @@ describe("Investment Contract Tests", async () => {
   }
 
   describe("When the contract is deployed", async function () {
-    it("Should set the right owner", async () => {
-      const { owner, investmentContract } = await loadFixture(
-        deployContractFixture
-      );
-      const contractOwner = await investmentContract.owner();
-      await expect(contractOwner).to.be.equal(owner.address);
-    });
     it("Should set the total Investment", async () => {
       const { investmentContract } = await loadFixture(deployContractFixture);
       const totalInvestment = await investmentContract.totalInvestment();
@@ -549,60 +572,63 @@ describe("Investment Contract Tests", async () => {
   describe("STATUS: PROCESS", async () => {
     it('Should set the status to "process"', async () => {
       const { investmentContract } = await loadFixture(oneInvestCallLeftToFill);
-      await investmentContract.changeStatus(STATUS_PROCESS);
+      await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
       expect(await investmentContract.status()).to.equal(STATUS_PROCESS);
     });
     describe("Function WithdrawSL", async () => {
       beforeEach("set state to process", async () => {
         const { investmentContract, investor1, paymentTokenContract } =
           await loadFixture(oneInvestCallLeftToFill);
-        await investmentContract.changeStatus(STATUS_PROCESS);
+        await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
       });
       it("Investors should not be able to call", async () => {
         await expect(
           investmentContract.connect(investor1).withdrawSL()
-        ).to.be.revertedWith("Ownable: caller is not the owner");
+        ).to.be.revertedWith("User not CFO");
       });
       it("Owner should be able to withdraw all funds and contract balance should be 0", async () => {
-        await investmentContract.withdrawSL();
+        await investmentContract.connect(cfo).withdrawSL();
         expect(
           await paymentTokenContract.balanceOf(investmentContract.address)
         ).to.equal(0);
       });
       it("Owner's Payment Token balance should be increased by the balance in the contract", async () => {
         const ownerBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(
-          owner.address
+          cfo.address
         );
         const contractBalance =
           await investmentContract.totalContractBalanceStable();
 
         // Withdraw funds
-        await investmentContract.withdrawSL();
+        await investmentContract.connect(cfo).withdrawSL();
         const ownerBalanceAfterWithdraw = await paymentTokenContract.balanceOf(
-          owner.address
+          cfo.address
         );
+
         expect(ownerBalanceBeforeWithdraw).to.be.equal(
           ownerBalanceAfterWithdraw.sub(contractBalance)
         );
       });
       it("Should not be called when contract balance is less than 80%", async () => {
-        await investmentContract.withdrawSL();
-        await expect(investmentContract.withdrawSL()).to.be.revertedWith(
-          "Total not reached"
-        );
+        await investmentContract.connect(cfo).withdrawSL();
+        await expect(
+          investmentContract.connect(cfo).withdrawSL()
+        ).to.be.revertedWith("Total not reached");
       });
     });
     describe("Function Refill", async () => {
       beforeEach("set state to process", async () => {
         const { investmentContract, investor1, paymentTokenContract } =
           await loadFixture(oneInvestCallLeftToFill);
-        await paymentTokenContract.mint(INVESTMENT_1_AMOUNT);
-        await paymentTokenContract.approve(
-          investmentContract.address,
-          withDecimals(INVESTMENT_2_AMOUNT)
-        );
-        await investmentContract.changeStatus(STATUS_PROCESS);
+        await paymentTokenContract.connect(cfo).mint(INVESTMENT_1_AMOUNT);
+        await paymentTokenContract
+          .connect(cfo)
+          .approve(
+            investmentContract.address,
+            withDecimals(INVESTMENT_2_AMOUNT)
+          );
+        await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
       });
       it("Investors should not be able to call", async () => {
@@ -610,7 +636,7 @@ describe("Investment Contract Tests", async () => {
           investmentContract
             .connect(investor1)
             .refill(REFILL_VALUE, PROFIT_RATE)
-        ).to.be.revertedWith("Ownable: caller is not the owner");
+        ).to.be.revertedWith("User not CFO");
       });
       // it("Cannot refill while contract still have funds!", async () => {
       //   await expect(
@@ -618,26 +644,30 @@ describe("Investment Contract Tests", async () => {
       //   ).to.be.revertedWith("Contract still have funds");
       // }); WE TOOK THIS FUNCTIONALITY OF SINCE IT OPENS A BACKDOR FOR A DoS
       it("Cannot call function with wrong amount to refill (totalInvestment * profitRate) == amount(refilled) ", async () => {
-        await investmentContract.withdrawSL();
+        await investmentContract.connect(cfo).withdrawSL();
         await expect(
-          investmentContract.refill(REFILL_VALUE - 100, PROFIT_RATE)
+          investmentContract
+            .connect(cfo)
+            .refill(REFILL_VALUE - 100, PROFIT_RATE)
         ).to.be.revertedWith("Not correct value");
       });
       it("Owner should be able to refill contract", async () => {
-        await investmentContract.withdrawSL();
-        await expect(investmentContract.refill(REFILL_VALUE, PROFIT_RATE))
+        await investmentContract.connect(cfo).withdrawSL();
+        await expect(
+          investmentContract.connect(cfo).refill(REFILL_VALUE, PROFIT_RATE)
+        )
           .to.emit(investmentContract, "ContractRefilled")
           .withArgs(REFILL_VALUE, PROFIT_RATE, anyValue);
       });
       it("should set global variable returnProfit = ProfitRate", async () => {
         //Talk to Cadu: beforeEach problem (cannot have a clean contract without withdrawing first)
-        await investmentContract.withdrawSL();
-        await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
+        await investmentContract.connect(cfo).withdrawSL();
+        await investmentContract.connect(cfo).refill(REFILL_VALUE, PROFIT_RATE);
         expect(await investmentContract.returnProfit()).to.equal(PROFIT_RATE);
       });
       it('Should change the contract status to "withdraw"', async () => {
-        await investmentContract.withdrawSL();
-        await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
+        await investmentContract.connect(cfo).withdrawSL();
+        await investmentContract.connect(cfo).refill(REFILL_VALUE, PROFIT_RATE);
         expect(await investmentContract.status()).to.equal(STATUS_WITHDRAW);
       });
     });
@@ -645,12 +675,14 @@ describe("Investment Contract Tests", async () => {
       beforeEach("set state to process", async () => {
         const { investmentContract, investor1, paymentTokenContract } =
           await loadFixture(oneInvestCallLeftToFill);
-        await paymentTokenContract.mint(INVESTMENT_1_AMOUNT);
-        await paymentTokenContract.approve(
-          investmentContract.address,
-          withDecimals(INVESTMENT_2_AMOUNT)
-        );
-        await investmentContract.changeStatus(STATUS_PROCESS);
+        await paymentTokenContract.connect(cfo).mint(INVESTMENT_1_AMOUNT);
+        await paymentTokenContract
+          .connect(cfo)
+          .approve(
+            investmentContract.address,
+            withDecimals(INVESTMENT_2_AMOUNT)
+          );
+        await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
       });
       it("Withdraw function should be able to be called", async () => {
@@ -669,7 +701,7 @@ describe("Investment Contract Tests", async () => {
     describe("Pre-Withdraw", async () => {
       it("Should be on status WITHDRAW", async () => {
         const { investmentContract } = await loadFixture(deployContractFixture);
-        await investmentContract.changeStatus(STATUS_WITHDRAW);
+        await investmentContract.connect(ceo).changeStatus(STATUS_WITHDRAW);
         const contractStatus = await investmentContract.status();
         expect(contractStatus).to.be.equal(STATUS_WITHDRAW);
       });
@@ -740,37 +772,39 @@ describe("Investment Contract Tests", async () => {
           .connect(crucialInvestor)
           .invest(amountInvested.toNumber());
 
+        console.log("passed");
+
         // Change contract status to process
-        await investmentContract.changeStatus(STATUS_PROCESS);
+        await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
         // Allow owner to withdraw the totalInvestment from the contract
-        await paymentTokenContract.approve(
-          investmentContract.address,
-          totalInvestment
-        );
+        await paymentTokenContract
+          .connect(cfo)
+          .approve(investmentContract.address, totalInvestment);
 
         // Owner withdraw contract funds
-        await investmentContract.withdrawSL();
+        await investmentContract.connect(cfo).withdrawSL();
 
         // Allow Investment Contract to transfer the totalInvestment + profit
-        await paymentTokenContract.approve(
-          investmentContract.address,
-          withDecimals(REFILL_VALUE)
-        );
+        await paymentTokenContract
+          .connect(cfo)
+          .approve(investmentContract.address, withDecimals(REFILL_VALUE));
 
         const ownerBalance = await paymentTokenContract.balanceOf(
           owner.address
         );
 
         // Add more funds to the owner account to be able to refill
-        await paymentTokenContract.mint(
-          ethers.BigNumber.from(REFILL_VALUE).sub(ownerBalance.div(10 ** 6))
-        );
+        await paymentTokenContract
+          .connect(cfo)
+          .mint(
+            ethers.BigNumber.from(REFILL_VALUE).sub(ownerBalance.div(10 ** 6))
+          );
 
         // Owner refill the contract
-        await investmentContract.refill(REFILL_VALUE, PROFIT_RATE);
+        await investmentContract.connect(cfo).refill(REFILL_VALUE, PROFIT_RATE);
 
         // Change state to withdraw
-        await investmentContract.changeStatus(STATUS_WITHDRAW);
+        //await investmentContract.changeStatus(STATUS_WITHDRAW);
 
         paymentTokenBalanceBeforeWithdraw =
           await paymentTokenContract.balanceOf(crucialInvestor.address);
@@ -815,7 +849,7 @@ describe("Investment Contract Tests", async () => {
     describe("Before refunding", async () => {
       it("Should be on status REFUNDING", async () => {
         const { investmentContract } = await loadFixture(readyToRefundFixture);
-        await investmentContract.changeStatus(STATUS_REFUNDING);
+        await investmentContract.connect(ceo).changeStatus(STATUS_REFUNDING);
         const contractStatus = await investmentContract.status();
 
         expect(contractStatus).to.be.equal(STATUS_REFUNDING);
@@ -826,7 +860,7 @@ describe("Investment Contract Tests", async () => {
         const { investmentContract } = await loadFixture(readyToRefundFixture);
 
         // Change status to refunding
-        await investmentContract.changeStatus(STATUS_REFUNDING);
+        await investmentContract.connect(ceo).changeStatus(STATUS_REFUNDING);
       });
 
       it("Investor should receive payment tokens invested", async () => {

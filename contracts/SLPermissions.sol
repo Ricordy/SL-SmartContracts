@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+
+import "hardhat/console.sol";
+
 contract SLPermissions {
-// This facet controls access control for Something Legendary. There are three roles managed here:
+    // This facet controls access control for Something Legendary. There are three roles managed here:
     //
     //     - The CEO: The CEO can reassign other roles and change the addresses of our dependent smart
     //         contracts. It is also the only role that can unpause the smart contract. It is initially
@@ -27,6 +30,13 @@ contract SLPermissions {
     // @dev Keeps track whether the contract is paused. When that is true, most actions are blocked
     bool public paused = false;
     bool public pausedEntryMint = false;
+    bool public pausedPuzzleMint = false;
+    bool public pausedInvestments = false;
+
+    constructor(address _ceoAddress, address _cfoAddress) {
+        ceoAddress = _ceoAddress;
+        cfoAddress = _cfoAddress;
+    }
 
     /// @dev Access modifier for CEO-only functionality
     modifier onlyCEO() {
@@ -40,18 +50,30 @@ contract SLPermissions {
         _;
     }
 
-
     modifier onlyCLevel() {
-        require(
-            msg.sender == ceoAddress ||
-            msg.sender == cfoAddress
-        );
+        require(msg.sender == ceoAddress || msg.sender == cfoAddress);
         _;
     }
 
-    modifier onlyAllowedContracts() {
-        require(allowedContracts[msg.sender]);
-        _;
+    function isCEO(address _address) external view returns (bool) {
+        console.log("input ceo:", _address);
+        console.log("real ceo:", ceoAddress);
+        return (_address == ceoAddress);
+    }
+
+    /// @dev Access modifier for CFO-only functionality
+    function isCFO(address _address) external view returns (bool) {
+        return (_address == cfoAddress);
+    }
+
+    function isCLevel(address _address) external view returns (bool) {
+        return (_address == ceoAddress || _address == cfoAddress);
+    }
+
+    function isAllowedContract(
+        address _conAddress
+    ) external view returns (bool) {
+        return (allowedContracts[_conAddress]);
     }
 
     /// @dev Assigns a new address to act as the CEO. Only available to the current CEO.
@@ -70,45 +92,47 @@ contract SLPermissions {
         cfoAddress = _newCFO;
     }
 
-    function setAllowedContracts(address _contractAddress, bool _allowed) external onlyCEO {
+    function setAllowedContracts(
+        address _contractAddress,
+        bool _allowed
+    ) external onlyCEO {
         allowedContracts[_contractAddress] = _allowed;
     }
-
 
     /*** Pausable functionality adapted from OpenZeppelin ***/
 
     /// @dev Modifier to allow actions only when the contract IS NOT paused
-    modifier whenNotPaused() {
-        require(!paused);
-        _;
+    function isPlatformPaused() external view returns (bool) {
+        return (paused);
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    function isEntryMintPaused() external view returns (bool) {
+        return (pausedEntryMint || paused);
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    function isPuzzleMintPaused() external view returns (bool) {
+        return (pausedPuzzleMint || paused);
     }
 
     /// @dev Modifier to allow actions only when the contract IS paused
-    modifier whenPaused {
-        require(paused);
-        _;
-    }
-
-        /// @dev Modifier to allow actions only when the contract IS NOT paused
-    modifier whenEntryNotPaused() {
-        require(!pausedEntryMint);
-        _;
-    }
-
-    /// @dev Modifier to allow actions only when the contract IS paused
-    modifier whenEntryPaused {
-        require(pausedEntryMint);
-        _;
+    function isInvestmentsPaused() external view returns (bool) {
+        return (pausedInvestments || paused);
     }
 
     /// @dev Called by any "C-level" role to pause the contract. Used only when
     ///  a bug or exploit is detected and we need to limit damage.
-    function pause() external onlyCLevel whenNotPaused {
+    function pausePlatform() external onlyCLevel {
         paused = true;
     }
 
-    function pauseEntryMint() external onlyCLevel whenNotPaused {
+    function pauseEntryMint() external onlyCLevel {
         pausedEntryMint = true;
+    }
+
+    function pauseInvestments() external onlyCLevel {
+        pausedInvestments = true;
     }
 
     /// @dev Unpauses the smart contract. Can only be called by the CEO, since
@@ -116,12 +140,16 @@ contract SLPermissions {
     ///  compromised.
     /// @notice This is public rather than external so it can be called by
     ///  derived contracts.
-    function unpause() public onlyCEO whenPaused {
+    function unpausePlatform() external onlyCEO {
         // can't unpause if contract was upgraded
         paused = false;
     }
 
-    function unpauseEntryMint() external onlyCLevel whenNotPaused {
+    function unpauseEntryMint() external onlyCEO {
         pausedEntryMint = false;
+    }
+
+    function unpauseInvestments() external onlyCEO {
+        pausedInvestments = false;
     }
 }

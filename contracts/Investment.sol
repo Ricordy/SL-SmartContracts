@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./ISLPermissions.sol";
 
 /// Investing amount exceeded the maximum allowed
 /// @param amount the amount user is trying to invest
@@ -16,11 +16,9 @@ interface ISLCore {
     function whichLevelUserHas(address user) external view returns (uint);
 }
 
-
-
 interface IToken is IERC20 {}
 
-contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
+contract Investment is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     ///
@@ -42,6 +40,7 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
     uint256 public returnProfit;
     address public immutable paymentTokenAddress;
     address public immutable entryNFTAddress;
+    address public immutable slPermissionsAddress;
     uint256 public constant MINIMUM_INVESTMENT = 100;
     uint256 public investors;
     uint8 public immutable CONTRACT_LEVEL;
@@ -65,6 +64,7 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
     ///
     constructor(
         uint256 _totalInvestment,
+        address _slPermissionsAddress,
         address _entryNFTAddress,
         address _paymentTokenAddress,
         uint8 _contractLevel
@@ -75,16 +75,19 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
             "Investment: Check the parameters and redeploy"
         );
         totalInvestment = _totalInvestment * 10 ** decimals();
+        slPermissionsAddress = _slPermissionsAddress;
         entryNFTAddress = _entryNFTAddress;
         paymentTokenAddress = _paymentTokenAddress;
-        changeStatus(Status.Progress);
+        _changeStatus(Status.Progress);
         CONTRACT_LEVEL = _contractLevel;
     }
 
     ///
     //-----MAIN FUNCTIONS------
     ///
-    function invest(uint256 _amount) public nonReentrant isAllowed isProgress {
+    function invest(
+        uint256 _amount
+    ) public nonReentrant isAllowed isProgress isNotGloballyStoped {
         require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
 
         uint256 userInvested = _amount *
@@ -108,8 +111,6 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
             msg.sender,
             address(this),
             _amount * 10 ** _token.decimals()
-
-
         );
 
         emit UserInvest(msg.sender, _amount, block.timestamp);
@@ -118,9 +119,9 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
     function withdraw()
         external
         nonReentrant
-        isNotPaused
         isAllowed
         isWithdrawOrRefunding
+        isNotGloballyStoped
     {
         require(
             !userWithdrawed[msg.sender],
@@ -136,7 +137,7 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
 
-    function withdrawSL() external onlyOwner isProcess isNotPaused {
+    function withdrawSL() external isProcess isNotGloballyStoped isCFO {
         uint256 totalBalance;
         ERC20 _token = ERC20(paymentTokenAddress);
         totalBalance = totalContractBalanceStable();
@@ -161,7 +162,7 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
     function refill(
         uint256 _amount,
         uint256 _profitRate
-    ) public nonReentrant onlyOwner isAllowed isProcess isNotPaused {
+    ) public nonReentrant isNotGloballyStoped isProcess isCFO {
         ERC20 _token = ERC20(paymentTokenAddress);
         require(
             totalInvestment + ((totalInvestment * _profitRate) / 100) ==
@@ -172,7 +173,7 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
         returnProfit = _profitRate;
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
-        
+
         IERC20(paymentTokenAddress).transferFrom(
             msg.sender,
             address(this),
@@ -189,7 +190,7 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
         view
         returns (uint256 totalBalance)
     {
-        totalBalance = totalSupply(); //check is totalSuppkly burns when burn is called
+        totalBalance = totalSupply();
     }
 
     function getMaxToInvest() public view returns (uint256 maxToInvest) {
@@ -208,8 +209,12 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
     ///
     //---- MODIFIERS------
     ///
-    modifier isNotPaused() {
-        require(status != Status.Pause, "Contract paused");
+
+    modifier isNotGloballyStoped() {
+        require(
+            !ISLPermissions(slPermissionsAddress).isInvestmentsPaused(),
+            "InvestmentsPaused"
+        );
         _;
     }
 
@@ -245,10 +250,34 @@ contract Investment is ERC20, Ownable2Step, ReentrancyGuard {
         _;
     }
 
+    modifier isCEO() {
+        require(
+            ISLPermissions(slPermissionsAddress).isCEO(tx.origin),
+            "User not CEO"
+        );
+        _;
+    }
+
+    modifier isCFO() {
+        require(
+            ISLPermissions(slPermissionsAddress).isCFO(tx.origin),
+            "User not CFO"
+        );
+        _;
+    }
+
+    modifier isCLevel() {
+        require(
+            ISLPermissions(slPermissionsAddress).isCLevel(msg.sender),
+            "User not CLVL"
+        );
+        _;
+    }
+
     ///
     //----STATUS FUNCTIONS------
     ///
-    function changeStatus(Status _newStatus) public onlyOwner nonReentrant {
+    function changeStatus(Status _newStatus) public isCEO nonReentrant {
         status = _newStatus;
     }
 
