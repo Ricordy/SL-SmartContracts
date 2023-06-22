@@ -108,7 +108,7 @@ describe("Puzzle Contract", async () => {
     );
     await puzzleContract.deployed();
     // Set the Puzzle contract deployed as entry address on Factory contract
-    await factoryContract.connect(ceo).setEntryAddress(puzzleContract.address);
+    await factoryContract.connect(ceo).setSLCoreAddress(puzzleContract.address);
     // Allow SLCore to make changes in SLLogics
     await permissionsContract
       .connect(ceo)

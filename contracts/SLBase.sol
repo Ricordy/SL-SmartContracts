@@ -21,89 +21,120 @@ interface ISLLogics {
     function uri(uint256 _id) external view returns (string memory);
 }
 
-/// @title Base contract for SL puzzle management
-/// @author The name of the author
+/// @title SLBase
+/// @author Something Legendary
 /// @notice Centralizes information on this contract, making sure that all of the ERC1155 communications and
 /// memory writting calls happens thorugh here!
 /// @dev Extra details about storage: https://app.diagrams.net/#G1Wi7A1SK0y8F9X-XDm65IUdfRJ81Fo7bF
 contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
-    //Mapping to store the Levels batchs
-    // mapping (uint => mapping (uint => uint)) Levels;
-    //Mapping to store the Puzzles batchs
-    // mapping (uint => mapping (uint => mapping (uint=>uint))) Puzzles;
-
-    //Array to store the Levels batchs
-    uint256 constant COLLECTION_IDS =
+    /// @notice Array to store the the levels and puzzles collection ids
+    /// @dev Each ID is stored in 2 slots of the variable. Ex: IDs {00, 01, 02, ..., 30, 31}
+    uint256 public constant COLLECTION_IDS =
         3130292827262524232221201918171615141312111009080706050403020100;
-    //Array to store the Puzzles batchs
-    uint24[] entryIdsArray;
-    //Mapping to tack user puzzle pieces
-    mapping(address => uint32) userPuzzlePieces;
-    //address of the factory
+    /// @notice Array to store the entry batchs' IDs
+    /// @dev Key: Entry batch number, reutrns enough to compute TokenID, max lotation and current token ID.
+    uint24[] public entryIdsArray;
+    /// @notice Mapping to tack number of user puzzle pieces
+    /// @dev Key: Ke: user address, returns user puzzle pieces for all levels (separated the same way as COLLECTION_IDS).
+    mapping(address => uint32) public userPuzzlePieces;
+    /// @notice The address of Factory contract.
+    /// @dev This value is set at the time of contract deployment.
     address public factoryAddress;
-    //Address of the SLLogics contract
+    /// @notice The address of SLLogics contract.
+    /// @dev This value is set at the time of contract deployment.
     address public slLogicsAddress;
-    //address of access control contract
+    /// @notice The address of Access control contract.
+    /// @dev This value is set at the time of contract deployment.
     address public slPermissionsAddress;
 
-    constructor() ERC1155("") {}
+    constructor() ERC1155("Something Legendary") {}
 
-    event TokensClaimed(
-        address indexed claimer,
-        uint256 indexed tokenId,
-        uint256 quantity
-    );
+    ///
+    //-----EVENTS------
+    ///
+    /// @notice An event that is emitted when a user mint a level or a piece NFT.
+    /// @param claimer The address of said user.
+    /// @param tokenId The id of the collection minted from.
+    event TokensClaimed(address indexed claimer, uint256 indexed tokenId);
 
-    /// WRITTING FUNCTIONS
+    ///
+    //-----WRITTING FUNCTIONS------
+    ///
+    /// @notice function call the necessary functions to try to pass the user to the next one
+    /// @dev puzzle tokens required to pass the level are burned during the transaction
+    /// @param _receiver the recevier of the level (the user).
+    /// @param _tokenId the collection id that the user wants to mint from
+    /// @custom:requires _tokenId should be 30(level 2) or 31(level 3)
     function _claimLevel(address _receiver, uint256 _tokenId) internal {
         require(
             _tokenId == 31 || _tokenId == 30,
             "SLBase: Not a valid level ID"
         );
-        verifyClaim(msg.sender, _tokenId); //Check if user has the right to claim the next level or puzzle piece
+        //Check if user has the right to claim the next level or puzzle piece
+        verifyClaim(msg.sender, _tokenId);
 
-        _dealWithPuzzleBurning(_receiver, _tokenId); //Burn puzzle pieces
-        _transferTokensOnClaim(_receiver, _tokenId, 1); //Transfer tokens to user
+        //Burn puzzle pieces
+        _dealWithPuzzleBurning(_receiver, _tokenId);
+        //Transfer tokens to user
+        _transferTokensOnClaim(_receiver, _tokenId, 1);
 
-        emit TokensClaimed(_receiver, _tokenId, 1);
+        emit TokensClaimed(_receiver, _tokenId);
     }
 
+    /// @notice function call the necessary functions to try to mint a puzzle piece for the user
+    /// @dev puser must be in the same level as the piece his minting
+    /// @param _receiver the recevier of the puzzle piece (the user).
+    /// @param _puzzleLevel the level from which the user wants to mint the puzzle from
     function _claimPiece(address _receiver, uint256 _puzzleLevel) internal {
         require(
             _puzzleLevel == 1 || _puzzleLevel == 2 || _puzzleLevel == 3,
             "SLBase: Not a valid puzzle level"
         );
-        verifyClaim(msg.sender, _puzzleLevel); //Check if user has the right to claim the next level or puzzle piece
-
+        //Check if user has the right to claim the next level or puzzle piece
+        verifyClaim(msg.sender, _puzzleLevel);
+        //Transfer tokens to user
         _transferTokensOnClaim(
             _receiver,
             _dealWithPuzzleClaiming(_receiver, _puzzleLevel),
             1
-        ); //Transfer tokens to user
+        );
 
-        emit TokensClaimed(_receiver, _puzzleLevel, 1);
+        emit TokensClaimed(_receiver, _puzzleLevel);
     }
 
-    /// FUNCTIONS TO BE OVERRIDEN
-
-    //Override the verify claim function to check if user has the right to claim the next level or puzzle piece
+    ///
+    //-------------------------FUNCTIONS TO BE OVERRIDEN----------------------
+    ///
+    /// @notice Verifies if user can claim given piece or level NFT
+    /// @dev Override the verify claim function to check if user has the right to claim the next level or puzzle piece
+    /// @param _claimer the user's address
+    /// @param _tokenIdOrPuzzleLevel The token id of the level (30 or 30) or LEvel of the piece (1,2,3)
     function verifyClaim(
         address _claimer,
         uint256 _tokenIdOrPuzzleLevel
     ) public view virtual {}
 
-    //To be overriden
+    /// @notice returns random number
     function _random() public view virtual returns (uint8) {}
 
-    /// INTERNAL OVERRIDE FUNCTIONS
-    //Function to deal with puzzle claiming
+    ///
+    //-----------------INTERNAL OVERRIDE FUNCTIONS----------------
+    ///
+    /// @notice Function that defines which piece is going to be minted
+    /// @dev Override to implement puzzle piece claiming logic
+    /// @param _receiver the user's address
+    /// @param _puzzleLevel The level of the piece (1,2,3)
+    /// @return _collectionToMint the collection from which the piece is going to be minted
     function _dealWithPuzzleClaiming(
         address _receiver,
         uint256 _puzzleLevel
     ) internal virtual returns (uint8 _collectionToMint) {}
 
-    //Auxiliary function to burn user puzzle depending on his level
-    function _dealWithPuzzleBurning(address user, uint _tokenId) private {
+    /// @notice Auxiliary function to burn user puzzle depending on his level
+    /// @dev burns in batch to be gas wiser
+    /// @param _user the user's address
+    /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
+    function _dealWithPuzzleBurning(address _user, uint _levelId) private {
         //Helper Arrays
         uint256[] memory amountsForBurn = new uint256[](10);
         //Fill needed arrays
@@ -111,23 +142,32 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
             amountsForBurn[i] = 1;
         }
         //Puzzle verification for passing to level2
-        if (_tokenId == 30) {
+        if (_levelId == 30) {
             //Burn user puzzle right away (so verify claim doesnt get to big)
-            _burnBatch(user, _getPuzzleCollectionIds(1), amountsForBurn);
+            _burnBatch(_user, _getPuzzleCollectionIds(1), amountsForBurn);
             //Puzzle verification for passing to level3
-        } else if (_tokenId == 31) {
-            _burnBatch(user, _getPuzzleCollectionIds(2), amountsForBurn);
+        } else if (_levelId == 31) {
+            _burnBatch(_user, _getPuzzleCollectionIds(2), amountsForBurn);
         }
     }
 
-    // Function to verify if user has the right to claim the next level
+    /// @notice Function that verifies if user is allowed to pass to the next level
+    /// @dev function have no return, it should fail if user is not allowed to burn
+    /// @param _claimer the user's address
+    /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
     function _userAllowedToBurnPuzzle(
-        address user,
-        uint _tokenId
+        address _claimer,
+        uint _levelId
     ) public view virtual {}
 
-    /// INTERNAL NON-OVERRIDE FUNCTIONS
-    //function to increment user puzzle pieces using SLMicroSlots
+    ///
+    //----------------INTERNAL NON-OVERRIDE FUNCTIONS------------------
+    ///
+    /// @notice Increments by 1 the number of user puzzle pieces in a specified level
+    /// @dev Uses SLMicroSlots to write in a variable in such format "333222111"
+    /// (where 333 -> Nº of LVL3 pieces, 222 -> Nº of LVL2 pieces, 111 -> Nº of LVL1 pieces)
+    /// @param _user user's address
+    /// @param _puzzleLevel level in which we want to increment the amount by 1
     function _incrementUserPuzzlePieces(
         address _user,
         uint256 _puzzleLevel
@@ -138,7 +178,10 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         );
     }
 
-    //function to mint tokens on claim
+    /// @notice function to mint tokens on claim
+    /// @param _receiver user's address
+    /// @param _tokenId the id of the collection from which the NFT should be minted
+    /// @param _quantity quantity to mint
     function _transferTokensOnClaim(
         address _receiver,
         uint256 _tokenId,
@@ -147,25 +190,35 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         _mint(_receiver, _tokenId, _quantity, "");
     }
 
-    ///GETTERS MOST OVERRIDEN
-    //Function to verify if the user has an entry token returns boolean
-
-    //function to get entry token ids
+    ///
+    //------------------GETTERS MOST OVERRIDEN------------------------
+    ///
+    /// @notice funtion that returns the level token ids
+    /// @dev should be overriden
+    /// @param level the level that we want the token IDs
+    /// @return uint256[] memory with ids for level 2 and 3 (30,31) or all level 1 collection ids
     function _getLevelTokenIds(
         uint level
     ) internal view virtual returns (uint256[] memory) {}
 
-    //funtion to get puzzle collection ids
+    /// @notice funtion that returns the puzzle pieces for a specified level
+    /// @dev should be overriden
+    /// @param level the level that we want the token IDs
+    /// @return uint256[] memory with 10 ids for 10 pieces
     function _getPuzzleCollectionIds(
         uint256 level
     ) public view virtual returns (uint256[] memory) {}
 
-    //function to create a user address array with the given size
+    //
+    /// @notice function to create a user address array with the given size
+    /// @param _user user intented to create the array
+    /// @param _size size of new array
+    /// @return uint256[] memory with size slots of user addresses
     function _createUserAddressArray(
         address _user,
-        uint256 size
+        uint256 _size
     ) internal pure returns (address[] memory) {
-        address[] memory userAddress = new address[](size);
+        address[] memory userAddress = new address[](_size);
         for (uint i = 0; i < userAddress.length; i++) {
             userAddress[i] = _user;
         }
@@ -173,9 +226,10 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     }
 
     ///
-    /// MODIFIERS
+    //---- MODIFIERS------
     ///
-
+    /// @notice Verifies if user is CEO.
+    /// @dev CEO has the right to interact with certain functions
     modifier isCEO() {
         require(
             ISLPermissions(slPermissionsAddress).isCEO(msg.sender),
@@ -183,7 +237,8 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         );
         _;
     }
-
+    /// @notice Verifies if entry minting is not paused.
+    /// @dev If it is paused, the only available actions are claimLevel() and claimPiece()
     modifier isEntryMintNotPaused() {
         require(
             !ISLPermissions(slPermissionsAddress).isEntryMintPaused(),
@@ -191,7 +246,8 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         );
         _;
     }
-
+    /// @notice Verifies if puzzle and level 2 and 3 minting is stoped.
+    /// @dev If it is paused, the only action available is mintEntry()
     modifier isPuzzleMintNotPaused() {
         require(
             !ISLPermissions(slPermissionsAddress).isPuzzleMintPaused(),
@@ -199,7 +255,8 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         );
         _;
     }
-
+    /// @notice Verifies if platform is paused.
+    /// @dev If platform is paused, the whole contract is stopped
     modifier isNotGloballyStoped() {
         require(
             !ISLPermissions(slPermissionsAddress).isPlatformPaused(),

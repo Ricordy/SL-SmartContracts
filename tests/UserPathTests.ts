@@ -107,7 +107,7 @@ describe("User Paths Testing", async () => {
     await puzzleContract.deployed();
 
     // Set the Puzzle contract deployed as entry address on Factory contract
-    await factoryContract.connect(ceo).setEntryAddress(puzzleContract.address);
+    await factoryContract.connect(ceo).setSLCoreAddress(puzzleContract.address);
     // Allow SLCore to make changes in SLLogics
     await permissionsContract
       .connect(ceo)
@@ -171,11 +171,9 @@ describe("User Paths Testing", async () => {
     await puzzleContract.connect(investor4).mintEntry();
 
     const investmentFactory = new Investment__factory(owner);
-    await factoryContract.connect(ceo).deployNew(
-      INVESTMENT_1_AMOUNT,
-      paymentTokenContract.address,
-      1
-    );
+    await factoryContract
+      .connect(ceo)
+      .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1);
     const investmentAddress = await factoryContract.getLastDeployedContract(1);
     investmentContractLevel1 = investmentFactory.attach(investmentAddress);
 

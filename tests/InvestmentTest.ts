@@ -115,7 +115,7 @@ describe("Investment Contract Tests", async () => {
     );
     await puzzleContract.deployed();
     // Set the Puzzle contract deployed as entry address on Factory contract
-    await factoryContract.connect(ceo).setEntryAddress(puzzleContract.address);
+    await factoryContract.connect(ceo).setSLCoreAddress(puzzleContract.address);
     // Allow SLCore to make changes in SLLogics
     await permissionsContract
       .connect(ceo)
@@ -366,8 +366,7 @@ describe("Investment Contract Tests", async () => {
       const { investmentContract, puzzleContract } = await loadFixture(
         deployContractFixture
       );
-      const entryNFTContractAddress =
-        await investmentContract.SLCORE_ADDRESS();
+      const entryNFTContractAddress = await investmentContract.SLCORE_ADDRESS();
       expect(entryNFTContractAddress).to.be.equal(puzzleContract.address);
     });
     it("Should set the PaymentToken address", async () => {

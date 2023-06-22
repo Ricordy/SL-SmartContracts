@@ -14,7 +14,7 @@ contract Factory {
     mapping(uint => Investment[]) public deployedContracts;
     /// @notice Stores SLCore address
     /// @dev Used to initialize Investment contracts
-    address slCoreAddress;
+    address public slCoreAddress;
     /// @notice Stores SLPermissions address
     /// @dev Used to Control Access to certain functions
     address public immutable SLPERMISSIONS_ADDRESS;
@@ -125,7 +125,7 @@ contract Factory {
     /// @param  _slCoreAddress The new SLCore address.
     /// @custom:requires  CEO access Level
     /// @custom:intent If SLCore gets compromised, there's a way to fixed factory withouth the need of redeploying
-    function setEntryAddress(
+    function setSLCoreAddress(
         address _slCoreAddress
     ) external isCEO isNotGloballyStoped {
         require(
@@ -151,6 +151,8 @@ contract Factory {
         }
     }
 
+    /// @notice Verifies if platform is paused.
+    /// @dev If platform is paused, the whole contract is stopped
     modifier isNotGloballyStoped() {
         require(
             !ISLPermissions(SLPERMISSIONS_ADDRESS).isPlatformPaused(),
@@ -158,6 +160,8 @@ contract Factory {
         );
         _;
     }
+    /// @notice Verifies if user is CEO.
+    /// @dev CEO has the right to interact with: deployNew() and setSLCoreAddress()
     modifier isCEO() {
         require(
             ISLPermissions(SLPERMISSIONS_ADDRESS).isCEO(msg.sender),

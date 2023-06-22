@@ -3,7 +3,14 @@ pragma solidity ^0.8.0;
 
 import "./SLPuzzles.sol";
 
+/// @title SLCore
+/// @author Something Legendary
+/// @dev This contract extends SLPuzzles and provides core functionalities for the system.
 contract SLCore is SLPuzzles {
+    /// @notice Initializes the new SLCore contract.
+    /// @param _factoryAddress The address of the factory contract.
+    /// @param _slLogicsAddress The address of the SLLogics contract.
+    /// @param _slPermissionsAddress The address of the SLPermissions contract.
     constructor(
         address _factoryAddress,
         address _slLogicsAddress,
@@ -21,8 +28,11 @@ contract SLCore is SLPuzzles {
         slPermissionsAddress = _slPermissionsAddress;
     }
 
-    ///FUNCTIONS FOR USERS
-
+    ///
+    //-----------------USER FUNCTIONS----------------
+    ///
+    /// @notice Mints an entry token for the caller.
+    /// @dev This function can only be called when entry minting is not paused and by non-reentrant calls.
     function mintEntry() public isEntryMintNotPaused nonReentrant {
         require(
             _whichLevelUserHas(msg.sender) == 0,
@@ -34,6 +44,8 @@ contract SLCore is SLPuzzles {
         ISLLogics(slLogicsAddress).payEntryFee(msg.sender);
     }
 
+    /// @notice Claims a puzzle piece for the caller.
+    /// @dev This function can only be called when puzzle minting is not paused, by non-reentrant calls, and by users of at least level 1.
     function claimPiece()
         public
         isPuzzleMintNotPaused
@@ -44,7 +56,8 @@ contract SLCore is SLPuzzles {
         _claimPiece(msg.sender, _whichLevelUserHas(msg.sender));
     }
 
-    //function to claim level
+    /// @notice Claims a level for the caller.
+    /// @dev This function can only be called when puzzle minting is not paused, by non-reentrant calls, and by users of at least level 1.
     function claimLevel()
         public
         isPuzzleMintNotPaused
@@ -60,9 +73,15 @@ contract SLCore is SLPuzzles {
         _claimLevel(msg.sender, _whichLevelUserHas(msg.sender) == 1 ? 30 : 31);
     }
 
-    ///FUNCTIONS FOR ADMINS
+    ///
+    //---------------------ADMIN FUNCTIONS--------------------
+    ///
 
-    //function to generate a new entry batch using internal logic
+    /// @notice Generates a new entry batch.
+    /// @dev This function can only be called by the CEO and when the system is not globally stopped.
+    /// @param _cap The cap for the new entry batch.
+    /// @param _entryPrice The price for the new entry batch.
+    /// @param _tokenUri The URI for the new entry batch.
     function generateNewEntryBatch(
         uint _cap,
         uint _entryPrice,
@@ -72,9 +91,12 @@ contract SLCore is SLPuzzles {
         ISLLogics(slLogicsAddress).setEntryPrice(_entryPrice, _tokenUri);
     }
 
+    /// @notice Returns the URI for a given token ID.
+    /// @param _collectionId The ID of the token to retrieve the URI for.
+    /// @return The URI of the given token ID.
     function uri(
-        uint256 _tokenId
+        uint256 _collectionId
     ) public view override returns (string memory) {
-        return ISLLogics(slLogicsAddress).uri(_tokenId);
+        return ISLLogics(slLogicsAddress).uri(_collectionId);
     }
 }

@@ -3,15 +3,20 @@ pragma solidity ^0.8.0;
 
 import "./SLBase.sol";
 
+/// @title SLLevels
+/// @author Something Legendary
+/// @notice contract that manages levels
 contract SLLevels is SLBase {
-    //Function to deal with data of buying a new NFT entry token
-    //Call the function and add needed logic (Payment, etc)
+    /// @notice Function to deal with data of buying a new NFT entry token
+    /// @dev Call the function and add needed logic (Payment, etc)
+    /// @param _receiver buyer
     function _buyEntryToken(address _receiver) internal {
         require(
             getCurrentEntryBatchRemainingTokens() > 0 &&
                 entryIdsArray.length > 0,
             "SLLevels: No entry tokens available"
         );
+        //get the current entry batch number
         uint batch = entryIdsArray.length - 1;
         //Get the entry token cap and currentID
         (
@@ -34,17 +39,21 @@ contract SLLevels is SLBase {
             mountEntryID(batch, entryTokenCap),
             1
         );
-        emit TokensClaimed(_receiver, mountEntryID(batch, entryTokenCap), 1);
+        emit TokensClaimed(_receiver, mountEntryID(batch, entryTokenCap));
     }
 
-    ///OVERWRITTEN FUNCTIONS
+    ///
+    //--------------------OVERWRITTEN FUNCTIONS-------------------
+    ///
 
+    /// Added logic that verifies the possibility of passing the level
+    /// @inheritdoc	SLBase
     function _userAllowedToBurnPuzzle(
-        address user,
+        address _claimer,
         uint _tokenId
     ) public view override {
         //Helper Arrays
-        address[] memory userAddress = _createUserAddressArray(user, 10);
+        address[] memory userAddress = _createUserAddressArray(_claimer, 10);
         uint256[] memory amountsForBurn = new uint256[](10);
         uint[] memory balance;
         //Fill needed arrays
@@ -55,7 +64,7 @@ contract SLLevels is SLBase {
         if (_tokenId == 30) {
             //Check for user level token ownership
             require(
-                balanceOf(user, _tokenId) == 0,
+                balanceOf(_claimer, _tokenId) == 0,
                 "User already has the LEVEL2 NFT"
             );
             //Get balance of the user
@@ -71,7 +80,7 @@ contract SLLevels is SLBase {
         } else if (_tokenId == 31) {
             //Check for user level token ownership
             require(
-                balanceOf(user, _tokenId) == 0,
+                balanceOf(_claimer, _tokenId) == 0,
                 "User already has the LEVEL2 NFT"
             );
             //Get balance of the user
@@ -89,10 +98,11 @@ contract SLLevels is SLBase {
         }
     }
 
+    /// @inheritdoc	SLBase
     function _getLevelTokenIds(
-        uint level
+        uint _level
     ) internal view override returns (uint256[] memory) {
-        if (level == 1) {
+        if (_level == 1) {
             uint256[] memory entryTokenIds = new uint256[](
                 entryIdsArray.length
             );
@@ -103,7 +113,7 @@ contract SLLevels is SLBase {
                 entryTokenIds[i] = mountEntryID(i, entryTokenCap);
             }
             return entryTokenIds;
-        } else if (level == 2 || level == 3) {
+        } else if (_level == 2 || _level == 3) {
             uint256[] memory level2And3Ids = new uint256[](2);
             level2And3Ids[0] = 30;
             level2And3Ids[1] = 31;
@@ -111,23 +121,28 @@ contract SLLevels is SLBase {
         }
     }
 
-    //INTERNAL FUNCTIONS
+    ///
+    //-------------------INTERNAL FUNCTIONS-------------------
+    ///
 
-    //fucntion to read in which level the user is
-    function _whichLevelUserHas(address user) internal view returns (uint) {
+    /// @notice check users level
+    /// @dev checks based on NFT balance, so the users are able to trade privileges
+    /// @param _user user's address
+    /// @return uint users level
+    function _whichLevelUserHas(address _user) internal view returns (uint) {
         //check if user has level 2 or 3
         //call function to check user balance of token id 30 and 31
 
         //Verify level 2 and 3 token ownership
-        if (balanceOf(user, 31) > 0) {
+        if (balanceOf(_user, 31) > 0) {
             return 3;
-        } else if (balanceOf(user, 30) > 0) {
+        } else if (balanceOf(_user, 30) > 0) {
             return 2;
         } else {
             //If user doesnt have level 2 or 3, check if user has entry token
             //Get the balance of the user for each entry token id
             uint256[] memory userBalance = balanceOfBatch(
-                _createUserAddressArray(user, _getLevelTokenIds(1).length),
+                _createUserAddressArray(_user, _getLevelTokenIds(1).length),
                 _getLevelTokenIds(1)
             );
             //Verify if the user has any entry token
@@ -140,12 +155,20 @@ contract SLLevels is SLBase {
         }
     }
 
-    function whichLevelUserHas(address user) external view returns (uint) {
-        return (_whichLevelUserHas(user));
+    /// @notice check users level
+    /// @dev checks based on NFT balance, so the users are able to trade privileges
+    /// @param _user user's address
+    /// @return uint users level
+    function whichLevelUserHas(address _user) external view returns (uint) {
+        return (_whichLevelUserHas(_user));
     }
 
-    ///GETTERS
-    //function to verify how much tokens current entry collection has left
+    ///
+    //------------------GETTERS--------------------
+    ///
+    /// @notice get remaining tokens for current batch
+    /// @dev uses SLMicroSlots to have access to such information
+    /// @return uint tokens left
     function getCurrentEntryBatchRemainingTokens()
         public
         view
@@ -157,8 +180,11 @@ contract SLLevels is SLBase {
         return (entryTokenCap - entryTokenCurrentId);
     }
 
-    ///MODIFIERS
-
+    ////
+    //------------------MODIFIERS--------------------
+    ///
+    /// @notice Verifies if user has the necessary NFT to interact with the function.
+    /// @dev User should be at least the same level as the the reuqired by the function
     modifier userHasLevel(uint _level) {
         //use _whichLevelUserHas to check if user has the level
         require(
