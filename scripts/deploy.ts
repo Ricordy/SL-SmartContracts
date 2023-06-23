@@ -62,7 +62,7 @@ async function main() {
   );
   await puzzleContract.deployed();
   // Set the Puzzle contract deployed as entry address on Factory contract
-  await factoryContract.setEntryAddress(puzzleContract.address);
+  await factoryContract.setSLCoreAddress(puzzleContract.address);
   // Allow SLCore to make changes in SLLogics
   await permissionsContract.setAllowedContracts(puzzleContract.address, true);
   // Create a new entry batch
@@ -107,7 +107,11 @@ async function main() {
   console.log(
     "----------------------------------------------------------------------------------------"
   );
-  console.log("is ceo>>>>>>>>", await permissionsContract.isCEO(ceo.address));
+  console.log(
+    ceo.address,
+    "  is ceo>>>>>>>>",
+    await permissionsContract.isCEO(ceo.address)
+  );
 }
 
 main().catch((error) => {
