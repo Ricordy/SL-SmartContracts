@@ -54,7 +54,10 @@ contract Factory {
             _paymentTokenAddress != address(0),
             "Factory: Provide a real paymentTokenAddress"
         );
-        require(_level > 0 && _level < 4, "Factory: Provide an existing level");
+        require(
+            _level != 0 && _level < 4,
+            "Factory: Provide an existing level"
+        );
 
         //Generate new Investment contract
         Investment inv = new Investment(
@@ -141,7 +144,7 @@ contract Factory {
     function getLastDeployedContract(
         uint256 _level
     ) external view returns (address contractAddress) {
-        if (deployedContracts[_level].length > 0) {
+        if (deployedContracts[_level].length != 0) {
             contractAddress = address(
                 deployedContracts[_level][deployedContracts[_level].length - 1]
             );

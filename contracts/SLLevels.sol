@@ -12,8 +12,8 @@ contract SLLevels is SLBase {
     /// @param _receiver buyer
     function _buyEntryToken(address _receiver) internal {
         require(
-            getCurrentEntryBatchRemainingTokens() > 0 &&
-                entryIdsArray.length > 0,
+            getCurrentEntryBatchRemainingTokens() != 0 &&
+                entryIdsArray.length != 0,
             "SLLevels: No entry tokens available"
         );
         //get the current entry batch number
@@ -134,9 +134,9 @@ contract SLLevels is SLBase {
         //call function to check user balance of token id 30 and 31
 
         //Verify level 2 and 3 token ownership
-        if (balanceOf(_user, 31) > 0) {
+        if (balanceOf(_user, 31) != 0) {
             return 3;
-        } else if (balanceOf(_user, 30) > 0) {
+        } else if (balanceOf(_user, 30) != 0) {
             return 2;
         } else {
             //If user doesnt have level 2 or 3, check if user has entry token
@@ -147,7 +147,7 @@ contract SLLevels is SLBase {
             );
             //Verify if the user has any entry token
             for (uint256 i; i < userBalance.length; ++i) {
-                if (userBalance[i] > 0) {
+                if (userBalance[i] != 0) {
                     return 1;
                 }
             }
