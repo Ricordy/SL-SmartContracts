@@ -36,7 +36,7 @@ contract SLMicroSlots {
         uint256 factor
     ) internal view returns (uint256[] memory) {
         uint256[] memory results = new uint256[](numberOfResults);
-        for (uint256 i = 0; i < numberOfResults; i++) {
+        for (uint256 i; i < numberOfResults; ++i) {
             results[i] = (
                 getPositionXInDivisionByY(number, startPosition + i, factor)
             );

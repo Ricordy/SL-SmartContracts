@@ -138,7 +138,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         //Helper Arrays
         uint256[] memory amountsForBurn = new uint256[](10);
         //Fill needed arrays
-        for (uint256 i = 0; i < amountsForBurn.length; i++) {
+        for (uint256 i; i < amountsForBurn.length; ++i) {
             amountsForBurn[i] = 1;
         }
         //Puzzle verification for passing to level2
@@ -219,7 +219,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         uint256 _size
     ) internal pure returns (address[] memory) {
         address[] memory userAddress = new address[](_size);
-        for (uint256 i = 0; i < userAddress.length; i++) {
+        for (uint256 i; i < userAddress.length; ++i) {
             userAddress[i] = _user;
         }
         return userAddress;

@@ -57,7 +57,7 @@ contract SLLevels is SLBase {
         uint256[] memory amountsForBurn = new uint256[](10);
         uint256[] memory balance;
         //Fill needed arrays
-        for (uint256 i = 0; i < amountsForBurn.length; i++) {
+        for (uint256 i; i < amountsForBurn.length; ++i) {
             amountsForBurn[i] = 1;
         }
         //Puzzle verification for passing to level2
@@ -70,7 +70,7 @@ contract SLLevels is SLBase {
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(1));
             //verify if balance meets the condition
-            for (uint256 i = 0; i < balance.length; i++) {
+            for (uint256 i; i < balance.length; ++i) {
                 require(
                     balance[i] != 0,
                     "SLLevels: User must have all Level1 pieces"
@@ -86,7 +86,7 @@ contract SLLevels is SLBase {
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(2));
             //verify if balance meets the condition
-            for (uint256 i = 0; i < balance.length; i++) {
+            for (uint256 i; i < balance.length; ++i) {
                 require(
                     balance[i] != 0,
                     "SLLevels: User must have all Level2 pieces"
@@ -106,7 +106,7 @@ contract SLLevels is SLBase {
             uint256[] memory entryTokenIds = new uint256[](
                 entryIdsArray.length
             );
-            for (uint256 i = 0; i < entryIdsArray.length; i++) {
+            for (uint256 i; i < entryIdsArray.length; ++i) {
                 //i is the batch number
                 //get the entry token cap to mount the entry token id
                 (uint256 entryTokenCap, ) = unmountEntryValue(entryIdsArray[i]);
@@ -146,7 +146,7 @@ contract SLLevels is SLBase {
                 _getLevelTokenIds(1)
             );
             //Verify if the user has any entry token
-            for (uint256 i = 0; i < userBalance.length; i++) {
+            for (uint256 i; i < userBalance.length; ++i) {
                 if (userBalance[i] > 0) {
                     return 1;
                 }

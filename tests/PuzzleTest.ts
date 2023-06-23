@@ -464,12 +464,12 @@ describe("Puzzle Contract", async () => {
     it("Owner should be able to mint if they have enough funds and the funds were approved", async () => {
       await expect(await puzzleContract.mintEntry())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(owner.address, ENTRY_LEVEL_NFT_ID, 1);
+        .withArgs(owner.address, ENTRY_LEVEL_NFT_ID);
     });
     it("Investor should be able to mint if they have enough funds and the funds were approved", async function () {
       await expect(await puzzleContract.connect(investor1).mintEntry())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor1.address, ENTRY_LEVEL_NFT_ID, 1);
+        .withArgs(investor1.address, ENTRY_LEVEL_NFT_ID);
     });
     it("Investor should have the Entry Level NFT after the mint", async () => {
       await puzzleContract.connect(investor1).mintEntry();
