@@ -129,7 +129,7 @@ contract SLPermissions {
     }
 
     /// @dev function to allow actions only when the contract IS NOT paused
-    function isPuzzleMintPaused() external view returns (bool) {
+    function isClaimPaused() external view returns (bool) {
         return (pausedPuzzleMint || paused);
     }
 

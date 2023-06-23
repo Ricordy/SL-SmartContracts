@@ -11,11 +11,14 @@ contract SLLevels is SLBase {
     /// @dev Call the function and add needed logic (Payment, etc)
     /// @param _receiver buyer
     function _buyEntryToken(address _receiver) internal {
-        require(entryIdsArray.length != 0, "SLLevels: No entry batchs created");
-        require(
-            getCurrentEntryBatchRemainingTokens() != 0,
-            "SLLevels: No entry tokens available in current batch"
-        );
+        //Verify if the entry token btach exists
+        if (entryIdsArray.length == 0) {
+            revert InexistentEntryBatch();
+        }
+        //Verify if the entry token is still available
+        if (getCurrentEntryBatchRemainingTokens() == 0) {
+            revert NoTokensRemaining();
+        }
         //get the current entry batch number
         uint256 batch = entryIdsArray.length - 1;
         //Get the entry token cap and currentID
@@ -23,11 +26,6 @@ contract SLLevels is SLBase {
             uint256 entryTokenCap,
             uint256 entryTokenCurrentId
         ) = unmountEntryValue(entryIdsArray[batch]);
-        //Verify if the entry token is still available
-        require(
-            entryTokenCurrentId < entryTokenCap,
-            "SLLevels: Entry token is not available"
-        );
         //Increment the entry token current id
         entryIdsArray[batch] = mountEntryValue(
             entryTokenCap,
@@ -63,34 +61,30 @@ contract SLLevels is SLBase {
         //Puzzle verification for passing to level2
         if (_tokenId == 30) {
             //Check for user level token ownership
-            require(
-                balanceOf(_claimer, _tokenId) == 0,
-                "User already has the LEVEL2 NFT"
-            );
+            if (balanceOf(_claimer, _tokenId) != 0) {
+                revert IncorrectUserLevel(2, 1);
+            }
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(1));
             //verify if balance meets the condition
             for (uint256 i; i < balance.length; ++i) {
-                require(
-                    balance[i] != 0,
-                    "SLLevels: User must have all Level1 pieces"
-                );
+                if (balance[i] == 0) {
+                    revert UserMustHaveCompletePuzzle(1);
+                }
             }
             //Puzzle verification for passing to level3
         } else if (_tokenId == 31) {
             //Check for user level token ownership
-            require(
-                balanceOf(_claimer, _tokenId) == 0,
-                "User already has the LEVEL2 NFT"
-            );
+            if (balanceOf(_claimer, _tokenId) != 0) {
+                revert IncorrectUserLevel(3, 2);
+            }
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(2));
             //verify if balance meets the condition
             for (uint256 i; i < balance.length; ++i) {
-                require(
-                    balance[i] != 0,
-                    "SLLevels: User must have all Level2 pieces"
-                );
+                if (balance[i] == 0) {
+                    revert UserMustHaveCompletePuzzle(2);
+                }
             }
         } else {
             //revert is for some reason the ID is not Level2 or 3 ID
@@ -188,10 +182,9 @@ contract SLLevels is SLBase {
     /// @dev User should be at least the same level as the the reuqired by the function
     modifier userHasLevel(uint256 _level) {
         //use _whichLevelUserHas to check if user has the level
-        require(
-            _whichLevelUserHas(msg.sender) >= _level,
-            "SLLevels: User doesnt have the level"
-        );
+        if (_whichLevelUserHas(msg.sender) < _level) {
+            revert IncorrectUserLevel(_level, _whichLevelUserHas(msg.sender));
+        }
         _;
     }
 }

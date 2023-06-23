@@ -8,14 +8,15 @@ import "./SLPuzzles.sol";
 /// @dev This contract extends SLPuzzles and provides core functionalities for the system.
 contract SLCore is SLPuzzles {
     /// @notice Initializes the new SLCore contract.
-
     /// @param _slLogicsAddress The address of the SLLogics contract.
     /// @param _slPermissionsAddress The address of the SLPermissions contract.
     constructor(address _slLogicsAddress, address _slPermissionsAddress) {
-        require(
-            _slLogicsAddress != address(0),
-            "SLCore: Logics address must be not null"
-        );
+        if (_slLogicsAddress == address(0)) {
+            revert InvalidAddress("SLLogics");
+        }
+        if (_slPermissionsAddress == address(0)) {
+            revert InvalidAddress("SLPermissions");
+        }
 
         slLogicsAddress = _slLogicsAddress;
 
@@ -28,10 +29,9 @@ contract SLCore is SLPuzzles {
     /// @notice Mints an entry token for the caller.
     /// @dev This function can only be called when entry minting is not paused and by non-reentrant calls.
     function mintEntry() public isEntryMintNotPaused nonReentrant {
-        require(
-            _whichLevelUserHas(msg.sender) == 0,
-            "SLCore: User have an entry token"
-        );
+        if (_whichLevelUserHas(msg.sender) != 0) {
+            revert IncorrectUserLevel(_whichLevelUserHas(msg.sender), 0);
+        }
         //run internal logic to mint entry token
         _buyEntryToken(msg.sender);
         //Initiliaze token and Ask for payment
@@ -59,10 +59,10 @@ contract SLCore is SLPuzzles {
         userHasLevel(1)
     {
         //Check if user has the highest level
-        require(
-            _whichLevelUserHas(msg.sender) < 3,
-            "SLCore: User at Top Level"
-        );
+        if (_whichLevelUserHas(msg.sender) > 2) {
+            revert IncorrectUserLevel(_whichLevelUserHas(msg.sender), 2);
+        }
+
         //Claim next level for user depending on the level he has
         _claimLevel(msg.sender, _whichLevelUserHas(msg.sender) == 1 ? 30 : 31);
     }
