@@ -51,8 +51,12 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
         address _slPermissionsAddress
     ) {
         require(
-            _factoryAddress != address(0) && _paymentTokenAddress != address(0),
-            "SLLogics: Re-check input parameters"
+            _factoryAddress != address(0),
+            "SLLogics: Factory address must be not null"
+        );
+        require(
+            _paymentTokenAddress != address(0),
+            "SLLogics: Payment Token address must be not null"
         );
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         factoryAddress = _factoryAddress;

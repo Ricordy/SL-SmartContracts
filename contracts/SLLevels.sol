@@ -11,10 +11,10 @@ contract SLLevels is SLBase {
     /// @dev Call the function and add needed logic (Payment, etc)
     /// @param _receiver buyer
     function _buyEntryToken(address _receiver) internal {
+        require(entryIdsArray.length != 0, "SLLevels: No entry batchs created");
         require(
-            getCurrentEntryBatchRemainingTokens() != 0 &&
-                entryIdsArray.length != 0,
-            "SLLevels: No entry tokens available"
+            getCurrentEntryBatchRemainingTokens() != 0,
+            "SLLevels: No entry tokens available in current batch"
         );
         //get the current entry batch number
         uint256 batch = entryIdsArray.length - 1;

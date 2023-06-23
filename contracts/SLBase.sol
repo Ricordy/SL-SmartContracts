@@ -37,9 +37,6 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @notice Mapping to tack number of user puzzle pieces
     /// @dev Key: Ke: user address, returns user puzzle pieces for all levels (separated the same way as COLLECTION_IDS).
     mapping(address => uint32) public userPuzzlePieces;
-    /// @notice The address of Factory contract.
-    /// @dev This value is set at the time of contract deployment.
-    address public factoryAddress;
     /// @notice The address of SLLogics contract.
     /// @dev This value is set at the time of contract deployment.
     address public slLogicsAddress;

@@ -8,20 +8,14 @@ import "./SLPuzzles.sol";
 /// @dev This contract extends SLPuzzles and provides core functionalities for the system.
 contract SLCore is SLPuzzles {
     /// @notice Initializes the new SLCore contract.
-    /// @param _factoryAddress The address of the factory contract.
+
     /// @param _slLogicsAddress The address of the SLLogics contract.
     /// @param _slPermissionsAddress The address of the SLPermissions contract.
-    constructor(
-        address _factoryAddress,
-        address _slLogicsAddress,
-        address _slPermissionsAddress
-    ) {
+    constructor(address _slLogicsAddress, address _slPermissionsAddress) {
         require(
-            _factoryAddress != address(0) && _slLogicsAddress != address(0),
-            "SLCore: Re-check input parameters"
+            _slLogicsAddress != address(0),
+            "SLCore: Logics address must be not null"
         );
-
-        factoryAddress = _factoryAddress;
 
         slLogicsAddress = _slLogicsAddress;
 
