@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "./Investment.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title SLFactory
 /// @author Something Legendary
@@ -11,7 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract Factory {
     /// @notice A mapping that stores deployed Investment contracts by their level.
     /// @dev The key is the level of the Investment contract and the value is an array of Investment contracts at that level.
-    mapping(uint => Investment[]) public deployedContracts;
+    mapping(uint256 => Investment[]) public deployedContracts;
     /// @notice Stores SLCore address
     /// @dev Used to initialize Investment contracts
     address public slCoreAddress;
@@ -26,7 +25,7 @@ contract Factory {
     event ContractCreated(
         uint256 indexed ContractID,
         address indexed conAddress,
-        uint indexed conLevel
+        uint256 indexed conLevel
     );
 
     /// @notice Initializes the contract with the address of the SLPermissions contract.
@@ -45,7 +44,7 @@ contract Factory {
     function deployNew(
         uint256 _totalInvestment,
         address _paymentTokenAddress,
-        uint8 _level
+        uint256 _level
     ) external isCEO isNotGloballyStoped returns (address) {
         require(
             slCoreAddress != address(0),
@@ -83,11 +82,11 @@ contract Factory {
     /// @return userTotal The total amount invested by the user.
     function getAddressTotal(
         address _user
-    ) external view returns (uint userTotal) {
+    ) external view returns (uint256 userTotal) {
         //Cicle through every level
-        for (uint i = 1; i <= 3; i++) {
+        for (uint256 i = 1; i <= 3; i++) {
             //Cicle through every investment in every level
-            for (uint j = 0; j < deployedContracts[i].length; j++) {
+            for (uint256 j = 0; j < deployedContracts[i].length; j++) {
                 //sum value to user total
                 userTotal += ERC20(deployedContracts[i][j]).balanceOf(_user);
             }
@@ -101,10 +100,10 @@ contract Factory {
     /// @return userTotal The total amount invested by the user at the specified level.
     function getAddressTotalInLevel(
         address _user,
-        uint _level
-    ) external view returns (uint userTotal) {
+        uint256 _level
+    ) external view returns (uint256 userTotal) {
         //Cicle through every investment in given level
-        for (uint i = 0; i < deployedContracts[_level].length; i++) {
+        for (uint256 i = 0; i < deployedContracts[_level].length; i++) {
             //sum value to user total
             userTotal += ERC20(deployedContracts[_level][i]).balanceOf(_user);
         }
@@ -116,7 +115,7 @@ contract Factory {
     /// @return userTotal The total amount invested by the caller in the specified contract.
     function getAddressOnContract(
         address _contractAddress
-    ) external view returns (uint userTotal) {
+    ) external view returns (uint256 userTotal) {
         userTotal = ERC20(_contractAddress).balanceOf(msg.sender);
     }
 
@@ -140,7 +139,7 @@ contract Factory {
     /// @param  _level The level of the Investment contracts.
     /// @return contractAddress The address of the last deployed Investment contract at the specified level.
     function getLastDeployedContract(
-        uint _level
+        uint256 _level
     ) external view returns (address contractAddress) {
         if (deployedContracts[_level].length > 0) {
             contractAddress = address(

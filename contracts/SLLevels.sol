@@ -17,7 +17,7 @@ contract SLLevels is SLBase {
             "SLLevels: No entry tokens available"
         );
         //get the current entry batch number
-        uint batch = entryIdsArray.length - 1;
+        uint256 batch = entryIdsArray.length - 1;
         //Get the entry token cap and currentID
         (
             uint256 entryTokenCap,
@@ -50,14 +50,14 @@ contract SLLevels is SLBase {
     /// @inheritdoc	SLBase
     function _userAllowedToBurnPuzzle(
         address _claimer,
-        uint _tokenId
+        uint256 _tokenId
     ) public view override {
         //Helper Arrays
         address[] memory userAddress = _createUserAddressArray(_claimer, 10);
         uint256[] memory amountsForBurn = new uint256[](10);
-        uint[] memory balance;
+        uint256[] memory balance;
         //Fill needed arrays
-        for (uint i = 0; i < amountsForBurn.length; i++) {
+        for (uint256 i = 0; i < amountsForBurn.length; i++) {
             amountsForBurn[i] = 1;
         }
         //Puzzle verification for passing to level2
@@ -70,7 +70,7 @@ contract SLLevels is SLBase {
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(1));
             //verify if balance meets the condition
-            for (uint i = 0; i < balance.length; i++) {
+            for (uint256 i = 0; i < balance.length; i++) {
                 require(
                     balance[i] != 0,
                     "SLLevels: User must have all Level1 pieces"
@@ -86,7 +86,7 @@ contract SLLevels is SLBase {
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(2));
             //verify if balance meets the condition
-            for (uint i = 0; i < balance.length; i++) {
+            for (uint256 i = 0; i < balance.length; i++) {
                 require(
                     balance[i] != 0,
                     "SLLevels: User must have all Level2 pieces"
@@ -100,13 +100,13 @@ contract SLLevels is SLBase {
 
     /// @inheritdoc	SLBase
     function _getLevelTokenIds(
-        uint _level
+        uint256 _level
     ) internal view override returns (uint256[] memory) {
         if (_level == 1) {
             uint256[] memory entryTokenIds = new uint256[](
                 entryIdsArray.length
             );
-            for (uint i = 0; i < entryIdsArray.length; i++) {
+            for (uint256 i = 0; i < entryIdsArray.length; i++) {
                 //i is the batch number
                 //get the entry token cap to mount the entry token id
                 (uint256 entryTokenCap, ) = unmountEntryValue(entryIdsArray[i]);
@@ -128,8 +128,8 @@ contract SLLevels is SLBase {
     /// @notice check users level
     /// @dev checks based on NFT balance, so the users are able to trade privileges
     /// @param _user user's address
-    /// @return uint users level
-    function _whichLevelUserHas(address _user) internal view returns (uint) {
+    /// @return uint256 users level
+    function _whichLevelUserHas(address _user) internal view returns (uint256) {
         //check if user has level 2 or 3
         //call function to check user balance of token id 30 and 31
 
@@ -146,7 +146,7 @@ contract SLLevels is SLBase {
                 _getLevelTokenIds(1)
             );
             //Verify if the user has any entry token
-            for (uint i = 0; i < userBalance.length; i++) {
+            for (uint256 i = 0; i < userBalance.length; i++) {
                 if (userBalance[i] > 0) {
                     return 1;
                 }
@@ -158,8 +158,8 @@ contract SLLevels is SLBase {
     /// @notice check users level
     /// @dev checks based on NFT balance, so the users are able to trade privileges
     /// @param _user user's address
-    /// @return uint users level
-    function whichLevelUserHas(address _user) external view returns (uint) {
+    /// @return uint256 users level
+    function whichLevelUserHas(address _user) external view returns (uint256) {
         return (_whichLevelUserHas(_user));
     }
 
@@ -168,15 +168,16 @@ contract SLLevels is SLBase {
     ///
     /// @notice get remaining tokens for current batch
     /// @dev uses SLMicroSlots to have access to such information
-    /// @return uint tokens left
+    /// @return uint256 tokens left
     function getCurrentEntryBatchRemainingTokens()
         public
         view
         returns (uint256)
     {
-        (uint256 entryTokenCap, uint entryTokenCurrentId) = unmountEntryValue(
-            entryIdsArray[entryIdsArray.length - 1]
-        );
+        (
+            uint256 entryTokenCap,
+            uint256 entryTokenCurrentId
+        ) = unmountEntryValue(entryIdsArray[entryIdsArray.length - 1]);
         return (entryTokenCap - entryTokenCurrentId);
     }
 
@@ -185,7 +186,7 @@ contract SLLevels is SLBase {
     ///
     /// @notice Verifies if user has the necessary NFT to interact with the function.
     /// @dev User should be at least the same level as the the reuqired by the function
-    modifier userHasLevel(uint _level) {
+    modifier userHasLevel(uint256 _level) {
         //use _whichLevelUserHas to check if user has the level
         require(
             _whichLevelUserHas(msg.sender) >= _level,

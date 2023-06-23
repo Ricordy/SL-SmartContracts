@@ -9,12 +9,12 @@ import "./ISLPermissions.sol";
 interface IFactory {
     function getAddressTotal(
         address user
-    ) external view returns (uint userTotal);
+    ) external view returns (uint256 userTotal);
 
     function getAddressTotalInLevel(
         address user,
-        uint level
-    ) external view returns (uint userTotal);
+        uint256 level
+    ) external view returns (uint256 userTotal);
 }
 
 interface IToken is IERC20 {}
@@ -99,9 +99,9 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
     /// @param _userPuzzlePiecesForUserCurrentLevel The number of puzzle pieces the user has for their current level
     function _userAllowedToClaimPiece(
         address _user,
-        uint _tokenId,
-        uint _currentUserLevel,
-        uint _userPuzzlePiecesForUserCurrentLevel
+        uint256 _tokenId,
+        uint256 _currentUserLevel,
+        uint256 _userPuzzlePiecesForUserCurrentLevel
     ) public view {
         //Check if user has the right to claim the next level
         require(
@@ -134,9 +134,9 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
     /// @return A boolean indicating whether the user is allowed to claim the puzzle piece
     function userAllowedToClaimPiece(
         address _user,
-        uint _tokenId,
-        uint _currentUserLevel,
-        uint _userPuzzlePiecesForUserCurrentLevel
+        uint256 _tokenId,
+        uint256 _currentUserLevel,
+        uint256 _userPuzzlePiecesForUserCurrentLevel
     ) public view returns (bool) {
         _userAllowedToClaimPiece(
             _user,
@@ -188,7 +188,7 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
 
     /// @notice returns the uri of specified collection id
     /// @return uint256 link where NFT metadata is stored
-    function uri(uint _tokenID) external view returns (string memory) {
+    function uri(uint256 _tokenID) external view returns (string memory) {
         if (_tokenID <= 32) {
             return
                 string(
@@ -200,7 +200,7 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
                     )
                 );
         } else {
-            (uint batch, ) = unmountEntryID(_tokenID);
+            (uint256 batch, ) = unmountEntryID(_tokenID);
             return batches_uri[batch];
         }
     }

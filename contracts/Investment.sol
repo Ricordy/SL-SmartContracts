@@ -12,7 +12,7 @@ import "./ISLPermissions.sol";
 error InvestmentExceedMax(uint256 amount, uint256 maxAllowed);
 
 interface ISLCore {
-    function whichLevelUserHas(address user) external view returns (uint);
+    function whichLevelUserHas(address user) external view returns (uint256);
 }
 
 interface IToken is IERC20 {}
@@ -60,7 +60,7 @@ contract Investment is ERC20, ReentrancyGuard {
     uint256 public constant MINIMUM_INVESTMENT = 100;
     /// @notice The Level of the contract.
     /// @dev This value is set at the time of contract deployment.
-    uint8 public immutable CONTRACT_LEVEL;
+    uint256 public immutable CONTRACT_LEVEL;
     /// @notice Stores if user has withdrawn.
     /// @dev Keeps user from withdrawing twice.
     mapping(address => bool) public userWithdrawed;
@@ -121,7 +121,7 @@ contract Investment is ERC20, ReentrancyGuard {
         address _slPermissionsAddress,
         address _slCoreAddress,
         address _paymentTokenAddress,
-        uint8 _contractLevel
+        uint256 _contractLevel
     ) ERC20("InvestmentCurrency", "IC") {
         require(
             _slCoreAddress != address(0) && _paymentTokenAddress != address(0),

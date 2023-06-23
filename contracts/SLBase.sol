@@ -9,9 +9,9 @@ import "./ISLPermissions.sol";
 interface ISLLogics {
     function _userAllowedToClaimPiece(
         address user,
-        uint _tokenId,
-        uint _currentUserLevel,
-        uint _userPuzzlePiecesForUserCurrentLevel
+        uint256 _tokenId,
+        uint256 _currentUserLevel,
+        uint256 _userPuzzlePiecesForUserCurrentLevel
     ) external view;
 
     function payEntryFee(address _user) external;
@@ -134,11 +134,11 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @dev burns in batch to be gas wiser
     /// @param _user the user's address
     /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
-    function _dealWithPuzzleBurning(address _user, uint _levelId) private {
+    function _dealWithPuzzleBurning(address _user, uint256 _levelId) private {
         //Helper Arrays
         uint256[] memory amountsForBurn = new uint256[](10);
         //Fill needed arrays
-        for (uint i = 0; i < amountsForBurn.length; i++) {
+        for (uint256 i = 0; i < amountsForBurn.length; i++) {
             amountsForBurn[i] = 1;
         }
         //Puzzle verification for passing to level2
@@ -157,7 +157,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
     function _userAllowedToBurnPuzzle(
         address _claimer,
-        uint _levelId
+        uint256 _levelId
     ) public view virtual {}
 
     ///
@@ -198,7 +198,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @param level the level that we want the token IDs
     /// @return uint256[] memory with ids for level 2 and 3 (30,31) or all level 1 collection ids
     function _getLevelTokenIds(
-        uint level
+        uint256 level
     ) internal view virtual returns (uint256[] memory) {}
 
     /// @notice funtion that returns the puzzle pieces for a specified level
@@ -219,7 +219,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         uint256 _size
     ) internal pure returns (address[] memory) {
         address[] memory userAddress = new address[](_size);
-        for (uint i = 0; i < userAddress.length; i++) {
+        for (uint256 i = 0; i < userAddress.length; i++) {
             userAddress[i] = _user;
         }
         return userAddress;

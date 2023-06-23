@@ -96,7 +96,7 @@ contract SLPuzzles is SLLevels {
     /// @return uint256 number of pieces
     function getUserPuzzlePiecesForUserCurrentLevel(
         address _user,
-        uint level
+        uint256 level
     ) public view returns (uint256) {
         return getPositionXInDivisionByY(userPuzzlePieces[_user], level, 3);
     }

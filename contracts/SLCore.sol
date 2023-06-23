@@ -83,8 +83,8 @@ contract SLCore is SLPuzzles {
     /// @param _entryPrice The price for the new entry batch.
     /// @param _tokenUri The URI for the new entry batch.
     function generateNewEntryBatch(
-        uint _cap,
-        uint _entryPrice,
+        uint256 _cap,
+        uint256 _entryPrice,
         string memory _tokenUri
     ) public isNotGloballyStoped isCEO {
         entryIdsArray.push(mountEntryValue(_cap, 0));
