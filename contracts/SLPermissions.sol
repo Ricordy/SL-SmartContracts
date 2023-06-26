@@ -44,6 +44,19 @@ contract SLPermissions {
     /// @dev When true, ervery investment in the platform is stoped.
     bool public pausedInvestments = false;
 
+    ///
+    //-----ERRORS------
+    ///
+    /// @notice Reverts if a certain address == address(0)
+    /// @param reason which address is missing
+    error InvalidAddress(string reason);
+
+    ///Function caller is not CEO level
+    error NotCEO();
+
+    ///Function caller is not CEO level
+    error NotCLevel();
+
     /// @notice Initializes the Permissions contract
     /// @param _ceoAddress The address of the CEO
     /// @param _cfoAddress The address of the CFO.
@@ -54,13 +67,17 @@ contract SLPermissions {
 
     /// @dev Access modifier for CEO-only functionality
     modifier onlyCEO() {
-        require(msg.sender == ceoAddress);
+        if (msg.sender != ceoAddress) {
+            revert NotCEO();
+        }
         _;
     }
 
     /// @dev Access modifier for CEO-CFO-only functionality
     modifier onlyCLevel() {
-        require(msg.sender == ceoAddress || msg.sender == cfoAddress);
+        if (msg.sender != ceoAddress && msg.sender != cfoAddress) {
+            revert NotCLevel();
+        }
         _;
     }
 
@@ -93,7 +110,9 @@ contract SLPermissions {
     /// @dev Assigns a new address to act as the CEO. Only available to the current CEO.
     /// @param _newCEO The address of the new CEO
     function setCEO(address _newCEO) external onlyCEO {
-        require(_newCEO != address(0));
+        if (_newCEO == address(0)) {
+            revert InvalidAddress("CEO");
+        }
 
         ceoAddress = _newCEO;
     }
@@ -101,7 +120,9 @@ contract SLPermissions {
     /// @dev Assigns a new address to act as the CFO. Only available to the current CEO.
     /// @param _newCFO The address of the new CFO
     function setCFO(address _newCFO) external onlyCEO {
-        require(_newCFO != address(0));
+        if (_newCFO == address(0)) {
+            revert InvalidAddress("CFO");
+        }
 
         cfoAddress = _newCFO;
     }
@@ -160,7 +181,6 @@ contract SLPermissions {
     ///  one reason we may pause the contract is when CFO account is
     ///  compromised.
     function unpausePlatform() external onlyCEO {
-        // can't unpause if contract was upgraded
         paused = false;
     }
 

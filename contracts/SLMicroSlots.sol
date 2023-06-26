@@ -6,6 +6,11 @@ pragma solidity ^0.8.0;
 /// @notice Computes numbers that are stored in slots inside uint256 values
 /// @dev this contract doesnt set state, it should be used in the inherited one
 contract SLMicroSlots {
+    /// @notice Reverts if input is not in level range
+    /// @param input inputed number
+    /// @param max max input value
+    error InvalidNumber(uint256 input, uint256 max);
+
     //Get a number of digits in x position of a number
     /// @notice Returns the position X in slots of Y size in a given number.
     /// @param number the uint256 from where the result is extracted
@@ -130,7 +135,9 @@ contract SLMicroSlots {
         uint256 newNumber
     ) internal view returns (uint256 _final) {
         //Verify if digit is incrementable
-        require(newNumber < 99999, "SLBase: Value to high");
+        if (newNumber > 99999) {
+            revert InvalidNumber(newNumber, 99999);
+        }
 
         //remount the number with new number using internal function
         _final =
