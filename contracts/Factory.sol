@@ -134,7 +134,8 @@ contract Factory {
         //Cicle through every level
         for (uint256 i = 1; i <= 3; ++i) {
             //Cicle through every investment in every level
-            for (uint256 j; j < deployedContracts[i].length; j++) {
+            uint256 numberOfContracts = deployedContracts[i].length;
+            for (uint256 j; j < numberOfContracts; j++) {
                 //sum value to user total
                 userTotal += ERC20(deployedContracts[i][j]).balanceOf(_user);
             }
@@ -151,7 +152,8 @@ contract Factory {
         uint256 _level
     ) external view returns (uint256 userTotal) {
         //Cicle through every investment in given level
-        for (uint256 i; i < deployedContracts[_level].length; ++i) {
+        uint256 numberOfContracts = deployedContracts[_level].length;
+        for (uint256 i; i < numberOfContracts; ++i) {
             //sum value to user total
             userTotal += ERC20(deployedContracts[_level][i]).balanceOf(_user);
         }

@@ -51,11 +51,15 @@ contract SLLevels is SLBase {
         uint256 _tokenId
     ) public view override {
         //Helper Arrays
-        address[] memory userAddress = _createUserAddressArray(_claimer, 10);
-        uint256[] memory amountsForBurn = new uint256[](10);
+        uint256 arraysLength = 10;
+        address[] memory userAddress = _createUserAddressArray(
+            _claimer,
+            arraysLength
+        );
+        uint256[] memory amountsForBurn = new uint256[](arraysLength);
         uint256[] memory balance;
         //Fill needed arrays
-        for (uint256 i; i < amountsForBurn.length; ++i) {
+        for (uint256 i; i < arraysLength; ++i) {
             amountsForBurn[i] = 1;
         }
         //Puzzle verification for passing to level2
@@ -67,7 +71,8 @@ contract SLLevels is SLBase {
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(1));
             //verify if balance meets the condition
-            for (uint256 i; i < balance.length; ++i) {
+            uint256 balanceLength = balance.length;
+            for (uint256 i; i < balanceLength; ++i) {
                 if (balance[i] == 0) {
                     revert UserMustHaveCompletePuzzle(1);
                 }
@@ -81,7 +86,8 @@ contract SLLevels is SLBase {
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(2));
             //verify if balance meets the condition
-            for (uint256 i; i < balance.length; ++i) {
+            uint256 balanceLength = balance.length;
+            for (uint256 i; i < balanceLength; ++i) {
                 if (balance[i] == 0) {
                     revert UserMustHaveCompletePuzzle(2);
                 }
@@ -97,10 +103,9 @@ contract SLLevels is SLBase {
         uint256 _level
     ) internal view override returns (uint256[] memory) {
         if (_level == 1) {
-            uint256[] memory entryTokenIds = new uint256[](
-                entryIdsArray.length
-            );
-            for (uint256 i; i < entryIdsArray.length; ++i) {
+            uint256 arrayLenght = entryIdsArray.length;
+            uint256[] memory entryTokenIds = new uint256[](arrayLenght);
+            for (uint256 i; i < arrayLenght; ++i) {
                 //i is the batch number
                 //get the entry token cap to mount the entry token id
                 (uint256 entryTokenCap, ) = unmountEntryValue(entryIdsArray[i]);
@@ -133,14 +138,15 @@ contract SLLevels is SLBase {
         } else if (balanceOf(_user, 30) != 0) {
             return 2;
         } else {
+            uint256 level1IdsLength = _getLevelTokenIds(1).length;
             //If user doesnt have level 2 or 3, check if user has entry token
             //Get the balance of the user for each entry token id
             uint256[] memory userBalance = balanceOfBatch(
-                _createUserAddressArray(_user, _getLevelTokenIds(1).length),
+                _createUserAddressArray(_user, level1IdsLength),
                 _getLevelTokenIds(1)
             );
             //Verify if the user has any entry token
-            for (uint256 i; i < userBalance.length; ++i) {
+            for (uint256 i; i < level1IdsLength; ++i) {
                 if (userBalance[i] != 0) {
                     return 1;
                 }

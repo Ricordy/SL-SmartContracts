@@ -179,10 +179,11 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @param _user the user's address
     /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
     function _dealWithPuzzleBurning(address _user, uint256 _levelId) private {
-        //Helper Arrays
-        uint256[] memory amountsForBurn = new uint256[](10);
+        //Helpers
+        uint256 helperSize = 10;
+        uint256[] memory amountsForBurn = new uint256[](helperSize);
         //Fill needed arrays
-        for (uint256 i; i < amountsForBurn.length; ++i) {
+        for (uint256 i; i < helperSize; ++i) {
             amountsForBurn[i] = 1;
         }
         //Puzzle verification for passing to level2
@@ -263,7 +264,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         uint256 _size
     ) internal pure returns (address[] memory) {
         address[] memory userAddress = new address[](_size);
-        for (uint256 i; i < userAddress.length; ++i) {
+        for (uint256 i; i < _size; ++i) {
             userAddress[i] = _user;
         }
         return userAddress;
