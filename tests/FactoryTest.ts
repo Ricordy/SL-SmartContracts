@@ -92,7 +92,6 @@ describe("Factory Contract Tests", async () => {
     await logicsContract.deployed();
     // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
     puzzleContract = await puzzleContractFactory.deploy(
-      factoryContract.address,
       logicsContract.address,
       permissionsContract.address
     );
@@ -223,7 +222,7 @@ describe("Factory Contract Tests", async () => {
         factoryContract
           .connect(investor1)
           .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1)
-      ).to.be.revertedWith("User not CEO");
+      ).to.be.revertedWithCustomError(factoryContract, "NotCEO");
     });
     it("Should create a new Investment contract", async () => {
       const { factoryContract } = await loadFixture(deployContractFixture);
