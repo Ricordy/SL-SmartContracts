@@ -29,20 +29,20 @@ contract SLPermissions {
     address public cfoAddress;
     /// @notice the mapping with allowed contracts.
     /// @dev the key is the contract address, permssions can be withdrawn from the contract.
-    mapping(address => bool) public allowedContracts;
+    mapping(address => uint256) public allowedContracts;
 
     /// @notice The global platform pause.
     /// @dev When true, the whole platform stopes working.
-    bool public paused = false;
+    uint256 public paused = 0;
     /// @notice The entry minting pause.
     /// @dev When true, the minting entry NFTs is disallowed.
-    bool public pausedEntryMint = false;
+    uint256 public pausedEntryMint = 0;
     /// @notice The levels and puzzles pause.
     /// @dev When true, the claiming of new pieces or puzzles is disallowed.
-    bool public pausedPuzzleMint = false;
+    uint256 public pausedPuzzleMint = 0;
     /// @notice The global investment pause.
     /// @dev When true, ervery investment in the platform is stoped.
-    bool public pausedInvestments = false;
+    uint256 public pausedInvestments = 0;
 
     ///
     //-----ERRORS------
@@ -50,6 +50,11 @@ contract SLPermissions {
     /// @notice Reverts if a certain address == address(0)
     /// @param reason which address is missing
     error InvalidAddress(string reason);
+
+    /// @notice Reverts if a certain address == address(0)
+    /// @param max max input value
+    /// @param input input value
+    error InvalidNumber(uint max, uint input);
 
     ///Function caller is not CEO level
     error NotCEO();
@@ -104,7 +109,7 @@ contract SLPermissions {
     function isAllowedContract(
         address _conAddress
     ) external view returns (bool) {
-        return (allowedContracts[_conAddress]);
+        return (allowedContracts[_conAddress] == 1);
     }
 
     /// @dev Assigns a new address to act as the CEO. Only available to the current CEO.
@@ -132,8 +137,11 @@ contract SLPermissions {
     /// @param _allowed the new status for the access control
     function setAllowedContracts(
         address _contractAddress,
-        bool _allowed
+        uint256 _allowed
     ) external onlyCEO {
+        if (_allowed > 1) {
+            revert InvalidNumber(1, _allowed);
+        }
         allowedContracts[_contractAddress] = _allowed;
     }
 
@@ -141,58 +149,58 @@ contract SLPermissions {
 
     /// @dev function to allow actions only when the contract IS NOT paused
     function isPlatformPaused() external view returns (bool) {
-        return (paused);
+        return (paused == 1);
     }
 
     /// @dev function to allow actions only when the contract IS NOT paused
     function isEntryMintPaused() external view returns (bool) {
-        return (pausedEntryMint || paused);
+        return (pausedEntryMint == 1 || paused == 1);
     }
 
     /// @dev function to allow actions only when the contract IS NOT paused
     function isClaimPaused() external view returns (bool) {
-        return (pausedPuzzleMint || paused);
+        return (pausedPuzzleMint == 1 || paused == 1);
     }
 
     /// @dev function to allow actions only when the contract IS paused
     function isInvestmentsPaused() external view returns (bool) {
-        return (pausedInvestments || paused);
+        return (pausedInvestments == 1 || paused == 1);
     }
 
     /// @dev Called by any "C-level" role to pause each of the functionalities. Used only when
     ///  a bug or exploit is detected and we need to limit damage.
     function pausePlatform() external onlyCLevel {
-        paused = true;
+        paused = 1;
     }
 
     function pauseEntryMint() external onlyCLevel {
-        pausedEntryMint = true;
+        pausedEntryMint = 1;
     }
 
     function pausePuzzleMint() external onlyCLevel {
-        pausedPuzzleMint = true;
+        pausedPuzzleMint = 1;
     }
 
     function pauseInvestments() external onlyCLevel {
-        pausedInvestments = true;
+        pausedInvestments = 1;
     }
 
     /// @dev Unpauses the functionalities. Can only be called by the CEO, since
     ///  one reason we may pause the contract is when CFO account is
     ///  compromised.
     function unpausePlatform() external onlyCEO {
-        paused = false;
+        paused = 0;
     }
 
     function unpauseEntryMint() external onlyCEO {
-        pausedEntryMint = false;
+        pausedEntryMint = 0;
     }
 
     function unpausePuzzleMint() external onlyCEO {
-        pausedPuzzleMint = false;
+        pausedPuzzleMint = 0;
     }
 
     function unpauseInvestments() external onlyCEO {
-        pausedInvestments = false;
+        pausedInvestments = 0;
     }
 }
