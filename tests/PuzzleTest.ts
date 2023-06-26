@@ -544,16 +544,17 @@ describe("Puzzle Contract", async () => {
     it("Investor should be able to call  claim (to claim a NFT Puzzle) after having invested the minimum amount required", async () => {
       await expect(await puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor1.address, anyValue, 1);
+        .withArgs(investor1.address, anyValue);
     });
     it("user should not be able to reclaim while he hasnt invested enough", async () => {
       await expect(puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor1.address, anyValue, 1);
+        .withArgs(investor1.address, anyValue);
       await expect(
         puzzleContract.connect(investor1).claimPiece()
-      ).to.be.revertedWith(
-        "SLLogics: User does not have enough investment to claim this piece"
+      ).to.be.revertedWithCustomError(
+        logcisContract,
+        "MissingInvestmentToClaim"
       );
     });
   });
@@ -562,14 +563,18 @@ describe("Puzzle Contract", async () => {
       ({ puzzleContract } = await loadFixture(investor1NotReeadyToClaimNFT));
     });
     it("Owner should not be able to burn without the required Puzzle NFTs", async () => {
-      await expect(puzzleContract.claimLevel()).to.be.revertedWith(
-        "SLLevels: User must have all Level1 pieces"
+      await expect(puzzleContract.claimLevel()).to.be.revertedWithCustomError(
+        puzzleContract,
+        "UserMustHaveCompletePuzzle"
       );
     });
     it("Investor should not be able to burn without the required Puzzle NFTs", async () => {
       await expect(
         puzzleContract.connect(investor1).claimLevel()
-      ).to.be.revertedWith("SLLevels: User must have all Level1 pieces");
+      ).to.be.revertedWithCustomError(
+        puzzleContract,
+        "UserMustHaveCompletePuzzle"
+      );
     });
   });
   describe("Claim LEVEL2 NFT", async () => {
