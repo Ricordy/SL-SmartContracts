@@ -58,7 +58,7 @@ contract Investment is ERC20, ReentrancyGuard {
     uint256 public immutable CONTRACT_LEVEL;
     /// @notice Stores if user has withdrawn.
     /// @dev Keeps user from withdrawing twice.
-    mapping(address => bool) public userWithdrawed;
+    mapping(address => uint256) public userWithdrawed;
 
     ///
     //-----EVENTS------
@@ -248,11 +248,11 @@ contract Investment is ERC20, ReentrancyGuard {
         isNotGloballyStoped
     {
         //Check if user has withdrawed already
-        if (userWithdrawed[msg.sender]) {
+        if (userWithdrawed[msg.sender] == 1) {
             revert CannotWithdrawTwice();
         }
         //Set user as withdrawed
-        userWithdrawed[msg.sender] = true;
+        userWithdrawed[msg.sender] = 1;
         //Calculate final amount
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
         //Tranfer final amount
