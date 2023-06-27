@@ -91,7 +91,6 @@ describe("Logics Contract Tests", async () => {
     await logcisContract.deployed();
     // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
     puzzleContract = await puzzleContractFactory.deploy(
-      factoryContract.address,
       logcisContract.address,
       permissionsContract.address
     );

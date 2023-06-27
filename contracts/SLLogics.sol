@@ -26,6 +26,9 @@ interface IToken is IERC20 {}
 /// @dev Extra details about storage: https://app.diagrams.net/#G1Wi7A1SK0y8F9X-XDm65IUdfRJ81Fo7bF
 contract SLLogics is ReentrancyGuard, SLMicroSlots {
     using SafeERC20 for IERC20;
+    ///
+    //-----STATE VARIABLES------
+    ///
     /// @notice The address of the Access Control contract.
     /// @dev This value is set at the time of contract deployment.
     address public immutable SLPERMISSIONS_ADDRESS;
@@ -45,15 +48,58 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
     /// @dev This value is set at the time of batch creation.
     string[] public batches_uri;
 
+    ///
+    //-----ERRORS------
+    ///
+    /// @notice Reverts if a certain address == address(0)
+    /// @param reason which address is missing
+    error InvalidAddress(string reason);
+
+    /// @notice Reverts if input is not in level range
+    /// @param input lvel inputed
+    /// @param min minimum level value
+    /// @param max maximum level value
+    error InvalidLevel(uint256 input, uint256 min, uint256 max);
+
+    /// @notice Reverts if input is not in level range
+    /// @param level lvel of the pieces
+    /// @param currentPieces current number of pieces
+    /// @param maxPieces pieces limit
+    error PiecesLimit(uint256 level, uint256 currentPieces, uint256 maxPieces);
+
+    /// @notice Reverts if input is not in level range
+    /// @param allowedPieces number of allowed pieces to claim by the user
+    /// @param currentPieces number of claimed pieces
+    error MissingInvestmentToClaim(
+        uint256 allowedPieces,
+        uint256 currentPieces
+    );
+
+    ///Function caller is not CFO level
+    error NotCFO();
+
+    ///Function caller is not Can allowed contract
+    error NotAllowedContract();
+
+    ///
+    //-----CONSTRUCTOR------
+    ///
+    /// @notice Initilizes contract with given parameters.
+    /// @dev Requires a valid SLCore, payment token and factory addresses .
+    /// @param _factoryAddress The total value of the investmnet.
+    /// @param  _paymentTokenAddress The address of the token management contract.
+    /// @param _slPermissionsAddress The address of the Access Control contract.
     constructor(
         address _factoryAddress,
         address _paymentTokenAddress,
         address _slPermissionsAddress
     ) {
-        require(
-            _factoryAddress != address(0) && _paymentTokenAddress != address(0),
-            "SLLogics: Re-check input parameters"
-        );
+        if (_factoryAddress == address(0)) {
+            revert InvalidAddress("Factory");
+        }
+        if (_paymentTokenAddress == address(0)) {
+            revert InvalidAddress("Payment Token");
+        }
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         factoryAddress = _factoryAddress;
         paymentTokenAddress = _paymentTokenAddress;
@@ -91,7 +137,7 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
 
     ///CHECKER FOR PIECE CLAIMING
     // Function to verify if user has the right to claim the next level
-    /// @notice Check if a user is allowed to claim a puzzle piece
+    /// @notice Check if a user is allowed to claim a puzzle piece, verifiyng that user does not surpass 999 limit of pieces per user per level
     /// @dev Takes into account the user's current level and the number of puzzle pieces they have for their current level
     /// @param _user The address of the user
     /// @param _tokenId The ID of the token
@@ -103,26 +149,30 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
         uint256 _currentUserLevel,
         uint256 _userPuzzlePiecesForUserCurrentLevel
     ) public view {
-        //Check if user has the right to claim the next level
-        require(
-            _currentUserLevel == _tokenId,
-            "SLLogics: User does not have the right to claim piece from this level"
-        );
+        //Check if user has the right to claim pieces from this level
+        if (_currentUserLevel != _tokenId) {
+            revert InvalidLevel(_currentUserLevel, _tokenId, _tokenId);
+        }
         //Check if user is allowed to claim more pieces in current level
-        require(
-            _userPuzzlePiecesForUserCurrentLevel < 999,
-            "SLLogics: User has already claimed the max amount of pieces for this level"
-        );
+        if (_userPuzzlePiecesForUserCurrentLevel >= 999) {
+            revert PiecesLimit(
+                _currentUserLevel,
+                _userPuzzlePiecesForUserCurrentLevel,
+                999
+            );
+        }
         //Check if user has the right amount of puzzle pieces
         IFactory factory = IFactory(factoryAddress);
         uint256 allowedToMint = (factory.getAddressTotalInLevel(
             _user,
             _tokenId
         ) / 10 ** 6) / getMinClaimAmount(_tokenId);
-        require(
-            (_userPuzzlePiecesForUserCurrentLevel + 1) <= allowedToMint,
-            "SLLogics: User does not have enough investment to claim this piece"
-        );
+        if (_userPuzzlePiecesForUserCurrentLevel + 1 > allowedToMint) {
+            revert MissingInvestmentToClaim(
+                allowedToMint,
+                _userPuzzlePiecesForUserCurrentLevel
+            );
+        }
     }
 
     /// @notice Check if a user is allowed to claim a puzzle piece
@@ -174,10 +224,12 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
     /// @notice returns the minimum amount for claiming a puzzle piece per level
     /// @return uint256 minimum claim amount
     function getMinClaimAmount(uint256 _level) public view returns (uint256) {
-        require(
-            _level == 1 || _level == 2 || _level == 3,
-            "SLPuzzles: Not a valid puzzle level"
-        );
+        if (_level == 0) {
+            revert InvalidLevel(_level, 1, 3);
+        }
+        if (_level > 3) {
+            revert InvalidLevel(_level, 1, 3);
+        }
         return
             getPositionXInDivisionByY(
                 min_claim_amount_and_entry_price,
@@ -208,20 +260,20 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
     /// @notice Verifies if caller is an allowed contract.
     /// @dev allowed contracts has the right to interact with: payEntryFee() and setEntryPrice()
     modifier isAllowedContract() {
-        require(
-            ISLPermissions(SLPERMISSIONS_ADDRESS).isAllowedContract(msg.sender),
-            "User not CEO"
-        );
+        if (
+            !ISLPermissions(SLPERMISSIONS_ADDRESS).isAllowedContract(msg.sender)
+        ) {
+            revert NotAllowedContract();
+        }
         _;
     }
 
     /// @notice Verifies if user is CFO.
     /// @dev CEO has the right to interact with: withdrawTokens()
     modifier isCFO() {
-        require(
-            ISLPermissions(SLPERMISSIONS_ADDRESS).isCFO(msg.sender),
-            "User not CFO"
-        );
+        if (!ISLPermissions(SLPERMISSIONS_ADDRESS).isCFO(msg.sender)) {
+            revert NotCFO();
+        }
         _;
     }
 }

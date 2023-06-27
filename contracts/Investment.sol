@@ -6,11 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ISLPermissions.sol";
 
-/// Investing amount exceeded the maximum allowed
-/// @param amount the amount user is trying to invest
-/// @param maxAllowed max amount allowed to invest
-error InvestmentExceedMax(uint256 amount, uint256 maxAllowed);
-
 interface ISLCore {
     function whichLevelUserHas(address user) external view returns (uint256);
 }
@@ -63,7 +58,7 @@ contract Investment is ERC20, ReentrancyGuard {
     uint256 public immutable CONTRACT_LEVEL;
     /// @notice Stores if user has withdrawn.
     /// @dev Keeps user from withdrawing twice.
-    mapping(address => bool) public userWithdrawed;
+    mapping(address => uint256) public userWithdrawed;
 
     ///
     //-----EVENTS------
@@ -108,7 +103,63 @@ contract Investment is ERC20, ReentrancyGuard {
     event ContractFilled(uint256 indexed time);
 
     ///
+    //-----ERRORS------
+    ///
+    /// @notice Reverts if a certain address == address(0)
+    /// @param reason which address is missing
+    error InvalidAddress(string reason);
+
+    /// @notice Reverts if input is not in level range
+    /// @param input lvel inputed
+    /// @param min minimum level value
+    /// @param max maximum level value
+    error InvalidLevel(uint256 input, uint256 min, uint256 max);
+
+    /// Investing amount exceeded the maximum allowed
+    /// @param amount the amount user is trying to invest
+    /// @param minAllowed minimum amount allowed to invest
+    /// @param maxAllowed maximum amount allowed to invest
+    error WrongfulInvestmentAmount(
+        uint256 amount,
+        uint256 minAllowed,
+        uint256 maxAllowed
+    );
+
+    /// @notice Reverts if input is not in level range
+    /// @param currentStatus current contract status
+    /// @param expectedStatus expected status for function to runm
+    error InvalidContractStatus(Status currentStatus, Status expectedStatus);
+
+    /// @notice Reverts if user is not at least at contract level
+    /// @param expectedLevel expected user minimum level
+    /// @param userLevel user level
+    error IncorrectUserLevel(uint256 expectedLevel, uint256 userLevel);
+
+    /// @notice revers if refill value is incorrect
+    /// @param expected expected refill amount
+    /// @param input input amount
+    error IncorrectRefillValue(uint256 expected, uint256 input);
+
+    /// @notice reverts if paltofrm hasn´t enough investment for starting process
+    /// @param expected expected investment total
+    /// @param actual actual investment total
+    error NotEnoughForProcess(uint256 expected, uint256 actual);
+
+    /// @notice reverts if user tries a second withdraw
+    error CannotWithdrawTwice();
+
+    /// @notice Reverts if platform is paused
+    error PlatformPaused();
+
+    ///Function caller is not CEO level
+    error NotCEO();
+
+    ///Function caller is not CEO level
+    error NotCFO();
+
+    ///
     //-----CONSTRUCTOR------
+    ///
     /// @notice Initilizes contract with given parameters.
     /// @dev Requires a valid SLCore address and payment token address.
     /// @param _totalInvestment The total value of the investmnet.
@@ -123,10 +174,12 @@ contract Investment is ERC20, ReentrancyGuard {
         address _paymentTokenAddress,
         uint256 _contractLevel
     ) ERC20("InvestmentCurrency", "IC") {
-        require(
-            _slCoreAddress != address(0) && _paymentTokenAddress != address(0),
-            "Investment: Check the parameters and redeploy"
-        );
+        if (_slCoreAddress == address(0)) {
+            revert InvalidAddress("SLCore");
+        }
+        if (_paymentTokenAddress == address(0)) {
+            revert InvalidAddress("PaymentToken");
+        }
         TOTAL_INVESTMENT = _totalInvestment * 10 ** decimals();
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         SLCORE_ADDRESS = _slCoreAddress;
@@ -144,16 +197,27 @@ contract Investment is ERC20, ReentrancyGuard {
     function invest(
         uint256 _amount
     ) public nonReentrant isAllowed isProgress isNotGloballyStoped {
-        require(_amount >= MINIMUM_INVESTMENT, "Not enough amount to invest");
         //Get amount already invested by user
         uint256 userInvested = _amount *
             10 ** decimals() +
             balanceOf(msg.sender);
         //Get max to invest
         uint256 maxToInvest = getMaxToInvest();
+        //Check if amount invested is at least the minimum amount invested
+        if (_amount < MINIMUM_INVESTMENT) {
+            revert WrongfulInvestmentAmount(
+                userInvested,
+                MINIMUM_INVESTMENT,
+                maxToInvest
+            );
+        }
         //If user has invested more than the max to invest, he's not allowed to invest
         if (userInvested > maxToInvest) {
-            revert InvestmentExceedMax(userInvested, maxToInvest);
+            revert WrongfulInvestmentAmount(
+                userInvested,
+                MINIMUM_INVESTMENT,
+                maxToInvest
+            );
         }
         //If the amount invested by the user fills the contract, the status is automaticaly changed
         if (totalSupply() + _amount * 10 ** 6 == TOTAL_INVESTMENT) {
@@ -184,12 +248,11 @@ contract Investment is ERC20, ReentrancyGuard {
         isNotGloballyStoped
     {
         //Check if user has withdrawed already
-        require(
-            !userWithdrawed[msg.sender],
-            "Investment: User already withdrawed"
-        );
+        if (userWithdrawed[msg.sender] == 1) {
+            revert CannotWithdrawTwice();
+        }
         //Set user as withdrawed
-        userWithdrawed[msg.sender] = true;
+        userWithdrawed[msg.sender] = 1;
         //Calculate final amount
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
         //Tranfer final amount
@@ -203,10 +266,12 @@ contract Investment is ERC20, ReentrancyGuard {
         //get total invested by users
         uint256 totalBalance = totalContractBalanceStable();
         //check if total invested is at least 80% of totalInvestment
-        require(
-            totalBalance >= (TOTAL_INVESTMENT * 80) / 100,
-            "Total not reached"
-        );
+        if (totalBalance < (TOTAL_INVESTMENT * 80) / 100) {
+            revert NotEnoughForProcess(
+                (TOTAL_INVESTMENT * 80) / 100,
+                totalBalance
+            );
+        }
 
         emit SLWithdraw(totalBalance, block.timestamp);
         //Transfer tokens to caller
@@ -222,11 +287,18 @@ contract Investment is ERC20, ReentrancyGuard {
         uint256 _profitRate
     ) public nonReentrant isNotGloballyStoped isProcess isCFO {
         //Verify if _amount is the total needed to fulfill users withdraw
-        require(
-            TOTAL_INVESTMENT + ((TOTAL_INVESTMENT * _profitRate) / 100) ==
-                _amount * 10 ** decimals(),
-            "Not correct value"
-        );
+        if (
+            TOTAL_INVESTMENT + ((TOTAL_INVESTMENT * _profitRate) / 100) !=
+            _amount * 10 ** decimals()
+        ) {
+            //calculates the amount expected without the decimals
+            revert IncorrectRefillValue(
+                TOTAL_INVESTMENT +
+                    ((TOTAL_INVESTMENT * _profitRate) / 100) /
+                    10 ** decimals(),
+                _amount
+            );
+        }
         //glogally sets profit rate amount
         returnProfit = _profitRate;
         // Change status to withdraw
@@ -280,59 +352,60 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @notice Verifies if platform is paused.
     /// @dev If platform is paused, the whole contract is stopped
     modifier isNotGloballyStoped() {
-        require(
-            !ISLPermissions(SLPERMISSIONS_ADDRESS).isInvestmentsPaused(),
-            "InvestmentsPaused"
-        );
+        if (ISLPermissions(SLPERMISSIONS_ADDRESS).isPlatformPaused()) {
+            revert PlatformPaused();
+        }
         _;
     }
     /// @notice Verifies if contract is in progress status.
     /// @dev If contract is in progress, the only available functions are invest(), changeStatus()
     modifier isProgress() {
-        require(status == Status.Progress, "Not on progress");
+        if (status != Status.Progress) {
+            revert InvalidContractStatus(status, Status.Progress);
+        }
         _;
     }
     /// @notice Verifies if contract is in process status.
     /// @dev If contract is in process, the only available functions are withdrawSL(), changeStatus() and refill()
     modifier isProcess() {
-        require(status == Status.Process, "Not on process");
+        if (status != Status.Process) {
+            revert InvalidContractStatus(status, Status.Process);
+        }
         _;
     }
     /// @notice Verifies if contract is in withdraw or refunding status.
     /// @dev If contract is in progress, the only available functions are withdraw(), changeStatus()
     modifier isWithdrawOrRefunding() {
-        require(
-            status == Status.Withdraw || status == Status.Refunding,
-            "Not on Withdraw or Refunding"
-        );
+        if (status != Status.Withdraw && status != Status.Refunding) {
+            revert InvalidContractStatus(status, Status.Withdraw);
+        }
         _;
     }
     /// @notice Verifies if user has the necessary NFT to interact with the contract.
     /// @dev User should be at least the same level as the contract
     modifier isAllowed() {
-        require(
-            ISLCore(SLCORE_ADDRESS).whichLevelUserHas(msg.sender) >=
-                CONTRACT_LEVEL,
-            "User does not have the required level NFT"
+        uint256 userLevel = ISLCore(SLCORE_ADDRESS).whichLevelUserHas(
+            msg.sender
         );
+        if (userLevel < CONTRACT_LEVEL) {
+            revert IncorrectUserLevel(CONTRACT_LEVEL, userLevel);
+        }
         _;
     }
     /// @notice Verifies if user is CEO.
     /// @dev CEO has the right to interact with: changeStatus()
     modifier isCEO() {
-        require(
-            ISLPermissions(SLPERMISSIONS_ADDRESS).isCEO(msg.sender),
-            "User not CEO"
-        );
+        if (!ISLPermissions(SLPERMISSIONS_ADDRESS).isCEO(msg.sender)) {
+            revert NotCEO();
+        }
         _;
     }
     /// @notice Verifies if user is CFO.
     /// @dev CEO has the right to interact with: withdrawSL() and refill()
     modifier isCFO() {
-        require(
-            ISLPermissions(SLPERMISSIONS_ADDRESS).isCFO(msg.sender),
-            "User not CFO"
-        );
+        if (!ISLPermissions(SLPERMISSIONS_ADDRESS).isCFO(msg.sender)) {
+            revert NotCFO();
+        }
         _;
     }
 
@@ -356,8 +429,8 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @notice Returns the number of decimals for investment token. Is the same number of decimals as the payment token!
     /// @dev This function is overridden from the ERC20 standard.
     function decimals() public view override returns (uint8) {
-        ERC20 _token = ERC20(paymentTokenAddress);
-        return _token.decimals();
+        //ERC20 _token = ERC20(paymentTokenAddress);
+        return 6;
     }
 
     /// @notice Disallows investment token transfers from one address to another.

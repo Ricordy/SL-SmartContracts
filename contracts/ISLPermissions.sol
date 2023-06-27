@@ -14,7 +14,7 @@ interface ISLPermissions {
 
     function isInvestmentsPaused() external view returns (bool);
 
-    function isPuzzleMintPaused() external view returns (bool);
+    function isClaimPaused() external view returns (bool);
 
     function isEntryMintPaused() external view returns (bool);
 }
