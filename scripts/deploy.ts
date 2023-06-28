@@ -56,7 +56,6 @@ async function main() {
   await logcisContract.deployed();
   // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
   let puzzleContract = await puzzleContractFactory.deploy(
-    factoryContract.address,
     logcisContract.address,
     permissionsContract.address
   );
@@ -64,7 +63,7 @@ async function main() {
   // Set the Puzzle contract deployed as entry address on Factory contract
   await factoryContract.setSLCoreAddress(puzzleContract.address);
   // Allow SLCore to make changes in SLLogics
-  await permissionsContract.setAllowedContracts(puzzleContract.address, true);
+  await permissionsContract.setAllowedContracts(puzzleContract.address, 1);
   // Create a new entry batch
   await puzzleContract.generateNewEntryBatch(
     ENTRY_BATCH_CAP,
