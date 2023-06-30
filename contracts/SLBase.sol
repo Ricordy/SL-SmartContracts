@@ -63,7 +63,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     error InvalidAddress(string reason);
 
     /// @notice Reverts if input is not in level range
-    /// @param input lvel inputed
+    /// @param input level inputed
     /// @param min minimum level value
     /// @param max maximum level value
     error InvalidLevel(uint256 input, uint256 min, uint256 max);

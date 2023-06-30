@@ -42,7 +42,7 @@ contract Factory {
     error InvalidAddress(string reason);
 
     /// @notice Reverts if input is not in level range
-    /// @param input lvel inputed
+    /// @param input level inputed
     /// @param min minimum level value
     /// @param max maximum level value
     error InvalidLevel(uint256 input, uint256 min, uint256 max);
@@ -114,7 +114,7 @@ contract Factory {
     /// @dev The function requires the caller to be a CEO and the platform to be active. It also checks if the _slCoreAddress is not a zero address.
     /// @param  _slCoreAddress The new SLCore address.
     /// @custom:requires  CEO access Level
-    /// @custom:intent If SLCore gets compromised, there's a way to fixed factory withouth the need of redeploying
+    /// @custom:intent If SLCore gets compromised, there's a way to fix the factory withouth the need of redeploying
     function setSLCoreAddress(
         address _slCoreAddress
     ) external isCEO isNotGloballyStoped {

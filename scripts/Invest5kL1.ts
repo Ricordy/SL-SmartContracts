@@ -57,7 +57,6 @@ async function main() {
     .approve(investmentAddress, valueWithDecimals);
   console.log(`Investing ${investmentValue}...`);
   await investmentContract.connect(firstInvestor).invest(investmentValue);
-  console.log(await investmentContract.investors());
 }
 
 main().catch((error) => {

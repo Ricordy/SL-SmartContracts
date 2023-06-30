@@ -58,13 +58,13 @@ contract Investment is ERC20, ReentrancyGuard {
     uint256 public immutable CONTRACT_LEVEL;
     /// @notice Stores if user has withdrawn.
     /// @dev Keeps user from withdrawing twice.
-    mapping(address => uint256) public userWithdrawed;
+    mapping(address => uint256) public userWithdrew;
 
     ///
     //-----EVENTS------
     ///
     /// @notice An event that is emitted when a user invests.
-    /// @param user The address of said user.
+    /// @param user The address of the user who invested.
     /// @param amount The amount invested.
     /// @param time The timestamp where action was perfomed.
     event UserInvest(
@@ -110,7 +110,7 @@ contract Investment is ERC20, ReentrancyGuard {
     error InvalidAddress(string reason);
 
     /// @notice Reverts if input is not in level range
-    /// @param input lvel inputed
+    /// @param input level inputed
     /// @param min minimum level value
     /// @param max maximum level value
     error InvalidLevel(uint256 input, uint256 min, uint256 max);
@@ -127,7 +127,7 @@ contract Investment is ERC20, ReentrancyGuard {
 
     /// @notice Reverts if input is not in level range
     /// @param currentStatus current contract status
-    /// @param expectedStatus expected status for function to runm
+    /// @param expectedStatus expected status for function to run
     error InvalidContractStatus(Status currentStatus, Status expectedStatus);
 
     /// @notice Reverts if user is not at least at contract level
@@ -135,7 +135,7 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @param userLevel user level
     error IncorrectUserLevel(uint256 expectedLevel, uint256 userLevel);
 
-    /// @notice revers if refill value is incorrect
+    /// @notice reverts if refill value is incorrect
     /// @param expected expected refill amount
     /// @param input input amount
     error IncorrectRefillValue(uint256 expected, uint256 input);
@@ -160,13 +160,13 @@ contract Investment is ERC20, ReentrancyGuard {
     ///
     //-----CONSTRUCTOR------
     ///
-    /// @notice Initilizes contract with given parameters.
+    /// @notice Initializes contract with given parameters.
     /// @dev Requires a valid SLCore address and payment token address.
-    /// @param _totalInvestment The total value of the investmnet.
+    /// @param _totalInvestment The total value of the investment.
     /// @param _slPermissionsAddress The address of the Access Control contract.
     /// @param _slCoreAddress The SLCore address.
     /// @param  _paymentTokenAddress The address of the token management contract.
-    /// @param _contractLevel The level of these contract.
+    /// @param _contractLevel The level of this contract.
     constructor(
         uint256 _totalInvestment,
         address _slPermissionsAddress,
@@ -248,14 +248,14 @@ contract Investment is ERC20, ReentrancyGuard {
         isNotGloballyStoped
     {
         //Check if user has withdrawed already
-        if (userWithdrawed[msg.sender] == 1) {
+        if (userWithdrew[msg.sender] == 1) {
             revert CannotWithdrawTwice();
         }
         //Set user as withdrawed
-        userWithdrawed[msg.sender] = 1;
+        userWithdrew[msg.sender] = 1;
         //Calculate final amount
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
-        //Tranfer final amount
+        //Transfer final amount
         IERC20(paymentTokenAddress).safeTransfer(msg.sender, finalAmount);
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
@@ -299,7 +299,7 @@ contract Investment is ERC20, ReentrancyGuard {
                 _amount
             );
         }
-        //glogally sets profit rate amount
+        //globally sets profit rate amount
         returnProfit = _profitRate;
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
@@ -326,7 +326,7 @@ contract Investment is ERC20, ReentrancyGuard {
     }
 
     /// @notice Calculates the possible amount to invest
-    /// @dev Checks if contracts is more than 90% full and returns the remaining to fill, if not, returns 10% of total investment
+    /// @dev Checks if contract is more than 90% full and returns the remaining to fill, if not, returns 10% of total investment
     /// @return maxToInvest max allowed to invest at any time (by a user that didn't invest yet)
     function getMaxToInvest() public view returns (uint256 maxToInvest) {
         maxToInvest = TOTAL_INVESTMENT - totalContractBalanceStable();
