@@ -20,7 +20,7 @@ const config: HardhatUserConfig = {
       chainId: 31337,
       blockGasLimit: 100000000429720, // whatever you want here
     },
-    goerli: {
+    mumbai: {
       url: ALCHEMY_API_KEY_URL,
       accounts: [PRIVATE_KEY ?? ""],
     },

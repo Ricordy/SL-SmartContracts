@@ -15,18 +15,20 @@ const investmentValue: number = 6000;
 
 async function main() {
   //const accounts: SignerWithAddress[] = await ethers.getSigners();
-  const ceo: SignerWithAddress[] = await ethers.getSigners();
+  const ceo: SignerWithAddress = await ethers.getSigner(
+    "0xC2Fab2A52DaAe5213c5060800Bf03176818c86c9"
+  );
   //const firstInvestor: SignerWithAddress = accounts[1];
 
-  const paymentTokenFactory = new CoinTest__factory(ceo);
-  const factoryFactory = new Factory__factory(ceo);
-  const investmentFactory = new Investment__factory(ceo);
+  const paymentTokenFactory = await ethers.getContractFactory("CoinTest");
+  const factoryContractFactory = await ethers.getContractFactory("Factory");
+  const investmentFactory = await ethers.getContractFactory("Investment");
 
   const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
     addresses.paymentTokenAddress
   );
 
-  const factoryContract: Factory = factoryFactory.attach(
+  const factoryContract: Factory = factoryContractFactory.attach(
     addresses.factoryAddress
   );
   console.log("Deploying investment contract.....");
@@ -48,15 +50,15 @@ async function main() {
     decimals
   );
   console.log("Minting 10K tokens to Investor1: ");
-  await paymentTokenContract.connect(firstInvestor).mint(valueWithDecimals);
+  await paymentTokenContract.connect(ceo).mint(valueWithDecimals);
   console.log(
     "Approving 10K tokens to be spend by Investment Contract from Investor1: "
   );
   await paymentTokenContract
-    .connect(firstInvestor)
+    .connect(ceo)
     .approve(investmentAddress, valueWithDecimals);
   console.log(`Investing ${investmentValue}...`);
-  await investmentContract.connect(firstInvestor).invest(investmentValue);
+  await investmentContract.connect(ceo).invest(investmentValue);
 }
 
 main().catch((error) => {

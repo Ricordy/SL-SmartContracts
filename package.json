@@ -2,6 +2,7 @@
   "name": "sl-smart-contracts",
   "scripts": {
     "deploy": "hardhat run scripts/deploy.ts --network localhost",
+    "deployt": "hardhat run scripts/deploy.ts --network mumbai",
     "mint": "hardhat run scripts/mint.ts --network localhost",
     "mintPT": "hardhat run scripts/mintPaymentToken.ts --network localhost",
     "mintPuzzle": "hardhat run scripts/mintPuzzle.ts --network localhost",

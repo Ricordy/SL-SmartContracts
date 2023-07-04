@@ -20,12 +20,14 @@ const ENTRY_BATCH_CAP = 1000,
   ENTRY_BATCH_PRICE = 100,
   ENTRY_TOKEN_URI = "TOKEN_URI",
   TOTAL_INVESTMENT_LEVEL1 = 1000000,
-  ACCOUNT = "0xc2fab2a52daae5213c5060800bf03176818c86c9" as Address;
+  ACCOUNT = "0xC2Fab2A52DaAe5213c5060800Bf03176818c86c9" as Address;
 
 async function main() {
   // const accounts: SignerWithAddress[] = await ethers.getSigners();
   // const ceo: SignerWithAddress = accounts[0];
   // const cfo: SignerWithAddress = accounts[10];
+
+  const ACCOUNT_SIGNED = await ethers.getSigner(ACCOUNT);
 
   const paymentTokenContractFactory = await ethers.getContractFactory(
     "CoinTest"
@@ -40,8 +42,10 @@ async function main() {
   const factoryContractFactory = await ethers.getContractFactory("Factory");
 
   // Deploy PaymentToken (CoinTest) contract from the factory
-  let paymentTokenContract = await paymentTokenContractFactory.deploy();
-  await paymentTokenContract.deployed();
+  let paymentTokenContract0 = await paymentTokenContractFactory.deploy();
+  await paymentTokenContract0.deployed();
+  let paymentTokenContract1 = await paymentTokenContractFactory.deploy();
+  await paymentTokenContract1.deployed();
 
   console.log("Deployed payment token");
 
@@ -65,7 +69,7 @@ async function main() {
   //Deploy SLLogics contract
   let logcisContract = await logicsContractFactory.deploy(
     factoryContract.address,
-    paymentTokenContract.address,
+    paymentTokenContract0.address,
     permissionsContract.address
   );
   await logcisContract.deployed();
@@ -80,22 +84,28 @@ async function main() {
 
   console.log("Deployed SLCore");
   // Set the Puzzle contract deployed as entry address on Factory contract
-  await factoryContract.setSLCoreAddress(puzzleContract.address);
+  await factoryContract
+    .connect(ACCOUNT_SIGNED)
+    .setSLCoreAddress(puzzleContract.address);
   console.log("setted slcore address");
   // Allow SLCore to make changes in SLLogics
-  await permissionsContract.setAllowedContracts(puzzleContract.address, 1);
+  await permissionsContract
+    .connect(ACCOUNT_SIGNED)
+    .setAllowedContracts(puzzleContract.address, 1);
+
+  console.log("setted slcore as allowed");
+
   // Create a new entry batch
-  await puzzleContract.generateNewEntryBatch(
-    ENTRY_BATCH_CAP,
-    ENTRY_BATCH_PRICE,
-    ENTRY_TOKEN_URI
-  );
+  await puzzleContract
+    .connect(ACCOUNT_SIGNED)
+    .generateNewEntryBatch(ENTRY_BATCH_CAP, ENTRY_BATCH_PRICE, ENTRY_TOKEN_URI);
   // Deploy Investment contract from the factory
   // let investmentContract = await factoryContract.deployNew(TOTAL_INVESTMENT_LEVEL1,paymentTokenContract.address, 1);
   console.log(
     "----------------------------------------------------------------------------------------"
   );
-  console.log("PaymentToken deployed to:", paymentTokenContract.address);
+  console.log("PaymentToken deployed to:", paymentTokenContract0.address);
+  console.log("PaymentToken deployed to:", paymentTokenContract1.address);
   console.log(
     "----------------------------------------------------------------------------------------"
   );

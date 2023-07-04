@@ -68,19 +68,21 @@ contract Factory {
     /// @notice Deploys a new Investment contract with the specified parameters.
     /// @dev The function requires the caller to be a CEO and the platform to be active. It also checks if the slCoreAddress and _paymentTokenAddress are not zero addresses and if the _level is within the range 1-3.
     /// @param  _totalInvestment The total amount of tokens needed to fulfill the investment.
-    /// @param  _paymentTokenAddress The address of the token management contract.
+    /// @param  _paymentTokenAddress0 The address of the payment token 0.
+    /// @param  _paymentTokenAddress1 The address of the payment token 1.
     /// @param _level The level of the new Investment contract.
     /// @return The address of the newly deployed Investment contract.
     /// @custom:requires  1 <= level <= 3 and CEO access Level
     function deployNew(
         uint256 _totalInvestment,
-        address _paymentTokenAddress,
+        address _paymentTokenAddress0,
+        address _paymentTokenAddress1,
         uint256 _level
     ) external isCEO isNotGloballyStoped returns (address) {
         if (slCoreAddress == address(0)) {
             revert InvalidAddress("SLCore");
         }
-        if (_paymentTokenAddress == address(0)) {
+        if (_paymentTokenAddress0 == address(0)) {
             revert InvalidAddress("PaymentToken");
         }
         if (_level == 0) {
@@ -95,7 +97,8 @@ contract Factory {
             _totalInvestment,
             SLPERMISSIONS_ADDRESS,
             slCoreAddress,
-            _paymentTokenAddress,
+            _paymentTokenAddress0,
+            _paymentTokenAddress1,
             _level
         );
         //Store the generated contract
