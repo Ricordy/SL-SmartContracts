@@ -22,10 +22,11 @@ async function main() {
   const owner: SignerWithAddress = accounts[0];
   const firstInvestor: SignerWithAddress = accounts[1];
 
-  const paymentTokenFactory = new CoinTest__factory(owner);
-  const puzzleContractFactory = new SLCore__factory(owner);
-  const factoryFactory = new Factory__factory(owner);
-  const investmentFactory = new Investment__factory(owner);
+  const paymentTokenFactory = await ethers.getContractFactory("CoinTest");
+  //const paymentTokenContractFactory = new CoinTest__factory(ceo);
+  //const permissionsContractFacotry = new SLPermissions__factory(ceo);
+  const puzzleContractFactory = await ethers.getContractFactory("SLCore");
+  const factoryContractFactory = await ethers.getContractFactory("Factory");
 
   const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
     addresses.paymentTokenAddress
@@ -34,7 +35,7 @@ async function main() {
   const puzzleContract: SLCore = puzzleContractFactory.attach(
     addresses.puzzleAddress
   );
-  const factoryContract: Factory = factoryFactory.attach(
+  const factoryContract: Factory = factoryContractFactory.attach(
     addresses.factoryAddress
   );
 

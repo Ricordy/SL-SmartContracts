@@ -14,9 +14,9 @@ import {
 const investmentValue: number = 6000;
 
 async function main() {
-  const accounts: SignerWithAddress[] = await ethers.getSigners();
-  const ceo: SignerWithAddress = accounts[0];
-  const firstInvestor: SignerWithAddress = accounts[1];
+  //const accounts: SignerWithAddress[] = await ethers.getSigners();
+  const ceo: SignerWithAddress[] = await ethers.getSigners();
+  //const firstInvestor: SignerWithAddress = accounts[1];
 
   const paymentTokenFactory = new CoinTest__factory(ceo);
   const factoryFactory = new Factory__factory(ceo);

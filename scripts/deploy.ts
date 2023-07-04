@@ -14,39 +14,54 @@ import {
   SLPermissions__factory,
 } from "../typechain-types";
 import { log } from "console";
+import { Address } from "wagmi";
 
 const ENTRY_BATCH_CAP = 1000,
   ENTRY_BATCH_PRICE = 100,
   ENTRY_TOKEN_URI = "TOKEN_URI",
-  TOTAL_INVESTMENT_LEVEL1 = 1000000;
+  TOTAL_INVESTMENT_LEVEL1 = 1000000,
+  ACCOUNT = "0xc2fab2a52daae5213c5060800bf03176818c86c9" as Address;
 
 async function main() {
-  const accounts: SignerWithAddress[] = await ethers.getSigners();
-  const ceo: SignerWithAddress = accounts[0];
-  const cfo: SignerWithAddress = accounts[10];
+  // const accounts: SignerWithAddress[] = await ethers.getSigners();
+  // const ceo: SignerWithAddress = accounts[0];
+  // const cfo: SignerWithAddress = accounts[10];
 
-  const paymentTokenContractFactory = new CoinTest__factory(ceo);
-  const permissionsContractFacotry = new SLPermissions__factory(ceo);
-  const puzzleContractFactory = new SLCore__factory(ceo);
-  const logicsContractFactory = new SLLogics__factory(ceo);
-  const factoryContractFactory = new Factory__factory(ceo);
+  const paymentTokenContractFactory = await ethers.getContractFactory(
+    "CoinTest"
+  );
+  //const paymentTokenContractFactory = new CoinTest__factory(ceo);
+  //const permissionsContractFacotry = new SLPermissions__factory(ceo);
+  const permissionsContractFacotry = await ethers.getContractFactory(
+    "SLPermissions"
+  );
+  const puzzleContractFactory = await ethers.getContractFactory("SLCore");
+  const logicsContractFactory = await ethers.getContractFactory("SLLogics");
+  const factoryContractFactory = await ethers.getContractFactory("Factory");
 
   // Deploy PaymentToken (CoinTest) contract from the factory
   let paymentTokenContract = await paymentTokenContractFactory.deploy();
   await paymentTokenContract.deployed();
 
+  console.log("Deployed payment token");
+
   // Deploy PaymentToken (CoinTest) contract from the factory
   let permissionsContract = await permissionsContractFacotry.deploy(
-    ceo.address,
-    cfo.address
+    ACCOUNT,
+    ACCOUNT
   );
-  await paymentTokenContract.deployed();
+
+  console.log("Deployed permissions");
+
+  await permissionsContract.deployed();
 
   // Deploy Factory contract from the factory
   let factoryContract = await factoryContractFactory.deploy(
     permissionsContract.address
   );
   await factoryContract.deployed();
+
+  console.log("Deployed factory");
   //Deploy SLLogics contract
   let logcisContract = await logicsContractFactory.deploy(
     factoryContract.address,
@@ -54,14 +69,19 @@ async function main() {
     permissionsContract.address
   );
   await logcisContract.deployed();
+
+  console.log("Deployed logics");
   // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
   let puzzleContract = await puzzleContractFactory.deploy(
     logcisContract.address,
     permissionsContract.address
   );
   await puzzleContract.deployed();
+
+  console.log("Deployed SLCore");
   // Set the Puzzle contract deployed as entry address on Factory contract
   await factoryContract.setSLCoreAddress(puzzleContract.address);
+  console.log("setted slcore address");
   // Allow SLCore to make changes in SLLogics
   await permissionsContract.setAllowedContracts(puzzleContract.address, 1);
   // Create a new entry batch
@@ -80,8 +100,8 @@ async function main() {
     "----------------------------------------------------------------------------------------"
   );
   console.log("Permissions deployed to:", permissionsContract.address);
-  console.log("CEO: ", ceo.address);
-  console.log("CFO: ", cfo.address);
+  console.log("CEO: ", ACCOUNT);
+  console.log("CFO: ", ACCOUNT);
   console.log(
     "----------------------------------------------------------------------------------------"
   );
@@ -107,9 +127,9 @@ async function main() {
     "----------------------------------------------------------------------------------------"
   );
   console.log(
-    ceo.address,
+    ACCOUNT,
     "  is ceo>>>>>>>>",
-    await permissionsContract.isCEO(ceo.address)
+    await permissionsContract.isCEO(ACCOUNT)
   );
 }
 
