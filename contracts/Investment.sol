@@ -43,7 +43,10 @@ contract Investment is ERC20, ReentrancyGuard {
     uint256 public returnProfit;
     /// @notice The address of the payment token.
     /// @dev This value is set at the time of contract deployment.
-    address public paymentTokenAddress;
+    address public immutable PAYMENT_TOKEN_ADDRESS_0;
+    /// @notice The address of the payment token.
+    /// @dev This value is set at the time of contract deployment.
+    address public immutable PAYMENT_TOKEN_ADDRESS_1;
     /// @notice The address of SLCore contract.
     /// @dev This value is set at the time of contract deployment.
     address public immutable SLCORE_ADDRESS;
@@ -165,25 +168,28 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @param _totalInvestment The total value of the investment.
     /// @param _slPermissionsAddress The address of the Access Control contract.
     /// @param _slCoreAddress The SLCore address.
-    /// @param  _paymentTokenAddress The address of the token management contract.
+    /// @param  _paymentTokenAddress0 The address of the payment token 0.
+    /// @param  _paymentTokenAddress1 The address of the payment token 1.
     /// @param _contractLevel The level of this contract.
     constructor(
         uint256 _totalInvestment,
         address _slPermissionsAddress,
         address _slCoreAddress,
-        address _paymentTokenAddress,
+        address _paymentTokenAddress0,
+        address _paymentTokenAddress1,
         uint256 _contractLevel
     ) ERC20("InvestmentCurrency", "IC") {
         if (_slCoreAddress == address(0)) {
             revert InvalidAddress("SLCore");
         }
-        if (_paymentTokenAddress == address(0)) {
+        if (_paymentTokenAddress0 == address(0)) {
             revert InvalidAddress("PaymentToken");
         }
         TOTAL_INVESTMENT = _totalInvestment * 10 ** decimals();
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         SLCORE_ADDRESS = _slCoreAddress;
-        paymentTokenAddress = _paymentTokenAddress;
+        PAYMENT_TOKEN_ADDRESS_0 = _paymentTokenAddress0;
+        PAYMENT_TOKEN_ADDRESS_1 = _paymentTokenAddress1;
         _changeStatus(Status.Progress);
         CONTRACT_LEVEL = _contractLevel;
     }
@@ -203,7 +209,7 @@ contract Investment is ERC20, ReentrancyGuard {
             balanceOf(msg.sender);
         //Get max to invest
         uint256 maxToInvest = getMaxToInvest();
-        //Check if amount invested is at least the minimum amount invested
+        //Check if amount invested is at least the minimum amount for investment
         if (_amount < MINIMUM_INVESTMENT) {
             revert WrongfulInvestmentAmount(
                 userInvested,
@@ -228,7 +234,7 @@ contract Investment is ERC20, ReentrancyGuard {
         _mint(msg.sender, _amount * 10 ** decimals());
 
         //ask for user payment
-        IERC20(paymentTokenAddress).safeTransferFrom(
+        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransferFrom(
             msg.sender,
             address(this),
             _amount * 10 ** decimals()
@@ -256,7 +262,7 @@ contract Investment is ERC20, ReentrancyGuard {
         //Calculate final amount
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
         //Transfer final amount
-        IERC20(paymentTokenAddress).safeTransfer(msg.sender, finalAmount);
+        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(msg.sender, finalAmount);
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
 
@@ -275,7 +281,7 @@ contract Investment is ERC20, ReentrancyGuard {
 
         emit SLWithdraw(totalBalance, block.timestamp);
         //Transfer tokens to caller
-        IERC20(paymentTokenAddress).safeTransfer(msg.sender, totalBalance);
+        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(msg.sender, totalBalance);
     }
 
     /// @notice Allows the CFO to refill the contract.
@@ -304,7 +310,7 @@ contract Investment is ERC20, ReentrancyGuard {
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
         //ask for caller tokens
-        IERC20(paymentTokenAddress).transferFrom(
+        IERC20(PAYMENT_TOKEN_ADDRESS_0).transferFrom(
             msg.sender,
             address(this),
             _amount * 10 ** decimals()
@@ -429,7 +435,6 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @notice Returns the number of decimals for investment token. Is the same number of decimals as the payment token!
     /// @dev This function is overridden from the ERC20 standard.
     function decimals() public view override returns (uint8) {
-        //ERC20 _token = ERC20(paymentTokenAddress);
         return 6;
     }
 
