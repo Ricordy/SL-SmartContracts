@@ -73,7 +73,8 @@ contract Investment is ERC20, ReentrancyGuard {
     event UserInvest(
         address indexed user,
         uint256 indexed amount,
-        uint256 indexed time
+        uint256 indexed time,
+        address paymentToken
     );
 
     /// @notice An event that is emitted when a user withdraws.
@@ -133,6 +134,12 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @param expectedStatus expected status for function to run
     error InvalidContractStatus(Status currentStatus, Status expectedStatus);
 
+    /// @notice Reverts if input is not in level range
+    /// @param input the invalid selected coin to pay
+    /// @param firstCoinId the first allowed coin number
+    /// @param secondCoinId the second allowed coin number
+    error InvalidPaymentId(uint input, uint firstCoinId, uint secondCoinId);
+
     /// @notice Reverts if user is not at least at contract level
     /// @param expectedLevel expected user minimum level
     /// @param userLevel user level
@@ -183,7 +190,10 @@ contract Investment is ERC20, ReentrancyGuard {
             revert InvalidAddress("SLCore");
         }
         if (_paymentTokenAddress0 == address(0)) {
-            revert InvalidAddress("PaymentToken");
+            revert InvalidAddress("PaymentToken0");
+        }
+        if (_paymentTokenAddress1 == address(0)) {
+            revert InvalidAddress("PaymentToken1");
         }
         TOTAL_INVESTMENT = _totalInvestment * 10 ** decimals();
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
@@ -201,8 +211,13 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @dev The function requires the contract to be in Progress status and the platform to be active.
     /// @param _amount The amount to be invested.
     function invest(
-        uint256 _amount
+        uint256 _amount,
+        uint256 _paymentToken
     ) public nonReentrant isAllowed isProgress isNotGloballyStoped {
+        //Check is payment token selection is valid
+        if (_paymentToken > 1) {
+            revert InvalidPaymentId(_paymentToken, 0, 1);
+        }
         //Get amount already invested by user
         uint256 userInvested = _amount *
             10 ** decimals() +
@@ -233,14 +248,24 @@ contract Investment is ERC20, ReentrancyGuard {
         //Mint the equivilent amount of investment token to user
         _mint(msg.sender, _amount * 10 ** decimals());
 
-        //ask for user payment
-        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransferFrom(
+        //check if user wants to pay in token0 or token1
+        address selectedPaymentToken = _paymentToken == 0
+            ? PAYMENT_TOKEN_ADDRESS_0
+            : PAYMENT_TOKEN_ADDRESS_1;
+        //deal with user payment
+        IERC20(selectedPaymentToken).safeTransferFrom(
             msg.sender,
             address(this),
             _amount * 10 ** decimals()
         );
 
-        emit UserInvest(msg.sender, _amount, block.timestamp);
+        //Emit event for user investment
+        emit UserInvest(
+            msg.sender,
+            _amount,
+            block.timestamp,
+            selectedPaymentToken
+        );
     }
 
     /// @notice Allows a user to withdraw their investment.
@@ -269,19 +294,32 @@ contract Investment is ERC20, ReentrancyGuard {
     // @notice Allows the CFO to withdraw funds for processing.
     /// @dev The function requires the contract to be in Process status and the platform to be active.
     function withdrawSL() external isProcess isNotGloballyStoped isCFO {
-        //get total invested by users
-        uint256 totalBalance = totalContractBalanceStable();
         //check if total invested is at least 80% of totalInvestment
-        if (totalBalance < (TOTAL_INVESTMENT * 80) / 100) {
+        if (totalContractBalance() < (TOTAL_INVESTMENT * 80) / 100) {
             revert NotEnoughForProcess(
                 (TOTAL_INVESTMENT * 80) / 100,
-                totalBalance
+                totalContractBalance()
             );
         }
 
-        emit SLWithdraw(totalBalance, block.timestamp);
+        (
+            uint256 paymentToken0Balance,
+            uint256 paymentToken1Balance
+        ) = totalContractBalanceForEachPaymentToken();
+
+        emit SLWithdraw(
+            paymentToken0Balance + paymentToken1Balance,
+            block.timestamp
+        );
         //Transfer tokens to caller
-        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(msg.sender, totalBalance);
+        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(
+            msg.sender,
+            paymentToken0Balance
+        );
+        IERC20(PAYMENT_TOKEN_ADDRESS_1).safeTransfer(
+            msg.sender,
+            paymentToken1Balance
+        );
     }
 
     /// @notice Allows the CFO to refill the contract.
@@ -323,19 +361,28 @@ contract Investment is ERC20, ReentrancyGuard {
     ///
     /// @notice returns the total invested by users
     /// @return totalBalance the total amount invested
-    function totalContractBalanceStable()
+    function totalContractBalance() public view returns (uint256 totalBalance) {
+        totalBalance = totalSupply();
+    }
+
+    function totalContractBalanceForEachPaymentToken()
         public
         view
-        returns (uint256 totalBalance)
+        returns (uint256 paymentToken0Balance, uint256 paymentToken1Balance)
     {
-        totalBalance = totalSupply();
+        paymentToken0Balance = IERC20(PAYMENT_TOKEN_ADDRESS_0).balanceOf(
+            address(this)
+        );
+        paymentToken1Balance = IERC20(PAYMENT_TOKEN_ADDRESS_1).balanceOf(
+            address(this)
+        );
     }
 
     /// @notice Calculates the possible amount to invest
     /// @dev Checks if contract is more than 90% full and returns the remaining to fill, if not, returns 10% of total investment
     /// @return maxToInvest max allowed to invest at any time (by a user that didn't invest yet)
     function getMaxToInvest() public view returns (uint256 maxToInvest) {
-        maxToInvest = TOTAL_INVESTMENT - totalContractBalanceStable();
+        maxToInvest = TOTAL_INVESTMENT - totalContractBalance();
         if (maxToInvest > TOTAL_INVESTMENT / 10) {
             maxToInvest = TOTAL_INVESTMENT / 10;
         }
