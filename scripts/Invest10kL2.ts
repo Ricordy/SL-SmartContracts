@@ -24,14 +24,19 @@ async function main() {
   const investmentFactory = new Investment__factory(owner);
 
   const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
-    addresses.paymentTokenAddress
+    addresses.paymentTokenAddress0
   );
 
   const factoryContract: Factory = factoryFactory.attach(
     addresses.factoryAddress
   );
 
-  await factoryContract.deployNew(100000, addresses.paymentTokenAddress, 2);
+  await factoryContract.deployNew(
+    100000,
+    addresses.paymentTokenAddress0,
+    addresses.paymentTokenAddress1,
+    2
+  );
 
   const investmentAddress = await factoryContract.getLastDeployedContract(2);
 
@@ -53,7 +58,7 @@ async function main() {
     .connect(firstInvestor)
     .approve(investmentAddress, valueWithDecimals);
   console.log(`Investing ${investmentValue}...`);
-  await investmentContract.connect(firstInvestor).invest(investmentValue);
+  await investmentContract.connect(firstInvestor).invest(investmentValue, 0);
 }
 
 main().catch((error) => {

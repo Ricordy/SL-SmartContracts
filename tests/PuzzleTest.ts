@@ -82,6 +82,10 @@ describe("Puzzle Contract", async () => {
     await paymentTokenContract.deployed();
 
     // Deploy PaymentToken (CoinTest) contract from the factory
+    paymentTokenContract2 = await paymentTokenContractFactory.deploy();
+    await paymentTokenContract2.deployed();
+
+    // Deploy PaymentToken (CoinTest) contract from the factory
     permissionsContract = await permissionsContractFacotry.deploy(
       ceo.address,
       cfo.address
@@ -111,7 +115,7 @@ describe("Puzzle Contract", async () => {
     // Allow SLCore to make changes in SLLogics
     await permissionsContract
       .connect(ceo)
-      .setAllowedContracts(puzzleContract.address, true);
+      .setAllowedContracts(puzzleContract.address, 1);
     // Create a new entry batch
     await puzzleContract
       .connect(ceo)
@@ -218,7 +222,12 @@ describe("Puzzle Contract", async () => {
 
     const deployNewTx = await factoryContract
       .connect(ceo)
-      .deployNew(INVESTMENT1_AMOUNT, paymentTokenContract.address, 1);
+      .deployNew(
+        INVESTMENT1_AMOUNT,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        1
+      );
 
     const deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract(1);
@@ -245,7 +254,12 @@ describe("Puzzle Contract", async () => {
 
     const deployNewTx = await factoryContract
       .connect(ceo)
-      .deployNew(INVESTMENT1_AMOUNT, paymentTokenContract.address, 1);
+      .deployNew(
+        INVESTMENT1_AMOUNT,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        1
+      );
 
     const deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract(1);
@@ -264,7 +278,7 @@ describe("Puzzle Contract", async () => {
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
-      .invest(INVESTOR1_INVESTMENT_AMOUNT);
+      .invest(INVESTOR1_INVESTMENT_AMOUNT, 0);
 
     return { paymentTokenContract, puzzleContract, factoryContract, ceo };
   }
@@ -316,7 +330,7 @@ describe("Puzzle Contract", async () => {
     //generate level 2 investment contract
     const deployNewTx = await factoryContract
       .connect(ceo)
-      .deployNew(INVESTMENT_LEVEL_2_AMOUNT, paymentTokenContract.address, 2);
+      .deployNew(INVESTMENT_LEVEL_2_AMOUNT, paymentTokenContract.address, paymentTokenContract2.address ,2);
     const deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract(2);
     const investmentFactory = new Investment__factory(owner);
@@ -333,7 +347,7 @@ describe("Puzzle Contract", async () => {
     // Invest an amount on investment1
     await investmentContract2
       .connect(investor1)
-      .invest(INVESTOR1_INVESTMENT_LEVEL_2_AMOUNT);
+      .invest(INVESTOR1_INVESTMENT_LEVEL_2_AMOUNT, 0);
     return { puzzleContract, paymentTokenContract, factoryContract, ceo };
   }
 
@@ -366,7 +380,7 @@ describe("Puzzle Contract", async () => {
     //generate level 3 investment contract
     const deployNewTx = await factoryContract
       .connect(ceo)
-      .deployNew(INVESTMENT_LEVEL_2_AMOUNT, paymentTokenContract.address, 3);
+      .deployNew(INVESTMENT_LEVEL_2_AMOUNT, paymentTokenContract.address, paymentTokenContract2.address,3);
 
     await deployNewTx.wait();
     const deployedInvestmentAddress =
@@ -386,7 +400,7 @@ describe("Puzzle Contract", async () => {
     // Invest an amount on investment1
     await investmentContract2
       .connect(investor1)
-      .invest(INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT);
+      .invest(INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT, 0);
     return { puzzleContract, paymentTokenContract, factoryContract, ceo };
   }
 

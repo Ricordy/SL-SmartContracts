@@ -100,7 +100,7 @@ describe("Logics Contract Tests", async () => {
     // Allow SLCore to make changes in SLLogics
     await permissionsContract
       .connect(ceo)
-      .setAllowedContracts(puzzleContract.address, true);
+      .setAllowedContracts(puzzleContract.address, 1);
     // Create a new entry batch
     await puzzleContract
       .connect(ceo)

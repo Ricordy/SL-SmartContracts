@@ -38,6 +38,7 @@ describe("Factory Contract Tests", async () => {
   let puzzleContract: SLCore,
     logicsContract: SLLogics,
     paymentTokenContract: CoinTest,
+    paymentTokenContract2: CoinTest,
     factoryContract: Factory,
     permissionsContract: SLPermissions,
     investmentContractLevel1: Investment,
@@ -71,6 +72,9 @@ describe("Factory Contract Tests", async () => {
     paymentTokenContract = await paymentTokenContractFactory.deploy();
     await paymentTokenContract.deployed();
 
+    paymentTokenContract2 = await paymentTokenContractFactory.deploy();
+    await paymentTokenContract2.deployed();
+
     // Deploy PaymentToken (CoinTest) contract from the factory
     permissionsContract = await permissionsContractFacotry.deploy(
       ceo.address,
@@ -101,7 +105,7 @@ describe("Factory Contract Tests", async () => {
     // Allow SLCore to make changes in SLLogics
     await permissionsContract
       .connect(ceo)
-      .setAllowedContracts(puzzleContract.address, true);
+      .setAllowedContracts(puzzleContract.address, 1);
     // Create a new entry batch
     await puzzleContract
       .connect(ceo)
@@ -156,13 +160,28 @@ describe("Factory Contract Tests", async () => {
     // Deploy all contracts
     await factoryContract
       .connect(ceo)
-      .deployNew(100000, paymentTokenContract.address, 1);
+      .deployNew(
+        100000,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        1
+      );
     await factoryContract
       .connect(ceo)
-      .deployNew(200000, paymentTokenContract.address, 2);
+      .deployNew(
+        200000,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        2
+      );
     await factoryContract
       .connect(ceo)
-      .deployNew(300000, paymentTokenContract.address, 3);
+      .deployNew(
+        300000,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        3
+      );
     const investmentFactory = new Investment__factory(owner);
     let deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract(1);
@@ -203,9 +222,15 @@ describe("Factory Contract Tests", async () => {
       );
 
     // Invest in all contracts
-    await investmentContractLevel1.connect(investor1).invest(INVESTED_LEVEL_1);
-    await investmentContractLevel2.connect(investor1).invest(INVESTED_LEVEL_2);
-    await investmentContractLevel3.connect(investor1).invest(INVESTED_LEVEL_3);
+    await investmentContractLevel1
+      .connect(investor1)
+      .invest(INVESTED_LEVEL_1, 0);
+    await investmentContractLevel2
+      .connect(investor1)
+      .invest(INVESTED_LEVEL_2, 0);
+    await investmentContractLevel3
+      .connect(investor1)
+      .invest(INVESTED_LEVEL_3, 0);
 
     return {
       investmentContractLevel1,
@@ -221,7 +246,12 @@ describe("Factory Contract Tests", async () => {
       await expect(
         factoryContract
           .connect(investor1)
-          .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1)
+          .deployNew(
+            INVESTMENT_1_AMOUNT,
+            paymentTokenContract.address,
+            paymentTokenContract2.address,
+            1
+          )
       ).to.be.revertedWithCustomError(factoryContract, "NotCEO");
     });
     it("Should create a new Investment contract", async () => {
@@ -229,7 +259,12 @@ describe("Factory Contract Tests", async () => {
       await expect(
         factoryContract
           .connect(ceo)
-          .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1)
+          .deployNew(
+            INVESTMENT_1_AMOUNT,
+            paymentTokenContract.address,
+            paymentTokenContract2.address,
+            1
+          )
       )
         .to.emit(factoryContract, "ContractCreated")
         .withArgs(CONTRACT_NUMBER_ID, anyValue, 1);
@@ -240,7 +275,12 @@ describe("Factory Contract Tests", async () => {
         await expect(
           factoryContract
             .connect(ceo)
-            .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, i + 1)
+            .deployNew(
+              INVESTMENT_1_AMOUNT,
+              paymentTokenContract.address,
+              paymentTokenContract2.address,
+              i + 1
+            )
         )
           .to.emit(factoryContract, "ContractCreated")
           .withArgs(CONTRACT_NUMBER_ID, anyValue, i + 1);
@@ -250,7 +290,12 @@ describe("Factory Contract Tests", async () => {
       const { factoryContract } = await loadFixture(deployContractFixture);
       await factoryContract
         .connect(ceo)
-        .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1);
+        .deployNew(
+          INVESTMENT_1_AMOUNT,
+          paymentTokenContract.address,
+          paymentTokenContract2.address,
+          1
+        );
       let lastDeployed = await factoryContract.getLastDeployedContract(1),
         newContract = await factoryContract.deployedContracts(1, 0);
       expect(lastDeployed).to.equal(newContract);

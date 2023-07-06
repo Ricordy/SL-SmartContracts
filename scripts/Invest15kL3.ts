@@ -3,7 +3,6 @@ import { ethers } from "hardhat";
 import { Address } from "wagmi";
 import addresses from "../utils/addresses";
 
-
 import {
   CoinTest,
   CoinTest__factory,
@@ -25,14 +24,19 @@ async function main() {
   const investmentFactory = new Investment__factory(owner);
 
   const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
-    addresses.paymentTokenAddress
+    addresses.paymentTokenAddress0
   );
 
   const factoryContract: Factory = factoryFactory.attach(
     addresses.factoryAddress
   );
 
-  await factoryContract.deployNew(1500000, addresses.paymentTokenAddress, 3);
+  await factoryContract.deployNew(
+    1500000,
+    addresses.paymentTokenAddress0,
+    addresses.paymentTokenAddress1,
+    3
+  );
 
   const investmentAddress = await factoryContract.getLastDeployedContract(3);
 
@@ -54,7 +58,7 @@ async function main() {
     .connect(firstInvestor)
     .approve(investmentAddress, valueWithDecimals);
   console.log(`Investing ${investmentValue}...`);
-  await investmentContract.connect(firstInvestor).invest(investmentValue);
+  await investmentContract.connect(firstInvestor).invest(investmentValue, 0);
 }
 
 main().catch((error) => {

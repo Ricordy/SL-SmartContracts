@@ -88,6 +88,9 @@ describe("Investment Contract Tests", async () => {
     paymentTokenContract = await paymentTokenContractFactory.deploy();
     await paymentTokenContract.deployed();
 
+    paymentTokenContract2 = await paymentTokenContractFactory.deploy();
+    await paymentTokenContract2.deployed();
+
     // Deploy PaymentToken (CoinTest) contract from the factory
     permissionsContract = await permissionsContractFacotry.deploy(
       ceo.address,
@@ -118,7 +121,7 @@ describe("Investment Contract Tests", async () => {
     // Allow SLCore to make changes in SLLogics
     await permissionsContract
       .connect(ceo)
-      .setAllowedContracts(puzzleContract.address, true);
+      .setAllowedContracts(puzzleContract.address, 1);
     // Create a new entry batch
     await puzzleContract
       .connect(ceo)
@@ -134,6 +137,7 @@ describe("Investment Contract Tests", async () => {
       permissionsContract.address,
       puzzleContract.address,
       paymentTokenContract.address,
+      paymentTokenContract2.address,
       1
     );
     minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
@@ -230,7 +234,7 @@ describe("Investment Contract Tests", async () => {
       //Make 9500 investment
       await investmentContract
         .connect(accounts[i])
-        .invest(GENERAL_INVEST_AMOUNT);
+        .invest(GENERAL_INVEST_AMOUNT, 0);
     }
 
     crucialInvestor = accounts[11];
@@ -279,7 +283,12 @@ describe("Investment Contract Tests", async () => {
 
     await factoryContract
       .connect(ceo)
-      .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1);
+      .deployNew(
+        INVESTMENT_1_AMOUNT,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        1
+      );
 
     const deployedInvestmentAddress =
       await factoryContract.getLastDeployedContract(1);
@@ -300,7 +309,7 @@ describe("Investment Contract Tests", async () => {
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
-      .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST);
+      .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST, 0);
 
     return {
       owner,
@@ -344,7 +353,7 @@ describe("Investment Contract Tests", async () => {
 
       await investmentContract
         .connect(accounts[i])
-        .invest(GENERAL_INVEST_AMOUNT_TO_REFUND);
+        .invest(GENERAL_INVEST_AMOUNT_TO_REFUND, 0);
     }
 
     return {
@@ -374,7 +383,7 @@ describe("Investment Contract Tests", async () => {
       );
       // Get the PaymentToken address from the Puzzle contract
       const paymentTokenAddressFromContract =
-        await investmentContract.paymentTokenAddress();
+        await investmentContract.PAYMENT_TOKEN_ADDRESS_0();
       expect(paymentTokenAddressFromContract).to.be.equal(
         paymentTokenContract.address
       );
@@ -399,7 +408,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(investor1)
-            .invest(LESS_THAN_EXPECTED_INV_AMOUNT)
+            .invest(LESS_THAN_EXPECTED_INV_AMOUNT, 0)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "IncorrectUserLevel"
@@ -412,7 +421,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(investor1)
-            .invest(LESS_THAN_EXPECTED_INV_AMOUNT)
+            .invest(LESS_THAN_EXPECTED_INV_AMOUNT, 0)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "WrongfulInvestmentAmount"
@@ -426,7 +435,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(investor1)
-            .invest(MORE_THAN_EXPECTED_INV_AMOUNT)
+            .invest(MORE_THAN_EXPECTED_INV_AMOUNT, 0)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "WrongfulInvestmentAmount"
@@ -462,21 +471,31 @@ describe("Investment Contract Tests", async () => {
         const newTimestamp = new Date().getTime();
         await time.setNextBlockTimestamp(newTimestamp);
         await expect(
-          investmentContract.connect(crucialInvestor).invest(maxToInvest)
+          investmentContract.connect(crucialInvestor).invest(maxToInvest, 0)
         )
           .to.emit(investmentContract, "ContractFilled")
           .withArgs(newTimestamp)
           .and.emit(investmentContract, "UserInvest")
-          .withArgs(crucialInvestor.address, maxToInvest, newTimestamp);
+          .withArgs(
+            crucialInvestor.address,
+            maxToInvest,
+            newTimestamp,
+            paymentTokenContract.address
+          );
       });
       it("Investor should be allowed to invest", async () => {
         const { investmentContract, investor1, minimunInvestment } =
           await loadFixture(ownerAndInvestorApprovedTokenToSpend);
         await expect(
-          investmentContract.connect(investor1).invest(minimunInvestment)
+          investmentContract.connect(investor1).invest(minimunInvestment, 0)
         )
           .to.emit(investmentContract, "UserInvest")
-          .withArgs(investor1.address, minimunInvestment, anyValue);
+          .withArgs(
+            investor1.address,
+            minimunInvestment,
+            anyValue,
+            paymentTokenContract.address
+          );
       });
       it("Should mint the exact same value of ERC20 tracker token as the amount investment", async () => {
         const { investmentContract, investor1 } = await loadFixture(
@@ -484,7 +503,7 @@ describe("Investment Contract Tests", async () => {
         );
         await investmentContract
           .connect(investor1)
-          .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST);
+          .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST, 0);
         expect(await investmentContract.balanceOf(investor1.address)).to.equal(
           withDecimals(INVESTMENT_1_MAX_ALLOWED_TO_INVEST)
         );
@@ -516,8 +535,7 @@ describe("Investment Contract Tests", async () => {
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
 
-        const contractBalance =
-          await investmentContract.totalContractBalanceStable();
+        const contractBalance = await investmentContract.totalContractBalance();
 
         const maxAllowed = BigNumber.from(
           withDecimals(INVESTMENT_1_AMOUNT)
@@ -532,7 +550,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(crucialInvestor)
-            .invest(GENERAL_INVEST_AMOUNT)
+            .invest(GENERAL_INVEST_AMOUNT, 0)
         )
           .to.be.revertedWithCustomError(
             investmentContract,
@@ -606,7 +624,7 @@ describe("Investment Contract Tests", async () => {
           cfo.address
         );
         const contractBalance =
-          await investmentContract.totalContractBalanceStable();
+          await investmentContract.totalContractBalance();
 
         // Withdraw funds
         await investmentContract.connect(cfo).withdrawSL();
@@ -706,7 +724,7 @@ describe("Investment Contract Tests", async () => {
       });
       it("Invest function shouldnt be able to be called", async () => {
         await expect(
-          investmentContract.connect(investor1).invest(100)
+          investmentContract.connect(investor1).invest(100,0)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "InvalidContractStatus"
@@ -777,7 +795,7 @@ describe("Investment Contract Tests", async () => {
         await puzzleContract.connect(crucialInvestor).mintEntry();
 
         const investmentContractBalance =
-          await investmentContract.totalContractBalanceStable();
+          await investmentContract.totalContractBalance();
         const totalInvestment = await investmentContract.TOTAL_INVESTMENT();
 
         amountInvested = totalInvestment
@@ -787,7 +805,7 @@ describe("Investment Contract Tests", async () => {
         // Invest the remaining amount to fill the contract
         await investmentContract
           .connect(crucialInvestor)
-          .invest(amountInvested.toNumber());
+          .invest(amountInvested.toNumber(),0);
 
         console.log("passed");
 
@@ -842,7 +860,7 @@ describe("Investment Contract Tests", async () => {
         const minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
 
         await expect(
-          investmentContract.connect(crucialInvestor).invest(minimunInvestment)
+          investmentContract.connect(crucialInvestor).invest(minimunInvestment,0)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "InvalidContractStatus"

@@ -29,7 +29,7 @@ async function main() {
   const factoryContractFactory = await ethers.getContractFactory("Factory");
 
   const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
-    addresses.paymentTokenAddress
+    addresses.paymentTokenAddress0
   );
 
   const puzzleContract: SLCore = puzzleContractFactory.attach(
@@ -40,7 +40,12 @@ async function main() {
   );
 
   console.log("deploying new investment contract... ");
-  await factoryContract.deployNew(100000, addresses.paymentTokenAddress, 1);
+  await factoryContract.deployNew(
+    100000,
+    addresses.paymentTokenAddress0,
+    addresses.paymentTokenAddress1,
+    1
+  );
 
   const investmentAddress = await factoryContract.getLastDeployedContract(1);
 

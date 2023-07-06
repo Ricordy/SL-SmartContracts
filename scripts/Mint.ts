@@ -27,7 +27,7 @@ async function main() {
   const factoryFactory = new Factory__factory(owner);
 
   const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
-    addresses.paymentTokenAddress
+    addresses.paymentTokenAddress0
   );
 
   const puzzleContract: SLCore = puzzleContractFactory.attach(
@@ -42,19 +42,20 @@ async function main() {
     decimals
   );
   console.log("Minting 10K tokens to Investor1: ");
-  await paymentTokenContract.connect(firstInvestor).mint(valueWithDecimals);
+  await paymentTokenContract.mint(valueWithDecimals);
   console.log(
     "Approving 10K tokens to be spend by Puzzle and Investment Contract from Investor1: "
   );
-  const approveTx = await paymentTokenContract
-    .connect(firstInvestor)
-    .approve(addresses.logicsAddress, valueWithDecimals);
+  const approveTx = await paymentTokenContract.approve(
+    addresses.logicsAddress,
+    valueWithDecimals
+  );
   approveTx.wait();
   // await paymentTokenContract
   //   .connect(firstInvestor)
   //   .approve(investmentAddress, investmentValue);
   console.log("Minting entry for Investor1: ");
-  await puzzleContract.connect(firstInvestor).mintEntry();
+  await puzzleContract.mintEntry();
   // const factoryContract = await factoryFactory.attach(factoryAddress);
   // const deployed = await factoryContract.deployedContracts(0);
   // console.log(deployed);
