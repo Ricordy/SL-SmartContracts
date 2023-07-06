@@ -20,8 +20,8 @@ const ENTRY_BATCH_CAP = 1000,
   ENTRY_BATCH_PRICE = 100,
   ENTRY_TOKEN_URI = "TOKEN_URI",
   TOTAL_INVESTMENT_LEVEL1 = 1000000,
-  //ACCOUNT = "0xC2Fab2A52DaAe5213c5060800Bf03176818c86c9" as Address;
-  ACCOUNT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as Address;
+  ACCOUNT = "0xC2Fab2A52DaAe5213c5060800Bf03176818c86c9" as Address;
+//ACCOUNT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as Address;
 
 async function main() {
   // const accounts: SignerWithAddress[] = await ethers.getSigners();

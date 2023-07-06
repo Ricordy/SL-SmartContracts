@@ -19,8 +19,12 @@ async function main() {
   //   "0xC2Fab2A52DaAe5213c5060800Bf03176818c86c9"
   // );
 
+  // const ceo: SignerWithAddress = await ethers.getSigner(
+  //   "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  // );
+
   const ceo: SignerWithAddress = await ethers.getSigner(
-    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    "0xC2Fab2A52DaAe5213c5060800Bf03176818c86c9"
   );
 
   //const firstInvestor: SignerWithAddress = accounts[1];

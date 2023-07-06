@@ -148,7 +148,7 @@ describe("Factory Contract Tests", async () => {
     // approve logics for spending entry price
     await paymentTokenContract
       .connect(investor1)
-      .approve(logicsContract.address, ENTRY_BATCH_PRICE);
+      .approve(logicsContract.address, withDecimals(ENTRY_BATCH_PRICE));
     await puzzleContract.connect(investor1).mintEntry();
 
     // Make user be in level 3 so he can invest in all contracts

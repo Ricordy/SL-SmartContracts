@@ -9,6 +9,7 @@
     "mintPuzzlel2": "hardhat run scripts/mintPuzzleL2.ts --network localhost",
     "invest": "hardhat run scripts/Invest2500.ts --network localhost",
     "invest5kl1": "hardhat run scripts/Invest5kL1.ts --network localhost",
+    "invest5kl1t": "hardhat run scripts/Invest5kL1.ts --network mumbai",
     "invest10kl2": "hardhat run scripts/Invest10kL2.ts --network localhost",
     "invest15kl3": "hardhat run scripts/Invest15kL3.ts --network localhost",
     "deployInvest": "hardhat run scripts/deployInvest.ts --network localhost",

@@ -48,6 +48,7 @@ function withDecimals(toConvert: number) {
 
 describe("User Paths Testing", async () => {
   let paymentTokenContract: CoinTest,
+    paymentTokenContract2: CoinTest,
     puzzleContract: SLCore,
     logicsContract: SLLogics,
     factoryContract: Factory,
@@ -93,6 +94,8 @@ describe("User Paths Testing", async () => {
     await factoryContract.deployed();
     paymentTokenContract = await paymentTokenFactory.deploy();
     await paymentTokenContract.deployed();
+    paymentTokenContract2 = await paymentTokenFactory.deploy();
+    await paymentTokenContract2.deployed();
     logicsContract = await logicsContractFactory.deploy(
       factoryContract.address,
       paymentTokenContract.address,
@@ -100,7 +103,6 @@ describe("User Paths Testing", async () => {
     );
     await logicsContract.deployed();
     puzzleContract = await puzzleContractFactory.deploy(
-      factoryContract.address,
       logicsContract.address,
       permissionsContract.address
     );
@@ -111,7 +113,7 @@ describe("User Paths Testing", async () => {
     // Allow SLCore to make changes in SLLogics
     await permissionsContract
       .connect(ceo)
-      .setAllowedContracts(puzzleContract.address, true);
+      .setAllowedContracts(puzzleContract.address, 1);
     // Create a new entry batch
     await puzzleContract
       .connect(ceo)
@@ -144,6 +146,7 @@ describe("User Paths Testing", async () => {
     return {
       factoryContract,
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -157,6 +160,7 @@ describe("User Paths Testing", async () => {
   async function entryNftReadyAndLevel1InvestmentDeployed() {
     const {
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -173,7 +177,12 @@ describe("User Paths Testing", async () => {
     const investmentFactory = new Investment__factory(owner);
     await factoryContract
       .connect(ceo)
-      .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1);
+      .deployNew(
+        INVESTMENT_1_AMOUNT,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        1
+      );
     const investmentAddress = await factoryContract.getLastDeployedContract(1);
     investmentContractLevel1 = investmentFactory.attach(investmentAddress);
 
@@ -209,6 +218,7 @@ describe("User Paths Testing", async () => {
     return {
       factoryContract,
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -222,6 +232,7 @@ describe("User Paths Testing", async () => {
   async function userInvestedEnoughToHave10Pieces() {
     const {
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -234,7 +245,12 @@ describe("User Paths Testing", async () => {
       const investmentFactory = new Investment__factory(owner);
       await factoryContract
         .connect(ceo)
-        .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1);
+        .deployNew(
+          INVESTMENT_1_AMOUNT,
+          paymentTokenContract.address,
+          paymentTokenContract2.address,
+          1
+        );
       const investmentAddress = await factoryContract.getLastDeployedContract(
         1
       );
@@ -270,22 +286,23 @@ describe("User Paths Testing", async () => {
         );
       await investmentContractLevel1
         .connect(investor1)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       await investmentContractLevel1
         .connect(investor2)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       await investmentContractLevel1
         .connect(investor3)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       await investmentContractLevel1
         .connect(investor4)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
     }
 
     return {
       investors,
       factoryContract,
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -299,6 +316,7 @@ describe("User Paths Testing", async () => {
   async function allUsersLevel2() {
     const {
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -321,7 +339,12 @@ describe("User Paths Testing", async () => {
     const investmentFactory = new Investment__factory(owner);
     await factoryContract
       .connect(ceo)
-      .deployNew(INVESTMENT_2_AMOUNT, paymentTokenContract.address, 2);
+      .deployNew(
+        INVESTMENT_2_AMOUNT,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        2
+      );
     const investmentAddress = await factoryContract.getLastDeployedContract(2);
     investmentContractLevel2 = investmentFactory.attach(investmentAddress);
 
@@ -390,6 +413,7 @@ describe("User Paths Testing", async () => {
       investors,
       factoryContract,
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -404,6 +428,7 @@ describe("User Paths Testing", async () => {
   async function allUsersLevel2WithLevel1InvestmentTotalOf50k() {
     const {
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -426,7 +451,12 @@ describe("User Paths Testing", async () => {
     const investmentFactory = new Investment__factory(owner);
     await factoryContract
       .connect(ceo)
-      .deployNew(INVESTMENT_2_AMOUNT, paymentTokenContract.address, 2);
+      .deployNew(
+        INVESTMENT_2_AMOUNT,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        2
+      );
     const investmentAddress = await factoryContract.getLastDeployedContract(2);
     investmentContractLevel2 = investmentFactory.attach(investmentAddress);
 
@@ -495,6 +525,7 @@ describe("User Paths Testing", async () => {
       investors,
       factoryContract,
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -509,6 +540,7 @@ describe("User Paths Testing", async () => {
   async function userInvestedEnoughToHave10PiecesInLevel2() {
     const {
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -532,7 +564,12 @@ describe("User Paths Testing", async () => {
       const investmentFactory = new Investment__factory(owner);
       await factoryContract
         .connect(ceo)
-        .deployNew(INVESTMENT_2_AMOUNT, paymentTokenContract.address, 2);
+        .deployNew(
+          INVESTMENT_2_AMOUNT,
+          paymentTokenContract.address,
+          paymentTokenContract2.address,
+          2
+        );
       const investmentAddress = await factoryContract.getLastDeployedContract(
         2
       );
@@ -568,22 +605,23 @@ describe("User Paths Testing", async () => {
         );
       await investmentContractLevel2
         .connect(investor1)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       await investmentContractLevel2
         .connect(investor2)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       await investmentContractLevel2
         .connect(investor3)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       await investmentContractLevel2
         .connect(investor4)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
     }
 
     return {
       investors,
       factoryContract,
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -597,6 +635,7 @@ describe("User Paths Testing", async () => {
   async function allUsersLevel3() {
     const {
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -620,7 +659,12 @@ describe("User Paths Testing", async () => {
     const investmentFactory = new Investment__factory(owner);
     await factoryContract
       .connect(ceo)
-      .deployNew(INVESTMENT_3_AMOUNT, paymentTokenContract.address, 3);
+      .deployNew(
+        INVESTMENT_3_AMOUNT,
+        paymentTokenContract.address,
+        paymentTokenContract2.address,
+        3
+      );
     const investmentAddress = await factoryContract.getLastDeployedContract(3);
     investmentContractLevel3 = investmentFactory.attach(investmentAddress);
 
@@ -657,6 +701,7 @@ describe("User Paths Testing", async () => {
       investors,
       factoryContract,
       paymentTokenContract,
+      paymentTokenContract2,
       investor1,
       investor2,
       investor3,
@@ -673,6 +718,7 @@ describe("User Paths Testing", async () => {
     it("Should allow all users to mint the entry batch after approval", async () => {
       const {
         paymentTokenContract,
+
         investor1,
         investor2,
         investor3,
@@ -682,16 +728,16 @@ describe("User Paths Testing", async () => {
       } = await loadFixture(DeployContracts);
       await expect(await puzzleContract.connect(investor1).mintEntry())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor1.address, ENTRY_LEVEL_NFT_ID_1, 1);
+        .withArgs(investor1.address, ENTRY_LEVEL_NFT_ID_1);
       await expect(await puzzleContract.connect(investor2).mintEntry())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor2.address, ENTRY_LEVEL_NFT_ID_1, 1);
+        .withArgs(investor2.address, ENTRY_LEVEL_NFT_ID_1);
       await expect(await puzzleContract.connect(investor3).mintEntry())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor3.address, ENTRY_LEVEL_NFT_ID_1, 1);
+        .withArgs(investor3.address, ENTRY_LEVEL_NFT_ID_1);
       await expect(await puzzleContract.connect(investor4).mintEntry())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor4.address, ENTRY_LEVEL_NFT_ID_1, 1);
+        .withArgs(investor4.address, ENTRY_LEVEL_NFT_ID_1);
     });
 
     it("Should allow all users to invest in Investment Level1Contracts", async () => {
@@ -708,28 +754,28 @@ describe("User Paths Testing", async () => {
       await expect(
         await investmentContractLevel1
           .connect(investor1)
-          .invest(INVESTED_LEVEL_1)
+          .invest(INVESTED_LEVEL_1, 0)
       )
         .to.emit(investmentContractLevel1, "UserInvest")
         .withArgs(investor1.address, INVESTED_LEVEL_1, anyValue);
       await expect(
         await investmentContractLevel1
           .connect(investor2)
-          .invest(INVESTED_LEVEL_1)
+          .invest(INVESTED_LEVEL_1, 0)
       )
         .to.emit(investmentContractLevel1, "UserInvest")
         .withArgs(investor2.address, INVESTED_LEVEL_1, anyValue);
       await expect(
         await investmentContractLevel1
           .connect(investor3)
-          .invest(INVESTED_LEVEL_1)
+          .invest(INVESTED_LEVEL_1, 0)
       )
         .to.emit(investmentContractLevel1, "UserInvest")
         .withArgs(investor3.address, INVESTED_LEVEL_1, anyValue);
       await expect(
         await investmentContractLevel1
           .connect(investor4)
-          .invest(INVESTED_LEVEL_1)
+          .invest(INVESTED_LEVEL_1, 0)
       )
         .to.emit(investmentContractLevel1, "UserInvest")
         .withArgs(investor4.address, INVESTED_LEVEL_1, anyValue);
@@ -788,25 +834,25 @@ describe("User Paths Testing", async () => {
       //Still able to do level 1
       await investmentContractLevel1
         .connect(investor1)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       expect(await investmentContractLevel1.balanceOf(investor1.address)).to.eq(
         withDecimals(INVESTED_LEVEL_1)
       );
       await investmentContractLevel1
         .connect(investor2)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       expect(await investmentContractLevel1.balanceOf(investor2.address)).to.eq(
         withDecimals(INVESTED_LEVEL_1)
       );
       await investmentContractLevel1
         .connect(investor3)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       expect(await investmentContractLevel1.balanceOf(investor3.address)).to.eq(
         withDecimals(INVESTED_LEVEL_1)
       );
       await investmentContractLevel1
         .connect(investor4)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       expect(await investmentContractLevel1.balanceOf(investor4.address)).to.eq(
         withDecimals(INVESTED_LEVEL_1)
       );
@@ -814,25 +860,25 @@ describe("User Paths Testing", async () => {
       //Level 2
       await investmentContractLevel2
         .connect(investor1)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       expect(await investmentContractLevel2.balanceOf(investor1.address)).to.eq(
         withDecimals(INVESTED_LEVEL_2)
       );
       await investmentContractLevel2
         .connect(investor2)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       expect(await investmentContractLevel2.balanceOf(investor2.address)).to.eq(
         withDecimals(INVESTED_LEVEL_2)
       );
       await investmentContractLevel2
         .connect(investor3)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       expect(await investmentContractLevel2.balanceOf(investor3.address)).to.eq(
         withDecimals(INVESTED_LEVEL_2)
       );
       await investmentContractLevel2
         .connect(investor4)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       expect(await investmentContractLevel2.balanceOf(investor4.address)).to.eq(
         withDecimals(INVESTED_LEVEL_2)
       );
@@ -928,25 +974,25 @@ describe("User Paths Testing", async () => {
       //Still able to do level 1
       await investmentContractLevel1
         .connect(investor1)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       expect(await investmentContractLevel1.balanceOf(investor1.address)).to.eq(
         withDecimals(INVESTED_LEVEL_1)
       );
       await investmentContractLevel1
         .connect(investor2)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       expect(await investmentContractLevel1.balanceOf(investor2.address)).to.eq(
         withDecimals(INVESTED_LEVEL_1)
       );
       await investmentContractLevel1
         .connect(investor3)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       expect(await investmentContractLevel1.balanceOf(investor3.address)).to.eq(
         withDecimals(INVESTED_LEVEL_1)
       );
       await investmentContractLevel1
         .connect(investor4)
-        .invest(INVESTED_LEVEL_1);
+        .invest(INVESTED_LEVEL_1, 0);
       expect(await investmentContractLevel1.balanceOf(investor4.address)).to.eq(
         withDecimals(INVESTED_LEVEL_1)
       );
@@ -954,25 +1000,25 @@ describe("User Paths Testing", async () => {
       // still able Level 2
       await investmentContractLevel2
         .connect(investor1)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       expect(await investmentContractLevel2.balanceOf(investor1.address)).to.eq(
         withDecimals(INVESTED_LEVEL_2)
       );
       await investmentContractLevel2
         .connect(investor2)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       expect(await investmentContractLevel2.balanceOf(investor2.address)).to.eq(
         withDecimals(INVESTED_LEVEL_2)
       );
       await investmentContractLevel2
         .connect(investor3)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       expect(await investmentContractLevel2.balanceOf(investor3.address)).to.eq(
         withDecimals(INVESTED_LEVEL_2)
       );
       await investmentContractLevel2
         .connect(investor4)
-        .invest(INVESTED_LEVEL_2);
+        .invest(INVESTED_LEVEL_2, 0);
       expect(await investmentContractLevel2.balanceOf(investor4.address)).to.eq(
         withDecimals(INVESTED_LEVEL_2)
       );
@@ -980,25 +1026,25 @@ describe("User Paths Testing", async () => {
       // able in level 3
       await investmentContractLevel3
         .connect(investor1)
-        .invest(INVESTED_LEVEL_3);
+        .invest(INVESTED_LEVEL_3, 0);
       expect(await investmentContractLevel3.balanceOf(investor1.address)).to.eq(
         withDecimals(INVESTED_LEVEL_3)
       );
       await investmentContractLevel3
         .connect(investor2)
-        .invest(INVESTED_LEVEL_3);
+        .invest(INVESTED_LEVEL_3, 0);
       expect(await investmentContractLevel3.balanceOf(investor2.address)).to.eq(
         withDecimals(INVESTED_LEVEL_3)
       );
       await investmentContractLevel3
         .connect(investor3)
-        .invest(INVESTED_LEVEL_3);
+        .invest(INVESTED_LEVEL_3, 0);
       expect(await investmentContractLevel3.balanceOf(investor3.address)).to.eq(
         withDecimals(INVESTED_LEVEL_3)
       );
       await investmentContractLevel3
         .connect(investor4)
-        .invest(INVESTED_LEVEL_3);
+        .invest(INVESTED_LEVEL_3, 0);
       expect(await investmentContractLevel3.balanceOf(investor4.address)).to.eq(
         withDecimals(INVESTED_LEVEL_3)
       );
@@ -1045,7 +1091,7 @@ describe("User Paths Testing", async () => {
       } = await loadFixture(DeployContracts);
       await expect(await puzzleContract.connect(investor1).mintEntry())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor1.address, ENTRY_LEVEL_NFT_ID_1, 1);
+        .withArgs(investor1.address, ENTRY_LEVEL_NFT_ID_1);
       await expect(await puzzleContract.connect(investor2).mintEntry())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor2.address, ENTRY_LEVEL_NFT_ID_1, 1);
@@ -1116,6 +1162,7 @@ describe("User Paths Testing", async () => {
     it("Deploy 10 contracts of each level", async () => {
       const {
         paymentTokenContract,
+        paymentTokenContract2,
         investor1,
         investor2,
         investor3,
@@ -1128,7 +1175,12 @@ describe("User Paths Testing", async () => {
         await expect(
           await factoryContract
             .connect(ceo)
-            .deployNew(INVESTMENT_1_AMOUNT, paymentTokenContract.address, 1)
+            .deployNew(
+              INVESTMENT_1_AMOUNT,
+              paymentTokenContract.address,
+              paymentTokenContract2.address,
+              1
+            )
         )
           .to.emit(factoryContract, "ContractCreated")
           .withArgs(anyValue, anyValue, 1);
@@ -1136,7 +1188,12 @@ describe("User Paths Testing", async () => {
         await expect(
           await factoryContract
             .connect(ceo)
-            .deployNew(INVESTMENT_2_AMOUNT, paymentTokenContract.address, 2)
+            .deployNew(
+              INVESTMENT_2_AMOUNT,
+              paymentTokenContract.address,
+              paymentTokenContract2.address,
+              2
+            )
         )
           .to.emit(factoryContract, "ContractCreated")
           .withArgs(anyValue, anyValue, 2);
@@ -1144,7 +1201,12 @@ describe("User Paths Testing", async () => {
         await expect(
           await factoryContract
             .connect(ceo)
-            .deployNew(INVESTMENT_3_AMOUNT, paymentTokenContract.address, 3)
+            .deployNew(
+              INVESTMENT_3_AMOUNT,
+              paymentTokenContract.address,
+              paymentTokenContract2.address,
+              3
+            )
         )
           .to.emit(factoryContract, "ContractCreated")
           .withArgs(anyValue, anyValue, 3);
@@ -1164,20 +1226,26 @@ describe("User Paths Testing", async () => {
       } = await loadFixture(entryNftReadyAndLevel1InvestmentDeployed);
       await investmentContractLevel1
         .connect(investor1)
-        .invest(INVESTED_LEVEL_1 / 2);
+        .invest(INVESTED_LEVEL_1 / 2, 0);
       await investmentContractLevel1
         .connect(investor2)
-        .invest(INVESTED_LEVEL_1 / 2);
+        .invest(INVESTED_LEVEL_1 / 2, 0);
       await investmentContractLevel1.changeStatus(STATUS_PAUSE);
       await expect(
-        investmentContractLevel1.connect(investor2).invest(INVESTED_LEVEL_1 / 2)
+        investmentContractLevel1
+          .connect(investor2)
+          .invest(INVESTED_LEVEL_1 / 2, 0)
       ).to.be.revertedWith("Not on progress");
       await investmentContractLevel1.changeStatus(STATUS_PROGRESS);
       await expect(
-        investmentContractLevel1.connect(investor2).invest(INVESTED_LEVEL_1 / 2)
+        investmentContractLevel1
+          .connect(investor2)
+          .invest(INVESTED_LEVEL_1 / 2, 0)
       ).not.to.be.reverted;
       await expect(
-        investmentContractLevel1.connect(investor1).invest(INVESTED_LEVEL_1 / 2)
+        investmentContractLevel1
+          .connect(investor1)
+          .invest(INVESTED_LEVEL_1 / 2, 0)
       ).not.to.be.reverted;
     });
 
@@ -1194,10 +1262,10 @@ describe("User Paths Testing", async () => {
       } = await loadFixture(entryNftReadyAndLevel1InvestmentDeployed);
       await investmentContractLevel1
         .connect(investor1)
-        .invest(INVESTED_LEVEL_1 / 2);
+        .invest(INVESTED_LEVEL_1 / 2, 0);
       await investmentContractLevel1
         .connect(investor2)
-        .invest(INVESTED_LEVEL_1 / 2);
+        .invest(INVESTED_LEVEL_1 / 2, 0);
       await investmentContractLevel1.changeStatus(STATUS_REFUNDING);
       await expect(
         investmentContractLevel1.connect(investor2).withdraw()

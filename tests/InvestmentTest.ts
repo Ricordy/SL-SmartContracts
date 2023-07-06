@@ -54,6 +54,7 @@ describe("Investment Contract Tests", async () => {
     paymentTokenContract2: CoinTest,
     factoryContract: Factory,
     investmentContract: Investment,
+    investmentContract2: Investment,
     permissionsContract: SLPermissions,
     totalAccounts: number,
     accounts: SignerWithAddress[],
@@ -140,6 +141,14 @@ describe("Investment Contract Tests", async () => {
       paymentTokenContract2.address,
       1
     );
+    investmentContract2 = await investmentContractFactory.deploy(
+      INVESTMENT_1_AMOUNT,
+      permissionsContract.address,
+      puzzleContract.address,
+      paymentTokenContract.address,
+      paymentTokenContract2.address,
+      1
+    );
     minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
 
     return {
@@ -153,6 +162,7 @@ describe("Investment Contract Tests", async () => {
       logcisContract,
       factoryContract,
       investmentContract,
+      investmentContract2,
       minimunInvestment,
     };
   }
@@ -162,12 +172,18 @@ describe("Investment Contract Tests", async () => {
       investor1,
       investmentContract,
       paymentTokenContract,
+      paymentTokenContract2,
       puzzleContract,
       logcisContract,
       minimunInvestment,
     } = await loadFixture(deployContractFixture);
     await paymentTokenContract.mint(INVESTOR1_INVESTMENT_AMOUNT);
+    await paymentTokenContract2.mint(INVESTOR1_INVESTMENT_AMOUNT);
     await paymentTokenContract.approve(
+      investmentContract.address,
+      withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
+    );
+    await paymentTokenContract2.approve(
       investmentContract.address,
       withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
     );
@@ -179,7 +195,16 @@ describe("Investment Contract Tests", async () => {
     await paymentTokenContract
       .connect(investor1)
       .mint(INVESTOR1_INVESTMENT_AMOUNT);
+    await paymentTokenContract2
+      .connect(investor1)
+      .mint(INVESTOR1_INVESTMENT_AMOUNT);
     await paymentTokenContract
+      .connect(investor1)
+      .approve(
+        investmentContract.address,
+        withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
+      );
+    await paymentTokenContract2
       .connect(investor1)
       .approve(
         investmentContract.address,
@@ -198,6 +223,7 @@ describe("Investment Contract Tests", async () => {
       investor1,
       investmentContract,
       paymentTokenContract,
+      paymentTokenContract2,
       minimunInvestment,
     };
   }
@@ -209,6 +235,7 @@ describe("Investment Contract Tests", async () => {
       investmentContract,
       logcisContract,
       paymentTokenContract,
+      paymentTokenContract2,
       puzzleContract,
     } = await loadFixture(deployContractFixture);
 
@@ -235,6 +262,42 @@ describe("Investment Contract Tests", async () => {
       await investmentContract
         .connect(accounts[i])
         .invest(GENERAL_INVEST_AMOUNT, 0);
+
+      if (i < 5) {
+        //Mint and Approve fake coin spending
+        //Mint fake coin
+        await paymentTokenContract
+          .connect(accounts[i])
+          .mint(GENERAL_ACCOUNT_AMOUNT);
+        //Approve fake coin spending
+        await paymentTokenContract
+          .connect(accounts[i])
+          .approve(
+            investmentContract2.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
+        //Make 9500 investment
+        await investmentContract2
+          .connect(accounts[i])
+          .invest(GENERAL_INVEST_AMOUNT, 0);
+      } else {
+        //Mint and Approve fake coin spending
+        //Mint fake coin
+        await paymentTokenContract2
+          .connect(accounts[i])
+          .mint(GENERAL_ACCOUNT_AMOUNT);
+        //Approve fake coin spending
+        await paymentTokenContract2
+          .connect(accounts[i])
+          .approve(
+            investmentContract2.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
+        //Make 9500 investment
+        await investmentContract2
+          .connect(accounts[i])
+          .invest(GENERAL_INVEST_AMOUNT, 1);
+      }
     }
 
     crucialInvestor = accounts[11];
@@ -243,6 +306,7 @@ describe("Investment Contract Tests", async () => {
       investor1,
       investmentContract,
       paymentTokenContract,
+      paymentTokenContract2,
       crucialInvestor,
       puzzleContract,
       logcisContract,
@@ -483,7 +547,7 @@ describe("Investment Contract Tests", async () => {
             paymentTokenContract.address
           );
       });
-      it("Investor should be allowed to invest", async () => {
+      it("Investor should be allowed to invest using cointest 0 (first stable)", async () => {
         const { investmentContract, investor1, minimunInvestment } =
           await loadFixture(ownerAndInvestorApprovedTokenToSpend);
         await expect(
@@ -495,6 +559,20 @@ describe("Investment Contract Tests", async () => {
             minimunInvestment,
             anyValue,
             paymentTokenContract.address
+          );
+      });
+      it("Investor should be allowed to invest using cointest 1 (second stable)", async () => {
+        const { investmentContract, investor1, minimunInvestment } =
+          await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+        await expect(
+          investmentContract.connect(investor1).invest(minimunInvestment, 1)
+        )
+          .to.emit(investmentContract, "UserInvest")
+          .withArgs(
+            investor1.address,
+            minimunInvestment,
+            anyValue,
+            paymentTokenContract2.address
           );
       });
       it("Should mint the exact same value of ERC20 tracker token as the amount investment", async () => {
@@ -603,8 +681,12 @@ describe("Investment Contract Tests", async () => {
     });
     describe("Function WithdrawSL", async () => {
       beforeEach("set state to process", async () => {
-        const { investmentContract, investor1, paymentTokenContract } =
-          await loadFixture(oneInvestCallLeftToFill);
+        const {
+          investmentContract,
+          investor1,
+          paymentTokenContract,
+          paymentTokenContract2,
+        } = await loadFixture(oneInvestCallLeftToFill);
         await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
       });
@@ -619,12 +701,20 @@ describe("Investment Contract Tests", async () => {
           await paymentTokenContract.balanceOf(investmentContract.address)
         ).to.equal(0);
       });
+      it("Owner should be able to withdraw all funds and contract balance of both stable coins should be 0", async () => {
+        await investmentContract.connect(cfo).withdrawSL();
+        expect(
+          await paymentTokenContract.balanceOf(investmentContract.address)
+        ).to.equal(0);
+        expect(
+          await paymentTokenContract2.balanceOf(investmentContract.address)
+        ).to.equal(0);
+      });
       it("Owner's Payment Token balance should be increased by the balance in the contract", async () => {
         const ownerBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(
           cfo.address
         );
-        const contractBalance =
-          await investmentContract.totalContractBalance();
+        const contractBalance = await investmentContract.totalContractBalance();
 
         // Withdraw funds
         await investmentContract.connect(cfo).withdrawSL();
@@ -634,6 +724,31 @@ describe("Investment Contract Tests", async () => {
 
         expect(ownerBalanceBeforeWithdraw).to.be.equal(
           ownerBalanceAfterWithdraw.sub(contractBalance)
+        );
+      });
+      it("Owner's both Payment Token balances should be increased by its balance on the contract", async () => {
+        const ownerBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(
+          cfo.address
+        );
+        const ownerBalanceBeforeWithdrawStable2 =
+          await paymentTokenContract2.balanceOf(cfo.address);
+
+        const { paymentToken0Balance, paymentToken1Balance } =
+          await investmentContract.totalContractBalanceForEachPaymentToken();
+
+        // Withdraw funds
+        await investmentContract.connect(cfo).withdrawSL();
+        const ownerBalanceAfterWithdraw = await paymentTokenContract.balanceOf(
+          cfo.address
+        );
+        const ownerBalanceAfterWithdrawStable2 =
+          await paymentTokenContract2.balanceOf(cfo.address);
+
+        expect(ownerBalanceBeforeWithdraw).to.be.equal(
+          ownerBalanceAfterWithdraw.sub(paymentToken0Balance)
+        );
+        expect(ownerBalanceBeforeWithdrawStable2).to.be.equal(
+          ownerBalanceAfterWithdrawStable2.sub(paymentToken1Balance)
         );
       });
       // it("Should not be called when contract balance is less than 80%", async () => {
@@ -724,7 +839,7 @@ describe("Investment Contract Tests", async () => {
       });
       it("Invest function shouldnt be able to be called", async () => {
         await expect(
-          investmentContract.connect(investor1).invest(100,0)
+          investmentContract.connect(investor1).invest(100, 0)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "InvalidContractStatus"
@@ -805,7 +920,7 @@ describe("Investment Contract Tests", async () => {
         // Invest the remaining amount to fill the contract
         await investmentContract
           .connect(crucialInvestor)
-          .invest(amountInvested.toNumber(),0);
+          .invest(amountInvested.toNumber(), 0);
 
         console.log("passed");
 
@@ -860,7 +975,9 @@ describe("Investment Contract Tests", async () => {
         const minimunInvestment = await investmentContract.MINIMUM_INVESTMENT();
 
         await expect(
-          investmentContract.connect(crucialInvestor).invest(minimunInvestment,0)
+          investmentContract
+            .connect(crucialInvestor)
+            .invest(minimunInvestment, 0)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "InvalidContractStatus"

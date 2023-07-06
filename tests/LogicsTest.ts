@@ -234,7 +234,9 @@ describe("Logics Contract Tests", async () => {
         logcisContract.address
       );
 
-      expect(newBalance).to.be.equal(previousBalance.add(ENTRY_BATCH_PRICE));
+      expect(newBalance).to.be.equal(
+        previousBalance.add(withDecimals(ENTRY_BATCH_PRICE))
+      );
     });
   });
 });
