@@ -66,7 +66,7 @@ contract SLLevels is SLBase {
         if (_tokenId == 30) {
             //Check for user level token ownership
             if (balanceOf(_claimer, _tokenId) != 0) {
-                revert IncorrectUserLevel(2, 1);
+                revert IncorrectUserLevel(1, 2);
             }
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(1));
@@ -81,7 +81,7 @@ contract SLLevels is SLBase {
         } else if (_tokenId == 31) {
             //Check for user level token ownership
             if (balanceOf(_claimer, _tokenId) != 0) {
-                revert IncorrectUserLevel(3, 2);
+                revert IncorrectUserLevel(2, 3);
             }
             //Get balance of the user
             balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(2));

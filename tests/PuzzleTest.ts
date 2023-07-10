@@ -376,7 +376,11 @@ describe("Puzzle Contract", async () => {
     const { paymentTokenContract, factoryContract, puzzleContract, ceo } =
       await loadFixture(investor1ReadyToClaimLevel3);
     //User in level 3
+    console.log("mint level 3");
+
     await puzzleContract.connect(investor1).claimLevel();
+
+    console.log("level 3 minted");
 
     await paymentTokenContract
       .connect(investor1)
@@ -386,11 +390,13 @@ describe("Puzzle Contract", async () => {
     const deployNewTx = await factoryContract
       .connect(ceo)
       .deployNew(
-        INVESTMENT_LEVEL_2_AMOUNT,
+        INVESTMENT_LEVEL_3_AMOUNT,
         paymentTokenContract.address,
         paymentTokenContract2.address,
         3
       );
+
+    console.log("deployed level 3 investment");
 
     await deployNewTx.wait();
     const deployedInvestmentAddress =
@@ -408,9 +414,11 @@ describe("Puzzle Contract", async () => {
         withDecimals(INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT)
       );
     // Invest an amount on investment1
+    console.log("investing in level 3");
     await investmentContract2
       .connect(investor1)
       .invest(INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT, 0);
+    console.log("investment succeeded");
     return { puzzleContract, paymentTokenContract, factoryContract, ceo };
   }
 
@@ -792,19 +800,18 @@ describe("Puzzle Contract", async () => {
 
       await expect(
         puzzleContract.connect(investor1).claimLevel()
-      ).to.be.revertedWithCustomError(puzzleContract, "InvalidLevel");
+      ).to.be.revertedWithCustomError(puzzleContract, "IncorrectUserLevel");
     });
   });
   describe("Pre-claim Puzzle NFT Level 3", async () => {
     beforeEach(async () => {
-      ({ puzzleContract } = await loadFixture(
-        investor1NotReadyToClaimLevel3Piece
-      ));
+      ({ puzzleContract } = await loadFixture(investor1ReadyToClaimLevel3));
     });
     it("should not be allowed to call if the user has not invested enough on level 3 contracts", async () => {
+      puzzleContract.connect(investor1).claimLevel();
       await expect(puzzleContract.claimPiece()).to.be.revertedWithCustomError(
-        puzzleContract,
-        "InvalidLevel"
+        logcisContract,
+        "MissingInvestmentToClaim"
       );
     });
   });
@@ -815,6 +822,8 @@ describe("Puzzle Contract", async () => {
       ));
     });
     it("should be able to claim after investing 15k on level3 contracts", async () => {
+      console.log("entered test");
+
       await expect(puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, anyValue);
@@ -832,8 +841,9 @@ describe("Puzzle Contract", async () => {
         .withArgs(investor1.address, anyValue, 1);
       await expect(
         puzzleContract.connect(investor1).claimPiece()
-      ).to.be.revertedWith(
-        "SLLogics: User does not have enough investment to claim this piece"
+      ).to.be.revertedWithCustomError(
+        logcisContract,
+        "MissingInvestmentToClaim"
       );
     });
   });
