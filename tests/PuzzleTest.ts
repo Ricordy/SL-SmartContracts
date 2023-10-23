@@ -5,6 +5,8 @@ import {
   Factory__factory,
   Investment__factory,
   SLCore,
+  SLCoreTest,
+  SLCoreTest__factory,
   SLCore__factory,
   SLLogics,
   SLLogics__factory,
@@ -45,7 +47,7 @@ function withDecimals(toConvert: number) {
 }
 describe("Puzzle Contract", async () => {
   // Variables
-  let puzzleContract: SLCore,
+  let puzzleContract: SLCoreTest,
     logcisContract: SLLogics,
     paymentTokenContract: CoinTest,
     paymentTokenContract2: CoinTest,
@@ -74,7 +76,7 @@ describe("Puzzle Contract", async () => {
     cfo = accounts[10];
     const paymentTokenContractFactory = new CoinTest__factory(owner);
     const permissionsContractFacotry = new SLPermissions__factory(owner);
-    const puzzleContractFactory = new SLCore__factory(owner);
+    const puzzleContractFactory = new SLCoreTest__factory(owner);
     const logicsContractFactory = new SLLogics__factory(owner);
     const factoryContractFactory = new Factory__factory(owner);
     // Deploy PaymentToken (CoinTest) contract from the factory
