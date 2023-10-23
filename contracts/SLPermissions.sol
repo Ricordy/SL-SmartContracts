@@ -10,7 +10,7 @@ contract SLPermissions {
     //
     //     - The CEO: The CEO can reassign other roles and change the addresses of our dependent smart
     //         contracts. It is also the only role that can unpause the smart contract. It is initially
-    //         set to the address that created the smart contract in the SLCore constructor.
+    //         set to the address that created the smart contract in the SLCore constructor. <---------------- FIX
     //
     //     - The CFO: The CFO can withdraw/refill funds from every investment contract.
     //

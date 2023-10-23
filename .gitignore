@@ -17,10 +17,11 @@ coverage.json
 typechain
 typechain-types
 
+.editorconfig
+
 #Hardhat files
 cache
 artifacts
-
 
 node_modules
 .env
