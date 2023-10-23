@@ -11,6 +11,8 @@ import {
   Investment,
   Investment__factory,
   SLCore,
+  SLCoreTest,
+  SLCoreTest__factory,
   SLCore__factory,
   SLLogics,
   SLLogics__factory,
@@ -49,7 +51,7 @@ function withDecimals(toConvert: number) {
 describe("User Paths Testing", async () => {
   let paymentTokenContract: CoinTest,
     paymentTokenContract2: CoinTest,
-    puzzleContract: SLCore,
+    puzzleContract: SLCoreTest,
     logicsContract: SLLogics,
     factoryContract: Factory,
     permissionsContract: SLPermissions,
@@ -80,7 +82,7 @@ describe("User Paths Testing", async () => {
     const investmentContractFactory = new Factory__factory(owner);
     const permissionsContractFacotry = new SLPermissions__factory(owner),
       paymentTokenFactory = new CoinTest__factory(owner),
-      puzzleContractFactory = new SLCore__factory(owner),
+      puzzleContractFactory = new SLCoreTest__factory(owner),
       logicsContractFactory = new SLLogics__factory(owner);
 
     permissionsContract = await permissionsContractFacotry.deploy(
