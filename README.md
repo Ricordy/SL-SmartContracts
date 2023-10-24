@@ -4,7 +4,7 @@
 <!-- TOC --><a name="introduction-"></a>
 ## **Introduction 🎬**
 
-Something Legendary is an investment platform for the purchase, renovation and subsequent sale of classic cars, usingWeb 3.0 tools as a method of financial ease of use and as a gamification element.
+Something Legendary is an investment platform for the purchase, renovation and subsequent sale of classic cars, using Web 3.0 tools as a method of financial ease of use and as a gamification element.
 
 <!-- TOC --><a name="table-of-content-"></a>
 ## **Table of content 📖**
@@ -52,7 +52,7 @@ Something Legendary is an investment platform for the purchase, renovation and s
 Something Legendary offers an innovative approach to classic car investment. Here are some key aspects of the platform:
 
 - **Membership Cards:** To start investing in Something Legendary, users need to acquire a Membership Card. The platform has three levels, and after obtaining a Membership Card, users start at level 1.
-- **Investment Tiers:** As users progress through the levels, more cars become available for investment, each with different return rates. Every investment has a total value, an estimated end date (which can be extended in certain cases), an estimated claim/refill date, and a status indicating the investment's phase. After the refill, the investment contract will be set a return rate and the users will be allowed to withdraw their investment with the profit made.
+- **Investment Tiers:** As users progress through the levels, more cars become available for investment, each with different return rates. Every investment has a total value, an estimated end date (which can be extended in certain cases), an estimated claim/refill date, and a status indicating the investment's phase. After the refill, the investment contract will set a return rate and the users will be allowed to withdraw their investment with the profit made.
 - **Gamification:** Levels 2 and 3 are achieved by collecting NFT puzzle pieces. These pieces are randomly minted, and when 10 distinct ones are collected, the user will be able to claim the next level, adding a gamification aspect to the platform. Users can also use trades and secondary markets to enhance their experience.
 
 <!-- TOC --><a name="functional-requirements-"></a>
@@ -66,8 +66,8 @@ Something Legendary has 3 main roles, and an “abstract” one. The abstract ro
 - CEO - The CEO can reassign other roles and change the addresses of our dependent smartcontracts. It is also the only role that can unpause the platform or any specific contract. It is initially set to the address that deployed the smart contract, in the contract constructor.
 - CFO - The CFO is the role that manages all funds in the platform. It is responsible for withdrawing the entry fees, also withdraws the funds from all investment contracts as well as the subsequent refill of the contracts.
 - User - The user can mint a Membership card. Without the Membership card, the user will not be allowed to do anything else
-- Membership carded user - A user with a Membership card. This user is able to interact with every level 1 investment. By progressing each level, the user is able to invest in same level cars, without losing the ability to invest in lower levels.
-- Allowed contracts (abstract actor) - This actor is responsible for management of funds in SLLogics contract. This role is given to SLCore in order to deal with the payments (the funds are stored in SLLogics), as well as updating the Membership card price when a new batch is released.
+- Membership carded user - A user with a Membership card. This user is able to interact with every level 1 investment. By progressing to each level, the user is able to invest in same-level cars, without losing the ability to invest in lower levels.
+- Allowed contracts (abstract actor) - This actor is responsible for the management of funds in SLLogics contract. This role is given to SLCore in order to deal with the payments (the funds are stored in SLLogics), as well as updating the Membership card price when a new batch is released.
 
 <!-- TOC --><a name="features-"></a>
 ### Features 🕊
@@ -95,8 +95,8 @@ Something Legendary has the following features:
 <!-- TOC --><a name="use-cases-"></a>
 ### Use cases ⛹️‍♀️
 
-1. The investment contract has an estimate end date, but this can be changed due to less investments than expected and an agreement with the seller of the car.
-2. When the investment contract reaches the maximum or reaches the end date, the CFO will withdraw all tokens to begin with the process, from this moment on, this contract will be impossible to invest in. After the process of restoration and selling is completed, the CFO sets the profit rate and refills the contract, with the previous total investment plus the necessary to cover the profit rates of the users.
+1. The investment contract has an estimated end date, but this can be changed due to fewer investments than expected and an agreement with the seller of the car.
+2. When the investment contract reaches the maximum or reaches the end date, the CFO will withdraw all tokens to begin the process, from this moment on, this contract will be impossible to invest in. After the process of restoration and selling is completed, the CFO sets the profit rate and refills the contract, with the previous total investment plus the necessary to cover the profit rates of the users.
 3. When a new entry batch is created, the CEO can set a new price for the batch and a new uri for this token.
 
 
@@ -163,22 +163,22 @@ SomethingLegendary-Smartcontracts/
 ├── [README.md](http://readme.md/)
 └── yarn.lock
 
-Start with “Getting started” to find all basic information about project structure and scripts that are required to test and deploy the contracts.
+Start with “Getting Started” to find all the basic information about the project structure and scripts that are required to test and deploy the contracts.
 
 
 <!-- TOC --><a name="quick-overview-"></a>
 ### Quick overview 👀
 
 Inside the ./contracts folder, Factory.sol contains the smart contract
-responsible for deploying new investment contracts. Investment.sol contains the smart contract that is deployed by the Factory, each one of the deployed smart contracts represents the investment on one car. SLPermissions.sol contains the contract responsible for access control, this centralizes de CEO/CFO role across the platform. SLBase only contains core code, all of the ERC1155 communications and memory writting calls happens through here! It imports code from OpenZeppelin, such as ERC1155.sol and ReentrancyGuard.sol, as well as our own SLMicroSlots.sol, that uses math to store multiple ints in just one variable. SLLevels.sol inherits from SLBase.sol and it implements level related functions from SLBase.sol just as well as it contains one internal function to process the buying of a Membership card, and a few getter functions. SLPuzzles.sol will inherit from SLLevels.sol thus inheriting from SLBase.sol, it will implement Puzzle related functions from SLBase.sol as well as a getter function. Finally, SLCore is the last of this schema and contains/implements all available to interact functions, all functions that can be interacted from a wallet or a smart contract, are implemented here (of course we are not counting ERC1155 external/public functions). SLLogics is responsible for being the bridge between Factory.sol and SLCore.sol, aswell as hold the information of the entry token batches’ such as price and uri, it will also hold the funds collected from the selling of entry tokens as well as the logic that allows, or not, a user to claim a piece.
+responsible for deploying new investment contracts. Investment.sol contains the smart contract that is deployed by the Factory, each one of the deployed smart contracts represents the investment in one car. SLPermissions.sol contains the contract responsible for access control, this centralizes de CEO/CFO role across the platform. SLBase only contains core code, all of the ERC1155 communications and memory writing calls happen through here! It imports code from OpenZeppelin, such as ERC1155.sol and ReentrancyGuard.sol, as well as our own SLMicroSlots.sol, which uses math to store multiple ints in just one variable. SLLevels.sol inherits from SLBase.sol and it implements level-related functions from SLBase.sol just as well as it contains one internal function to process the buying of a Membership card, and a few getter functions. SLPuzzles.sol will inherit from SLLevels.sol thus inheriting from SLBase.sol, it will implement Puzzle related functions from SLBase.sol as well as a getter function. Finally, SLCore is the last of this schema and contains/implements all available to interact functions, all functions that can be interacted from a wallet or a smart contract, are implemented here (of course we are not counting ERC1155 external/public functions). SLLogics is responsible for being the bridge between Factory.sol and SLCore.sol, as well as holding the information of the entry token batches’ such as price and uri, it will also hold the funds collected from the selling of entry tokens as well as the logic that allows, or not, a user to claim a piece.
 
 The ./tests provides the tests of the
 different methods of the different smart contracts, in Typescript. I
-The main contract can be deployed using: (See Getting started)
+The main contract can be deployed using: (See Getting Started)
 The project configuration is found in hardhat.config.ts, where dependencies
 are indicated. Mind the relationship of this file with .env. A basic
 configuration of Polygon’s Mumbai testnet is described in order to deploy the
-contract. And an etherscan key is set to to configure its different
+contract. An etherscan key is set to configure its different
 functionalities directly from the repo. More information about this file’s
 configuration can be found in the Hardhat Documentation.
 
@@ -190,7 +190,7 @@ configuration can be found in the Hardhat Documentation.
 
 Something Legendary Smartcontracts schema
 
-This schema can be divided in some parts of interest:
+This schema can be divided into some parts of interest:
 
 - SLCore group:
     - Responsible for the gamification of the project.
@@ -200,9 +200,8 @@ This schema can be divided in some parts of interest:
     - Responsible for holding information regarding user total investment and user total investment per level.
 - Logics groups:
     - Responsible for payment of membership card
-    - Responsible to hold info (uri/price) of membership card batches
-    - Responsible to assure if a user is
-    - Responsible to assure if a user is eligible to claim a puzzle piece.
+    - Responsible for holding info (uri/price) of membership card batches
+    - Responsible for ensuring that a user is eligible to claim a puzzle piece.
 - Permissions group:
     - Responsible for access control and role management.
     - CEO and CFO roles are defined here.
@@ -236,7 +235,7 @@ These dependencies are crucial for developing, testing, and deploying your Ether
 **[Hardhat Gas Reporter](https://hardhat.org/plugins/hardhat-gas-reporter.html)**:
 
 - **Version:** ^1.0.8
-- **Description:** This plugin is used for generating gas consumption reports, which can be helpful for optimizing your smart contracts.
+- **Description:** This plugin is used for generating gas consumption reports, which can help optimize your smart contracts.
 - [*TypeScript](https://www.typescriptlang.org/):**
 - **Version:** >=4.5.0
 - **Description:** TypeScript is a statically typed superset of JavaScript, commonly used for building robust and maintainable smart contracts and applications.
@@ -282,7 +281,7 @@ This contract is responsible for deploying new Investment contracts and managing
 **Contract Deployment and deployment of investment contracts:**
 
 1. For the contract deployment, SLPermissions must be deployed first, since it requires its address as a parameter.
-2. For the deployment of an investment contract, SLCore must de deployed and a valid PaymentToken address must be passed as well as an existing level.
+2. For the deployment of an investment contract, SLCore must be deployed and a valid PaymentToken address must be passed as well as an existing level.
 3. The CEO creates a new investment contract by calling:
 
 ```solidity
@@ -310,7 +309,7 @@ function deployNew(
 /// @dev The function requires the caller to be a CEO and the platform to be active. It also checks if the _slCoreAddress is not a zero address.
 /// @param  _slCoreAddress The new SLCore address.
 /// @custom:requires  CEO access Level
-/// @custom:intent If SLCore gets compromised, there's a way to fix the factory withouth the need of redeploying
+/// @custom:intent If SLCore gets compromised, there's a way to fix the factory without the need of redeploying
 function setSLCoreAddress(
 	address _slCoreAddress
 ) external isCEO isNotGloballyStoped {}
@@ -518,8 +517,8 @@ constructor(
 
 **Making an investment**
 
-1. In order to do an investment, the contract must be in “Progress” phase.
-2. Any user with the required level will be able to invest in the contract, calling:
+1. In order to make an investment, the contract must be in “Progress” phase.
+2. Any user with the required level will be able to invest in the contract, by calling:
 
 ```solidity
 /// @notice Allows a user to invest a certain amount.
@@ -535,9 +534,9 @@ function invest(
 **Withdrawing/Refunding**
 
 1. Any user with the required level and an investment done will be able to get the funds.
-2. The funds can only be withdrew/refunded if the contract is in “Withdraw” or “Refund” status.
+2. The funds can only be withdrawn/refunded if the contract is in “Withdraw” or “Refund” status.
 3. The function called in case of refund is exactly the same as in case of withdraw, thus why the profit rate is only settled after the investment is passed to withdraw state with a refill (see below).
-4. The action can be performed calling:
+4. The action can be performed by calling:
 
 ```solidity
 /// @notice Allows a user to withdraw their investment.
@@ -555,9 +554,9 @@ function withdraw()
 
 **Company withdraw and refill**
 
-1. The funds can only be withdrew/refilled if the contract is in “Process” status.
+1. The funds can only be withdrawn/refilled if the contract is in “Process” status.
 2. The functions require the CFO to be the caller.
-3. This actions can be performed calling:
+3. These actions can be performed by calling:
 
 ```solidity
 // @notice Allows the CFO to withdraw funds for processing.
@@ -880,12 +879,12 @@ This facet controls access control for Something Legendary. There are three role
 
 - The CEO: The CEO can reassign other roles and change the addresses of our dependent smart contracts. It is also the only role that can unpause the smart contract. It is initially set to the address that created the smart contract in the constructor.
 - The CFO: The CFO can withdraw/refill funds from every investment contract, and withdraw the membership card revenue.
-- The allowed contracts: The allowed contracts represents the current SLCore contract, to give it ability to use SLLogics with access control.
+- The allowed contracts: The allowed contracts represent the current SLCore contract, to give the ability to use SLLogics with access control.
 
 **Contract Deployment :**
 
 1. For the contract deployment, a valid CEO and CFO address must be passed.
-2. For the correct working of the platform, SLCore (when deployed) must be setted as allowed contract
+2. For the correct working of the platform, SLCore (when deployed) must be set as an allowed contract
 3. The constructor:
 
 ```solidity
@@ -901,17 +900,17 @@ constructor(address _ceoAddress, address _cfoAddress) {
 
 **Contract status**
 
-Each of this status is able to affect the whole platform:
+Each of these statuses can affect the whole platform:
 
 1. Paused - Complete platform pause
 2. Paused entry mint - Paused membership card minting.
 3. pausedPuzzleMint - Paused puzzle pieces nft and levels nft minting.
-4. pausedInvestments - Paused all investent contracts.
+4. pausedInvestments - Paused all investment contracts.
 
 **Changing CEO/CFO**
 
 1. In order to change the CEO or CFO, the contract can be in any state, since the usage would probably mean an exploit/bug, and the contract may need to be paused.
-2. Only the CEO will be able to set this roles , calling:
+2. Only the CEO will be able to set these roles, calling:
 
 ```solidity
 /// @dev Assigns a new address to act as the CEO. Only available to the current CEO.
@@ -926,8 +925,8 @@ function setCFO(address _newCFO) external onlyCEO {}
 
 **Setting a contract as allowed/disallowed**
 
-1. In order to change the allowance of a contract or set a new one, the contract can be in any state, since the usage would probably mean an exploit/bug, and the contract may need to be paused.
-2. Only the CEO will be able to set this role , calling:
+1. To change the allowance of a contract or set a new one, the contract can be in any state, since the usage would probably mean an exploit/bug, and the contract may need to be paused.
+2. Only the CEO will be able to set this role, calling:
 
 ```solidity
 /// @dev assigns a boolean value for contract access control
@@ -939,8 +938,8 @@ function setAllowedContracts(address _contractAddress, uint256 _allowed) externa
 
 **Pause/Unpause sections**
 
-1. The action of pausing can be called by any CLevel wallet while the unpause action can only be perfomed by the CEO.
-2. This actions can be performed calling:
+1. The action of pausing can be called by any CLevel wallet while the unpause action can only be performed by the CEO.
+2. These actions can be performed by calling:
 
 ```solidity
 /// @dev Called by any "C-level" role to pause each of the functionalities. Used only when
@@ -1102,7 +1101,7 @@ function unpauseInvestments() external onlyCEO {}
 
 **SLMicroSlots.sol**
 
-In this contract we use math to compute the uint that contains multiple values stored inside. A simple example would be storing 3 different price for wheels, lets say 10€, 15€ and 20€. It would be stored in just one variable: 201510, and retrieved by this contract. This makes the use of multiple variable unnecessary, creating cheaper transactions and deployments.
+In this contract, we use math to compute the uint that contains multiple values stored inside. A simple example would be storing 3 different prices for wheels, let's say 10€, 15€ and 20€. It would be stored in just one variable: 201510, and retrieved by this contract. This makes the use of multiple variables unnecessary, creating cheaper transactions and deployments.
 
 **Contract Deployment**
 
@@ -1117,8 +1116,8 @@ In this contract we use math to compute the uint that contains multiple values s
 //Get a number of digits in x position of a number
     /// @notice Returns the position X in slots of Y size in a given number.
     /// @param number the uint256 from where the result is extracted
-    /// @param position the psotion of the result
-    /// @param factor number of algarisms in result
+    /// @param position the position of the result
+    /// @param factor number of algorisms in result
     /// @return uint256 the specified position in a number
     function getPositionXInDivisionByY(
         uint256 number,
@@ -1133,10 +1132,10 @@ In this contract we use math to compute the uint that contains multiple values s
 **Membership card info manipulation**
 
 1. This contract manipulates the way the membership card batches’ info is stored.
-2. The info is stored in an array, each index translates to the batch number, inside each postion of the array will be a number (uint) containing the batch limit (total supply) and the amount of membership cards sold from that batch.
-3. As you could understand, this value needs to be updated every time a user buys a membership card.
-4. The value is not only changed, but it needs to be reed, to assure there’s still membership cards to sell.
-5. For this 2 actions (reading the current values and updating them) there are 2 functions:
+2. The info is stored in an array, and each index translates to the batch number, inside each position of the array will be a number (uint) containing the batch limit (total supply) and the amount of membership cards sold from that batch.
+3. As you can understand, this value needs to be updated every time a user buys a membership card.
+4. The value is not only changed, but it needs to be read, to ensure there are still membership cards to sell.
+5. For these 2 actions (reading the current values and updating them) there are 2 functions:
 
 ```solidity
 /// @notice mount the entry value for storage
@@ -1150,7 +1149,7 @@ function mountEntryValue(
 ) internal view returns (uint24) {}
 
 /// @notice unmount the entry value for checking
-/// @dev the returns allows checking for the limit of NFT minting
+/// @dev the returns allow checking for the limit of NFT minting
 /// @param value the information regarding the current level1 batch
 /// @return cap Collection limit
 /// @return currentID the current token Id
@@ -1162,7 +1161,7 @@ function unmountEntryValue(
 
 **Membership card token ID Generation**
 
-1. You probably guess it right, how do they mint? Where is the collectionID stored? .
+1. You probably guessed it right, how do they mint? Where is the collectionID stored?
 2. The ID is not stored, rather it is calculated every time a user buys a membership card, by this function:
 
 ```solidity
@@ -1257,17 +1256,17 @@ function changetXPositionInFactor5(uint256 number, uint32 position, uint256 newN
 
 **SLLogics.sol**
 
-SLLogics serves multiples purposes:
+SLLogics serves multiple purposes:
 
 - SLLogics is responsible for being the bridge between Factory.sol and SLCore.sol.
-- SLLogics retrieves the payment of the membership card to avoid storing funds in SLCore.sol which is going to be used further more than SLLogics.sol. This helps SLCore to be less tempting for exploitation, since it is where the gamification happens and is stored.
+- SLLogics retrieves the payment of the membership card to avoid storing funds in SLCore.sol which is going to be used more than SLLogics.sol. This helps SLCore to be less tempting for exploitation since it is where the gamification happens and is stored.
 - Since it retrieves the payment, it makes sense that it keeps the information about the price of the membership card as well as the uris for each batch.
-- It also holds the logics that will allow, or not, a user to claim a puzzle piece.
+- It also holds the logic that will allow, or not, a user to claim a puzzle piece.
 
-**Contract Deployment :**
+**Contract Deployment:**
 
 1. For the contract deployment, a valid factory address, payment token address and SLPermissions address must be passed.
-2. For the correct working of the platform, SLCore (when deployed) must be settled as allowed contract in SLPermissions.sol, so it can communicate with this one.
+2. For the correct working of the platform, SLCore (when deployed) must be settled as an allowed contract in SLPermissions.sol, so it can communicate with this one.
 3. The constructor:
 
 ```solidity
@@ -1287,7 +1286,7 @@ constructor(
 **Withdraw membership cards’ revenue**
 
 1. In order to collect the revenue, the caller must be the CFO.
-2. This action is performed calling:
+2. This action is performed by calling:
 
 ```solidity
 /// @notice Allow the CFO of the contract to withdraw tokens from the contract's account
@@ -1300,9 +1299,9 @@ function withdrawTokens(address _user) external isCFO {}
 **Paying the membership card price**
 
 1. This can only be called by SLCore.sol contract, if it has been settled as an allowed contract in SLPermissions.sol, when a user buys the membership card.
-2. This keys it necessary that the user approve the spending for this contract and not SLCore.sol
+2. This makes it necessary that the user approve the spending for this contract and not SLCore.sol
 3. The revenue is stored here for security purposes.
-4. This action is performed calling:
+4. This action is performed by calling:
 
 ```solidity
 /// @notice Transfer the entry fee from the user's account to the contract's account
@@ -1312,10 +1311,10 @@ function payEntryFee(address _user) external isAllowedContract nonReentrant {}
 
 ```
 
-**Setting the member ship batch price and uri**
+**Setting the membership batch price and uri**
 
-1. This can only be called by SLCore.sol contrac, if it has been settled as an allowed contract in SLPermissions.sol, when the CEO creates a new batch.
-2. This actions can be performed calling and passing the price for the batch and the uri:
+1. This can only be called by SLCore.sol contract, if it has been settled as an allowed contract in SLPermissions.sol, when the CEO creates a new batch.
+2. These actions can be performed by calling and passing the price for the batch and the uri:
 
 ```solidity
 /// @notice Set the entry price for a new entry batch
@@ -1332,7 +1331,7 @@ function setEntryPrice(
 **Verify user ability to claim a piece**
 
 1. This can be called by anyone since it doesn’t change the state of the contract.
-2. This actions can be performed calling the external one:
+2. These actions can be performed by calling the external one:
 
 ```solidity
 // Function to verify if a user has the right to claim the next level
@@ -1504,17 +1503,17 @@ function userAllowedToClaimPiece(
 
 SLBase is the 2nd contract from the  inheritance schema.
 
-- Centralizes information on this contract, making sure that all of the ERC1155 communications and memory writting calls happens through here
+- Centralizes information on this contract, making sure that all of the ERC1155 communications and memory writing calls happen through here
 - Implements core functions and instantiates unimplemented functions for later contracts in the line to implement
 - Here is where all the information of the SLCore schema is stored.
 
-**Contract Deployment :**
+**Contract Deployment:**
 
 1. This contract should not be deployed by itself, it should rather be imported by the next contract in the list, SLLevels.
 
 **Logic for claiming a piece/level**
 
-1. This functions cannot be called, they are called later by user callable function.
+1. These functions cannot be called, they are called later by user callable function.
 2. This action happens through:
 
 ```solidity
@@ -1535,7 +1534,7 @@ function _claimPiece(address _receiver, uint256 _puzzleLevel) internal {}
 
 **Incrementing a puzzle piece after claim**
 
-1. In conjunction with SLMicroSlots.sol, when a user claim a piece, the information needs to be updated, thus calling:
+1. In conjunction with SLMicroSlots.sol, when a user claims a piece, the information needs to be updated, thus calling:
 
 ```solidity
 /// @notice Increments by 1 the number of user puzzle pieces in a specified level
@@ -1547,7 +1546,7 @@ function _incrementUserPuzzlePieces(address _user, uint256 _puzzleLevel) interna
 
 ```
 
-,then:
+, then:
 
 ```solidity
 
@@ -1561,7 +1560,7 @@ function _transferTokensOnClaim(address _receiver, uint256 _tokenId, uint256 _qu
 
 **To be overridden function**
 
-1. Each of this functions has a purpose that will only be implemented down in the line of inheritance, by the responsible contract.
+1. Each of these functions has a purpose that will only be implemented down in the line of inheritance, by the responsible contract.
 
 ```solidity
 /// @notice Verifies if the user can claim a given piece or level NFT
@@ -1798,7 +1797,7 @@ function _incrementUserPuzzlePieces(
 /// @notice function to mint tokens on claim
 /// @param _receiver user's address
 /// @param _tokenId the id of the collection from which the NFT should be minted
-/// @param _quantity quantity to mint
+/// @param _quantity to mint
 function _transferTokensOnClaim(
     address _receiver,
     uint256 _tokenId,
@@ -1824,17 +1823,17 @@ function _claimPiece(address _receiver, uint256 _puzzleLevel) internal {}
 
 SLLevels is the 3rd contract from the  inheritance schema.
 
-- Every level related function is implemented here, also the modifiers and getters
-- no function can be called externally outside another later created in the schema
+- Every level-related function is implemented here, as the modifiers and getters
+- No function can be called externally outside another later created in the schema
 - Doesn’t store info.
 
-**Contract Deployment :**
+**Contract Deployment:**
 
 1. This contract should not be deployed by itself, it should rather be imported by the next contract in the list, SLPuzzles.
 
 **Logic for buying a membership card**
 
-1. This functions cannot be called, they are called later by user callable function.
+1. These functions cannot be called, they are called later by user callable function.
 2. This action happens through:
 
 ```solidity
@@ -2021,11 +2020,11 @@ function _buyEntryToken(address _receiver) internal {}
 
 SLPuzzles is the 4th contract from the inheritance schema.
 
-- Every piece related function is implemented here, also the modifiers and getters
+- Every piece-related function is implemented here, as the modifiers and getters
 - no function can be called externally outside another later created in the schema
 - Doesn’t store info.
 
-**Contract Deployment :**
+**Contract Deployment:**
 
 1. This contract should not be deployed by itself, it should rather be imported by the next contract in the list, SLPuzzles.
 
@@ -2033,7 +2032,7 @@ SLPuzzles is the 4th contract from the inheritance schema.
 
 1. Here the code decides if it is a piece of a level the user is claiming.
 2. In the case of a level it will redirect to the function instantiated in SLLevels.sol to do the verification
-3. In case of a puzzle piece it will compute the user level and call SLLogics.sol to verify the user ability to claim
+3. In the case of a puzzle piece it will compute the user level and call SLLogics.sol to verify the user ability to claim
 4. This action happens through:
 
 ```solidity
@@ -2185,7 +2184,7 @@ SLCore is the 5th contract from the inheritance schema.
 - Every user interactable function is implemented here.
 - Doesn’t store info.
 
-**Contract Deployment :**
+**Contract Deployment:**
 
 1. For the deployment of this contract, a valid SLLogics and SLPermissions address must be passed
 2. This contract initiates the whole schema
@@ -2210,7 +2209,7 @@ constructor(address _slLogicsAddress, address _slPermissionsAddress) {
 
 **Mint a membership card**
 
-1. Only a user that doesn’t have a membership card can mint one.
+1. Only a user who doesn’t have a membership card can mint one.
 2. The approval call in the ERC20 token used must be done to SLLogics since it’s going to be the contract receiving the payment.
 3. This function can be externally paused by SLPermissions.sol
 4. This action happens through:
@@ -2246,7 +2245,7 @@ function claimPiece() public isPuzzleMintNotPaused nonReentrant userHasLevel(1) 
 2. Each level requires 10 unique pieces from the previous level:
     1. Reach/mint level 2 NFT: 10 unique level 1 puzzle pieces
     2. Reach/mint level 3 NFT: 10 unique level 2 puzzle pieces
-    3. Reach/mint level 3 completion NFT : 10 unique level 3 puzzle pieces
+    3. Reach/mint level 3 completion NFT: 10 unique level 3 puzzle pieces
 3. The contract computes the user level, meaning the user can only mint the level he/she is one.
 4. This function can be externally paused by SLPermissions.sol
 5. This action happens through:
@@ -2296,7 +2295,7 @@ function uri(uint256 _collectionId) public view override returns (string memory)
 
 **Testing functions**
 
-Additionally, due to the random functionality, there’s a function to be added in testing purposes, that guarantees the claim of 10 unique pieces of each level, to test level related features.:
+Additionally, due to the random functionality, there’s a function to be added in testing purposes, that guarantees the claim of 10 unique pieces of each level, to test level-related features.:
 
 ```solidity
 function mintTest(uint256 level) public {
@@ -2396,7 +2395,7 @@ Yarn will fetch and install all the necessary packages and libraries listed in t
 <!-- TOC --><a name="update-the-env-file-"></a>
 ### Update the .env file 🚑
 
-The variables are later use in the code, so to have the full experience, feel the .envExample and remove the “Example” part.
+The variables are later used in the code, so to have the full experience, feel the .envExample and remove the “Example” part.
 
 - Alchemy - https://www.alchemy.com/
 - Private key - your development wallet private key.
@@ -2465,19 +2464,19 @@ This repository contains a set of Hardhat scripts for deploying and interacting 
 ### Invest 5k with Level 1 Contract (Localhost) 🤑💰
 
 - **Script Name:** `invest5kl1`
-- **Description:** This script allows for a 5,000 investment in a level 1 car on a local Ethereum network. This scripts deploys a Level 1 contract each time it runs.
+- **Description:** This script allows for a 5,000 investment in a level 1 car on a local Ethereum network. This script deploys a Level 1 contract each time it runs.
 
 <!-- TOC --><a name="invest-10k-with-level-2-access-localhost"></a>
 ### Invest 10k with Level 2 Access (Localhost)💰💰
 
 - **Script Name:** `invest10kl2`
-- **Description:** This script allows for a 10,000 investment in a level 2 car on a Ethereum network. This scripts deploys a Level 2 contract each time it runs.
+- **Description:** This script allows for a 10,000 investment in a level 2 car on an Ethereum network. This script deploys a Level 2 contract each time it runs.
 
 <!-- TOC --><a name="invest-15k-with-level-3-access-localhost"></a>
 ### Invest 15k with Level 3 Access (Localhost)💰🤑💰
 
 - **Script Name:** `invest15kl3`
-- **Description:** This script allows for a 15,000 iinvestment in a level 3 car on a local Ethereum network. This scripts deploys a Level 3 contract each time it runs.
+- **Description:** This script allows for a 15,000 investment in a level 3 car on a local Ethereum network. This script deploys a Level 3 contract each time it runs.
 
 <!-- TOC --><a name="deploy-investment-contract-localhost-"></a>
 ### Deploy Investment Contract (Localhost) 🕊
