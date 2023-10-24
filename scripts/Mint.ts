@@ -1,64 +1,75 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumberish } from "ethers";
 import { ethers } from "hardhat";
-import { Address } from "wagmi";
 import addresses from "../utils/addresses";
 
 import {
   CoinTest,
   CoinTest__factory,
-  Factory,
-  Factory__factory,
   SLCore,
   SLCore__factory,
-  Investment,
-  Investment__factory,
 } from "../typechain-types";
 
 const investmentValue: number = 1000;
 
 async function main() {
-  const accounts: SignerWithAddress[] = await ethers.getSigners();
-  const owner: SignerWithAddress = accounts[0];
-  const firstInvestor: SignerWithAddress = accounts[1];
+  const CEO_SIGNED = await ethers.getSigner(process.env.CEO_ADDRESS as string);
 
-  const paymentTokenFactory = new CoinTest__factory(owner);
-  const puzzleContractFactory = new SLCore__factory(owner);
-  const factoryFactory = new Factory__factory(owner);
+  const paymentTokenFactory = new CoinTest__factory(CEO_SIGNED);
+  const clCoreContractFactory = new SLCore__factory(CEO_SIGNED);
 
   const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
     addresses.paymentTokenAddress0
   );
 
-  const puzzleContract: SLCore = puzzleContractFactory.attach(
+  const slCoreContract: SLCore = clCoreContractFactory.attach(
     addresses.puzzleAddress
   );
 
   const decimals = await paymentTokenContract.decimals();
-  // console.log(decimals);
 
   const valueWithDecimals = ethers.utils.parseUnits(
     investmentValue.toString(),
     decimals
   );
+  console.log(" Minting entry for CEO...");
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
   console.log("Minting 10K tokens to Investor1: ");
-  await paymentTokenContract.mint(valueWithDecimals);
+  await paymentTokenContract.connect(CEO_SIGNED).mint(valueWithDecimals);
   console.log(
     "Approving 10K tokens to be spend by Puzzle and Investment Contract from Investor1: "
   );
-  const approveTx = await paymentTokenContract.approve(
-    addresses.logicsAddress,
-    valueWithDecimals
+  console.log(
+    "----------------------------------------------------------------------------------------"
   );
+  const approveTx = await paymentTokenContract
+    .connect(CEO_SIGNED)
+    .approve(addresses.logicsAddress, valueWithDecimals);
   approveTx.wait();
-  // await paymentTokenContract
-  //   .connect(firstInvestor)
-  //   .approve(investmentAddress, investmentValue);
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
   console.log("Minting entry for Investor1: ");
-  await puzzleContract.mintEntry();
-  // const factoryContract = await factoryFactory.attach(factoryAddress);
-  // const deployed = await factoryContract.deployedContracts(0);
-  // console.log(deployed);
+  try {
+    await slCoreContract.connect(CEO_SIGNED).mintEntry();
+  } catch (error: any) {
+    if (error.reason.split("'")[1] == "") {
+      console.log(
+        "User already at level 1.   How to run this command again: \n - Localhost: restart the local node \n - Testnet: Deploy new contracts and update the utils/addresses.ts file "
+      );
+    } else {
+      console.log(`Reason: ${error.reason.split("'")[1]}`);
+    }
+  }
+
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
+  const userLevel = await slCoreContract.whichLevelUserHas(CEO_SIGNED.address);
+  console.log(` Entry minted! User level: ${userLevel}`);
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
 }
 
 main().catch((error) => {
