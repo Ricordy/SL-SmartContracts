@@ -2402,9 +2402,11 @@ The variables are later used in the code, so to have the full experience, feel t
 - Etherscan - https://docs.etherscan.io/getting-started/viewing-api-usage-statistics
 
 ```solidity
-ALCHEMY_API_KEY_URL=
-PRIVATE_KEY=
-ETHERSCAN_API_KEY=
+ALCHEMY_API_KEY_URL= 
+PRIVATE_KEY= 
+ETHERSCAN_API_KEY= 
+CEO_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # <- Change this if you are going to deploy outside or hardhat environment 
+CFO_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # <- Change this if you are going to deploy outside or hardhat environment 
 
 ```
 
