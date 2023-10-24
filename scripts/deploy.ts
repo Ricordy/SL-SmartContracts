@@ -29,8 +29,8 @@ import {
 const ENTRY_BATCH_CAP = 1000,
   ENTRY_BATCH_PRICE = 100,
   ENTRY_TOKEN_URI = "TOKEN_URI",
-  CEO_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as any,
-  CFO_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as any;
+  CEO_ADDRESS = process.env.CEO_ADDRESS as any,
+  CFO_ADDRESS = process.env.CFO_ADDRESS as any;
 
 /**
  * Script function
