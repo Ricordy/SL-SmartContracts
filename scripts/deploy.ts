@@ -13,28 +13,36 @@ import {
   SLLogics__factory,
   SLPermissions__factory,
 } from "../typechain-types";
-import { log } from "console";
-import { Address } from "wagmi";
 
+/**
+ * STATE VARIABLES
+ *
+ * Override this variables if you want to change any parameter deploying Something Legendary's contracts
+ * @var ENTRY_BATCH_CAP Number of Membership card (entry nft) tokens in the 1st batch.
+ * @var ENTRY_BATCH_PRICE Price of each Membership card (entry nft) token in the 1st batch.
+ * @var ENTRY_TOKEN_URI The uri for the membership card (entry nft) collection in the 1st batch.
+ * @var CEO_ADDRESS Address for the CEO.
+ * @var CFO_ADDRESS Address for the CFO.
+ *
+ * The CEO/CFO addresses are both set to account #0 of hardhat, change this values if deploying to testnet.
+ */
 const ENTRY_BATCH_CAP = 1000,
   ENTRY_BATCH_PRICE = 100,
   ENTRY_TOKEN_URI = "TOKEN_URI",
-  TOTAL_INVESTMENT_LEVEL1 = 1000000,
-  ACCOUNT = "0xC2Fab2A52DaAe5213c5060800Bf03176818c86c9" as Address;
-//ACCOUNT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as Address;
+  CEO_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as any,
+  CFO_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as any;
 
+/**
+ * Script function
+ */
 async function main() {
-  // const accounts: SignerWithAddress[] = await ethers.getSigners();
-  // const ceo: SignerWithAddress = accounts[0];
-  // const cfo: SignerWithAddress = accounts[10];
+  const CEO_SIGNED = await ethers.getSigner(CEO_ADDRESS),
+    CFO_SIGNED = await ethers.getSigner(CEO_ADDRESS);
 
-  const ACCOUNT_SIGNED = await ethers.getSigner(ACCOUNT);
-
+  //Get all the factories
   const paymentTokenContractFactory = await ethers.getContractFactory(
     "CoinTest"
   );
-  //const paymentTokenContractFactory = new CoinTest__factory(ceo);
-  //const permissionsContractFacotry = new SLPermissions__factory(ceo);
   const permissionsContractFacotry = await ethers.getContractFactory(
     "SLPermissions"
   );
@@ -48,15 +56,15 @@ async function main() {
   let paymentTokenContract1 = await paymentTokenContractFactory.deploy();
   await paymentTokenContract1.deployed();
 
-  console.log("Deployed payment token");
+  console.log("1. Deployed payment tokens");
 
-  // Deploy PaymentToken (CoinTest) contract from the factory
+  // Deploy SLPermissions contract from the factory
   let permissionsContract = await permissionsContractFacotry.deploy(
-    ACCOUNT,
-    ACCOUNT
+    CEO_ADDRESS,
+    CFO_ADDRESS
   );
 
-  console.log("Deployed permissions");
+  console.log("2. Deployed SLPermissions");
 
   await permissionsContract.deployed();
 
@@ -66,7 +74,7 @@ async function main() {
   );
   await factoryContract.deployed();
 
-  console.log("Deployed factory");
+  console.log("3. Deployed Factory");
   //Deploy SLLogics contract
   let logcisContract = await logicsContractFactory.deploy(
     factoryContract.address,
@@ -75,7 +83,7 @@ async function main() {
   );
   await logcisContract.deployed();
 
-  console.log("Deployed logics");
+  console.log("4. Deployed SLLogics");
   // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
   let puzzleContract = await puzzleContractFactory.deploy(
     logcisContract.address,
@@ -83,25 +91,28 @@ async function main() {
   );
   await puzzleContract.deployed();
 
-  console.log("Deployed SLCore");
+  console.log("5. Deployed SLCore");
   // Set the Puzzle contract deployed as entry address on Factory contract
   await factoryContract
-    .connect(ACCOUNT_SIGNED)
+    .connect(CEO_SIGNED)
     .setSLCoreAddress(puzzleContract.address);
-  console.log("setted slcore address");
+  console.log("6. Automated call: Setted slcore address in Factory contract.");
   // Allow SLCore to make changes in SLLogics
   await permissionsContract
-    .connect(ACCOUNT_SIGNED)
+    .connect(CEO_SIGNED)
     .setAllowedContracts(puzzleContract.address, 1);
 
-  console.log("setted slcore as allowed");
+  console.log(
+    "6. Automated call: Setted slcore as allowedContract in SLPermissions"
+  );
 
   // Create a new entry batch
   await puzzleContract
-    .connect(ACCOUNT_SIGNED)
+    .connect(CEO_SIGNED)
     .generateNewEntryBatch(ENTRY_BATCH_CAP, ENTRY_BATCH_PRICE, ENTRY_TOKEN_URI);
-  // Deploy Investment contract from the factory
-  // let investmentContract = await factoryContract.deployNew(TOTAL_INVESTMENT_LEVEL1,paymentTokenContract.address, 1);
+
+  console.log("7. Automated call: Deployed the first entry btach");
+
   console.log(
     "----------------------------------------------------------------------------------------"
   );
@@ -111,8 +122,8 @@ async function main() {
     "----------------------------------------------------------------------------------------"
   );
   console.log("Permissions deployed to:", permissionsContract.address);
-  console.log("CEO: ", ACCOUNT);
-  console.log("CFO: ", ACCOUNT);
+  console.log("CEO: ", CEO_ADDRESS);
+  console.log("CFO: ", CFO_ADDRESS);
   console.log(
     "----------------------------------------------------------------------------------------"
   );
@@ -136,11 +147,6 @@ async function main() {
   );
   console.log(
     "----------------------------------------------------------------------------------------"
-  );
-  console.log(
-    ACCOUNT,
-    "  is ceo>>>>>>>>",
-    await permissionsContract.isCEO(ACCOUNT)
   );
 }
 
