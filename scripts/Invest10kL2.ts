@@ -1,6 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { Address } from "wagmi";
 import addresses from "../utils/addresses";
 
 import {
@@ -14,6 +13,13 @@ import {
 
 const investmentValue: number = 10000;
 
+/**
+ * To run this script, you fist need to run:
+ *    - yarn bc
+ *    - yarn deploy
+ *    - yarn mint
+ *    - yarn mintPuzzle
+ */
 async function main() {
   const accounts: SignerWithAddress[] = await ethers.getSigners();
   const owner: SignerWithAddress = accounts[0];
@@ -31,6 +37,8 @@ async function main() {
     addresses.factoryAddress
   );
 
+  console.log("Deploying investment level 2 contract.....");
+
   await factoryContract.deployNew(
     100000,
     addresses.paymentTokenAddress0,
@@ -38,8 +46,16 @@ async function main() {
     2
   );
 
-  const investmentAddress = await factoryContract.getLastDeployedContract(2);
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
 
+  console.log("Getting last investment contract address.....");
+  const investmentAddress = await factoryContract.getLastDeployedContract(2);
+  console.log("Investment address:", investmentAddress);
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
   const investmentContract: Investment =
     investmentFactory.attach(investmentAddress);
 
@@ -52,13 +68,23 @@ async function main() {
   console.log("Minting 10K tokens to Investor1: ");
   await paymentTokenContract.connect(firstInvestor).mint(valueWithDecimals);
   console.log(
+    "----------------------------------------------------------------------------------------"
+  );
+  console.log(
     "Approving 10K tokens to be spend by Investment Contract from Investor1: "
   );
   await paymentTokenContract
     .connect(firstInvestor)
     .approve(investmentAddress, valueWithDecimals);
   console.log(`Investing ${investmentValue}...`);
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
   await investmentContract.connect(firstInvestor).invest(investmentValue, 0);
+  console.log(`Invested ${investmentValue}$.`);
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
 }
 
 main().catch((error) => {

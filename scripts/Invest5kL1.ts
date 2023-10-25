@@ -28,7 +28,7 @@ async function main() {
   const factoryContract: Factory = factoryContractFactory.attach(
     addresses.factoryAddress
   );
-  console.log("Deploying investment contract.....");
+  console.log("Deploying investment level 1 contract.....");
   await factoryContract
     .connect(ceo)
     .deployNew(
