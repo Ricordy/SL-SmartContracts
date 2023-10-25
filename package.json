@@ -7,6 +7,7 @@
     "mintPT": "hardhat run scripts/mintPaymentToken.ts --network localhost",
     "mintPuzzle": "hardhat run scripts/mintPuzzle.ts --network localhost",
     "mintPuzzlel2": "hardhat run scripts/mintPuzzleL2.ts --network localhost",
+    "mintPuzzlel3": "hardhat run scripts/mintPuzzleL3.ts --network localhost",
     "invest": "hardhat run scripts/Invest2500.ts --network localhost",
     "invest5kl1": "hardhat run scripts/Invest5kL1.ts --network localhost",
     "invest5kl1t": "hardhat run scripts/Invest5kL1.ts --network mumbai",

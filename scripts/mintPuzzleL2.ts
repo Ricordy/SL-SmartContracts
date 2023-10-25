@@ -11,11 +11,19 @@ async function main() {
 
   const puzzleContractFactory = new SLCoreTest__factory(ceo);
 
-  const puzzleContract: SLCoreTest =
-    puzzleContractFactory.attach(addresses.puzzleAddress);
+  const puzzleContract: SLCoreTest = puzzleContractFactory.attach(
+    addresses.puzzleAddress
+  );
 
-  console.log("Minting puzzle pieces for Investor1: ");
+  console.log("Minting puzzle pieces for user: ");
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
   const mintTx = await puzzleContract.connect(ceo).mintTest(2);
+  console.log("10 uniques puzzles pieces from level 2 were minted");
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
   mintTx.wait(1);
 }
 

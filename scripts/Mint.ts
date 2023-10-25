@@ -58,7 +58,8 @@ async function main() {
   } catch (error: any) {
     if (
       error.reason.split("'")[1] == "IncorrectUserLevel(1, 0)" ||
-      error.reason.split("'")[1] == "IncorrectUserLevel(2, 0)"
+      error.reason.split("'")[1] == "IncorrectUserLevel(2, 0)" ||
+      error.reason.split("'")[1] == "IncorrectUserLevel(3, 0)"
     ) {
       console.log(
         `Attempting to mint ${Number(userLevel) + 1} level for the user!`
