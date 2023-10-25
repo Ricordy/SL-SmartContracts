@@ -4,8 +4,8 @@ import addresses from "../utils/addresses";
 import {
   CoinTest,
   CoinTest__factory,
-  SLCore,
-  SLCore__factory,
+  SLCoreTest,
+  SLCoreTest__factory,
 } from "../typechain-types";
 
 const investmentValue: number = 1000;
@@ -14,49 +14,63 @@ async function main() {
   const CEO_SIGNED = await ethers.getSigner(process.env.CEO_ADDRESS as string);
 
   const paymentTokenFactory = new CoinTest__factory(CEO_SIGNED);
-  const clCoreContractFactory = new SLCore__factory(CEO_SIGNED);
+  const clCoreContractFactory = new SLCoreTest__factory(CEO_SIGNED);
 
   const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
     addresses.paymentTokenAddress0
   );
 
-  const slCoreContract: SLCore = clCoreContractFactory.attach(
+  const slCoreContract: SLCoreTest = clCoreContractFactory.attach(
     addresses.puzzleAddress
   );
 
   const decimals = await paymentTokenContract.decimals();
 
+  let userLevel = await slCoreContract.whichLevelUserHas(CEO_SIGNED.address);
+
   const valueWithDecimals = ethers.utils.parseUnits(
     investmentValue.toString(),
     decimals
   );
-  console.log(" Minting entry for CEO...");
   console.log(
-    "----------------------------------------------------------------------------------------"
-  );
-  console.log("Minting 10K tokens to Investor1: ");
-  await paymentTokenContract.connect(CEO_SIGNED).mint(valueWithDecimals);
-  console.log(
-    "Approving 10K tokens to be spend by Puzzle and Investment Contract from Investor1: "
+    ` Minting ${Number(userLevel) == 0 ? "entry" : "level"} for CEO...`
   );
   console.log(
     "----------------------------------------------------------------------------------------"
   );
-  const approveTx = await paymentTokenContract
-    .connect(CEO_SIGNED)
-    .approve(addresses.logicsAddress, valueWithDecimals);
-  approveTx.wait();
-  console.log(
-    "----------------------------------------------------------------------------------------"
-  );
-  console.log("Minting entry for Investor1: ");
+  if (Number(userLevel) == 0) {
+    console.log("Minting 10K tokens to user: ");
+    await paymentTokenContract.connect(CEO_SIGNED).mint(valueWithDecimals);
+    console.log(
+      "Approving 10K tokens to be spend by Puzzle and Investment Contract from user: "
+    );
+    const approveTx = await paymentTokenContract
+      .connect(CEO_SIGNED)
+      .approve(addresses.logicsAddress, valueWithDecimals);
+    approveTx.wait();
+    console.log(
+      "----------------------------------------------------------------------------------------"
+    );
+  }
+  console.log("Minting nft for CEO... ");
   try {
     await slCoreContract.connect(CEO_SIGNED).mintEntry();
   } catch (error: any) {
-    if (error.reason.split("'")[1] == "") {
+    if (
+      error.reason.split("'")[1] == "IncorrectUserLevel(1, 0)" ||
+      error.reason.split("'")[1] == "IncorrectUserLevel(2, 0)"
+    ) {
       console.log(
-        "User already at level 1.   How to run this command again: \n - Localhost: restart the local node \n - Testnet: Deploy new contracts and update the utils/addresses.ts file "
+        `Attempting to mint ${Number(userLevel) + 1} level for the user!`
       );
+      try {
+        await slCoreContract.connect(CEO_SIGNED).claimLevel();
+        console.log(
+          `Successfully minted level ${Number(userLevel) + 1} to the user`
+        );
+      } catch (error: any) {
+        console.log(`Reason: ${error.reason.split("'")[1]}`);
+      }
     } else {
       console.log(`Reason: ${error.reason.split("'")[1]}`);
     }
@@ -65,8 +79,8 @@ async function main() {
   console.log(
     "----------------------------------------------------------------------------------------"
   );
-  const userLevel = await slCoreContract.whichLevelUserHas(CEO_SIGNED.address);
-  console.log(` Entry minted! User level: ${userLevel}`);
+  userLevel = await slCoreContract.whichLevelUserHas(CEO_SIGNED.address);
+  console.log(` NFT minted! User level: ${userLevel}`);
   console.log(
     "----------------------------------------------------------------------------------------"
   );
