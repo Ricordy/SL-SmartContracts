@@ -1,33 +1,21 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { Address } from "wagmi";
 import addresses from "../utils/addresses";
-import {
-  CoinTest,
-  CoinTest__factory,
-  Factory,
-  Factory__factory,
-  Investment,
-  Investment__factory,
-} from "../typechain-types";
+import { CoinTest, Factory, Investment } from "../typechain-types";
 
 const investmentValue: number = 6000;
 
+/**
+ * To run this script, you fist need to run:
+ *    - yarn bc
+ *    - yarn deploy
+ *    - yarn mint
+ */
+
 async function main() {
-  //const accounts: SignerWithAddress[] = await ethers.getSigners();
-  // const ceo: SignerWithAddress = await ethers.getSigner(
-  //   "0xC2Fab2A52DaAe5213c5060800Bf03176818c86c9"
-  // );
-
-  // const ceo: SignerWithAddress = await ethers.getSigner(
-  //   "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-  // );
-
   const ceo: SignerWithAddress = await ethers.getSigner(
-    "0xC2Fab2A52DaAe5213c5060800Bf03176818c86c9"
+    process.env.CEO_ADDRESS as string
   );
-
-  //const firstInvestor: SignerWithAddress = accounts[1];
 
   const paymentTokenFactory = await ethers.getContractFactory("CoinTest");
   const factoryContractFactory = await ethers.getContractFactory("Factory");
@@ -37,14 +25,10 @@ async function main() {
     addresses.paymentTokenAddress0
   );
 
-  const paymentTokenContract1: CoinTest = paymentTokenFactory.attach(
-    addresses.paymentTokenAddress1
-  );
-
   const factoryContract: Factory = factoryContractFactory.attach(
     addresses.factoryAddress
   );
-  console.log("Deploying investment contract.....");
+  console.log("Deploying investment level 1 contract.....");
   await factoryContract
     .connect(ceo)
     .deployNew(
@@ -54,10 +38,16 @@ async function main() {
       1
     );
 
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
   console.log("Getting last investment contract address.....");
   const investmentAddress = await factoryContract.getLastDeployedContract(1);
 
   console.log("Investment address:", investmentAddress);
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
   const investmentContract: Investment =
     investmentFactory.attach(investmentAddress);
 
@@ -70,13 +60,24 @@ async function main() {
   console.log("Minting 10K tokens to Investor1: ");
   await paymentTokenContract0.connect(ceo).mint(valueWithDecimals);
   console.log(
+    "----------------------------------------------------------------------------------------"
+  );
+  console.log(
     "Approving 10K tokens to be spend by Investment Contract from Investor1: "
   );
+
   await paymentTokenContract0
     .connect(ceo)
     .approve(investmentAddress, valueWithDecimals);
   console.log(`Investing ${investmentValue}...`);
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
   await investmentContract.connect(ceo).invest(investmentValue, 0);
+  console.log(`Invested ${investmentValue}$.`);
+  console.log(
+    "----------------------------------------------------------------------------------------"
+  );
 }
 
 main().catch((error) => {

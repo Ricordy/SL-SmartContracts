@@ -1,8 +1,8 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import addresses from "../utils/addresses";
 
-import { SLCoreTest__factory, SLCoreTest } from "../typechain-types";
+import { SLCoreTest, SLCoreTest__factory } from "../typechain-types";
+import addresses from "../utils/addresses";
 
 async function main() {
   const ceo: SignerWithAddress = await ethers.getSigner(
@@ -19,8 +19,8 @@ async function main() {
   console.log(
     "----------------------------------------------------------------------------------------"
   );
-  const mintTx = await puzzleContract.connect(ceo).mintTest(1);
-  console.log("10 uniques puzzles pieces from level 1 were minted");
+  const mintTx = await puzzleContract.connect(ceo).mintTest(3);
+  console.log("10 uniques puzzles pieces from level 3 were minted");
   console.log(
     "----------------------------------------------------------------------------------------"
   );

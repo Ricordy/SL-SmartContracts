@@ -2,17 +2,24 @@
   "name": "sl-smart-contracts",
   "scripts": {
     "deploy": "hardhat run scripts/deploy.ts --network localhost",
-    "deployt": "hardhat run scripts/deploy.ts --network mumbai",
+    "deployT": "hardhat run scripts/deploy.ts --network mumbai",
     "mint": "hardhat run scripts/mint.ts --network localhost",
+    "mintT": "hardhat run scripts/mint.ts --network mumbai",
     "mintPT": "hardhat run scripts/mintPaymentToken.ts --network localhost",
     "mintPuzzle": "hardhat run scripts/mintPuzzle.ts --network localhost",
     "mintPuzzlel2": "hardhat run scripts/mintPuzzleL2.ts --network localhost",
-    "invest": "hardhat run scripts/Invest2500.ts --network localhost",
+    "mintPuzzlel3": "hardhat run scripts/mintPuzzleL3.ts --network localhost",
+    "mintPuzzleT": "hardhat run scripts/mintPuzzle.ts --network mumbai",
+    "mintPuzzlel2T": "hardhat run scripts/mintPuzzleL2.ts --network mumbai",
+    "mintPuzzlel3T": "hardhat run scripts/mintPuzzleL3.ts --network mumbai",
     "invest5kl1": "hardhat run scripts/Invest5kL1.ts --network localhost",
-    "invest5kl1t": "hardhat run scripts/Invest5kL1.ts --network mumbai",
+    "invest5kl1T": "hardhat run scripts/Invest5kL1.ts --network mumbai",
     "invest10kl2": "hardhat run scripts/Invest10kL2.ts --network localhost",
+    "invest10kl2T": "hardhat run scripts/Invest10kL2.ts --network mumbai",
     "invest15kl3": "hardhat run scripts/Invest15kL3.ts --network localhost",
+    "invest15kl3T": "hardhat run scripts/Invest15kL3.ts --network mumbai",
     "deployInvest": "hardhat run scripts/deployInvest.ts --network localhost",
+    "deployInvestT": "hardhat run scripts/deployInvest.ts --network mumbai",
     "compile": "hardhat clean && hardhat compile",
     "bc": "hardhat node"
   },
@@ -41,5 +48,8 @@
     "ts-node": "^10.9.1",
     "typechain": "^8.1.0",
     "typescript": ">=4.5.0"
+  },
+  "dependencies": {
+    "solidity-coverage": "^0.8.5"
   }
 }
