@@ -46,7 +46,7 @@ async function main() {
   const permissionsContractFacotry = await ethers.getContractFactory(
     "SLPermissions"
   );
-  const puzzleContractFactory = await ethers.getContractFactory("SLCore");
+  const puzzleContractFactory = await ethers.getContractFactory("SLCoreTest");
   const logicsContractFactory = await ethers.getContractFactory("SLLogics");
   const factoryContractFactory = await ethers.getContractFactory("Factory");
 

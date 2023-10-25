@@ -21,13 +21,13 @@ const investmentValue: number = 10000;
  *    - yarn mintPuzzle
  */
 async function main() {
-  const accounts: SignerWithAddress[] = await ethers.getSigners();
-  const owner: SignerWithAddress = accounts[0];
-  const firstInvestor: SignerWithAddress = accounts[1];
+  const ceo: SignerWithAddress = await ethers.getSigner(
+    process.env.CEO_ADDRESS as string
+  );
 
-  const paymentTokenFactory = new CoinTest__factory(owner);
-  const factoryFactory = new Factory__factory(owner);
-  const investmentFactory = new Investment__factory(owner);
+  const paymentTokenFactory = new CoinTest__factory(ceo);
+  const factoryFactory = new Factory__factory(ceo);
+  const investmentFactory = new Investment__factory(ceo);
 
   const paymentTokenContract: CoinTest = paymentTokenFactory.attach(
     addresses.paymentTokenAddress0
@@ -66,7 +66,7 @@ async function main() {
     decimals
   );
   console.log("Minting 10K tokens to Investor1: ");
-  await paymentTokenContract.connect(firstInvestor).mint(valueWithDecimals);
+  await paymentTokenContract.connect(ceo).mint(valueWithDecimals);
   console.log(
     "----------------------------------------------------------------------------------------"
   );
@@ -74,13 +74,13 @@ async function main() {
     "Approving 10K tokens to be spend by Investment Contract from Investor1: "
   );
   await paymentTokenContract
-    .connect(firstInvestor)
+    .connect(ceo)
     .approve(investmentAddress, valueWithDecimals);
   console.log(`Investing ${investmentValue}...`);
   console.log(
     "----------------------------------------------------------------------------------------"
   );
-  await investmentContract.connect(firstInvestor).invest(investmentValue, 0);
+  await investmentContract.connect(ceo).invest(investmentValue, 0);
   console.log(`Invested ${investmentValue}$.`);
   console.log(
     "----------------------------------------------------------------------------------------"
