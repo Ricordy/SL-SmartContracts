@@ -94,6 +94,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @param _tokenId the collection id that the user wants to mint from
     /// @custom:requires _tokenId should be 30(level 2) or 31(level 3)
     function _claimLevel(address _receiver, uint256 _tokenId) internal {
+        // Check if token id is valid
         if (_tokenId < 30) {
             revert InvalidLevel(_tokenId, 30, 31);
         }
@@ -116,6 +117,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @param _receiver the recevier of the puzzle piece (the user).
     /// @param _puzzleLevel the level from which the user wants to mint the puzzle from
     function _claimPiece(address _receiver, uint256 _puzzleLevel) internal {
+        // Check if level is valid
         if (_puzzleLevel == 0) {
             revert InvalidLevel(_puzzleLevel, 1, 3);
         }
@@ -148,6 +150,15 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
 
     /// @notice returns random number
     function _random() public view virtual returns (uint8) {}
+
+    /// @notice Function that verifies if user is allowed to pass to the next level
+    /// @dev function have no return, it should fail if user is not allowed to burn
+    /// @param _claimer the user's address
+    /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
+    function _userAllowedToBurnPuzzle(
+        address _claimer,
+        uint256 _levelId
+    ) public view virtual {}
 
     ///
     //-----------------INTERNAL OVERRIDE FUNCTIONS----------------
@@ -183,15 +194,6 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
             _burnBatch(_user, _getPuzzleCollectionIds(2), amountsForBurn);
         }
     }
-
-    /// @notice Function that verifies if user is allowed to pass to the next level
-    /// @dev function have no return, it should fail if user is not allowed to burn
-    /// @param _claimer the user's address
-    /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
-    function _userAllowedToBurnPuzzle(
-        address _claimer,
-        uint256 _levelId
-    ) public view virtual {}
 
     ///
     //----------------INTERNAL NON-OVERRIDE FUNCTIONS------------------

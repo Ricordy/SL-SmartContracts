@@ -83,12 +83,14 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
         address _paymentTokenAddress,
         address _slPermissionsAddress
     ) {
+        // Check if addresses are valid
         if (_factoryAddress == address(0)) {
             revert InvalidAddress("Factory");
         }
         if (_paymentTokenAddress == address(0)) {
             revert InvalidAddress("Payment Token");
         }
+        // Set addresses
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         factoryAddress = _factoryAddress;
         paymentTokenAddress = _paymentTokenAddress;
