@@ -25,11 +25,11 @@ contract Factory {
     //-----EVENTS------
     ///
     /// @notice An event that is emitted when a new Investment contract is deployed.
-    /// @param ContractID The ID of the new contract in its level.
+    /// @param contractId The ID of the new contract in its level.
     /// @param conAddress The address of the new contract.
     /// @param conLevel The level of the new contract.
     event ContractCreated(
-        uint256 indexed ContractID,
+        uint256 indexed contractId,
         address indexed conAddress,
         uint256 indexed conLevel
     );
