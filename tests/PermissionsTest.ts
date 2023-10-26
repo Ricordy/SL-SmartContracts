@@ -167,81 +167,244 @@ describe("Permissions Contract", async () => {
     });
   });
   describe("Pause/Unpause tests", async () => {
-    it("CLevel should be able to pause a contract", async () => {
+    describe("Setting Roles tests", async () => {
+      it("CEO should be able to set CEO", async () => {
+        const { ceo, cfo, permissionsContract } = await loadFixture(
+          deployContractFixture
+        );
+        expect(await permissionsContract.connect(ceo).setCEO(cfo.address)).to
+          .not.reverted;
+      });
+
+      it("CEO should be able to set CFO", async () => {
+        const { ceo, cfo, permissionsContract } = await loadFixture(
+          deployContractFixture
+        );
+        expect(await permissionsContract.connect(ceo).setCFO(ceo.address)).to
+          .not.reverted;
+      });
+
+      it("CFO should NOT be able to set new CEO", async () => {
+        const { ceo, cfo, investor1, permissionsContract } = await loadFixture(
+          deployContractFixture
+        );
+        await expect(
+          permissionsContract.connect(cfo).setCEO(investor1.address)
+        ).to.be.revertedWithCustomError(permissionsContract, "NotCEO");
+      });
+
+      it("CFO should NOT be able to set new CFO", async () => {
+        const { ceo, cfo, investor1, permissionsContract } = await loadFixture(
+          deployContractFixture
+        );
+        await expect(
+          permissionsContract.connect(cfo).setCFO(investor1.address)
+        ).to.be.revertedWithCustomError(permissionsContract, "NotCEO");
+      });
+
+      it("CEO should NOT be able to set new CEO to zero address", async () => {
+        const { ceo, permissionsContract } = await loadFixture(
+          deployContractFixture
+        );
+        await expect(
+          permissionsContract.connect(ceo).setCEO(ethers.constants.AddressZero)
+        ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
+      });
+
+      it("CEO should NOT be able to set new CFO to zero address", async () => {
+        const { ceo, permissionsContract } = await loadFixture(
+          deployContractFixture
+        );
+        await expect(
+          permissionsContract.connect(ceo).setCFO(ethers.constants.AddressZero)
+        ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
+      });
+    });
+
+    it("CLevel should be able to pause entry mint", async () => {
       const { ceo, cfo, permissionsContract } = await loadFixture(
         deployContractFixture
       );
       expect(await permissionsContract.connect(ceo).pauseEntryMint()).to.not
         .reverted;
-      expect(await permissionsContract.connect(ceo).pauseInvestments()).to.not
-        .reverted;
-      expect(await permissionsContract.connect(ceo).pausePuzzleMint()).to.not
-        .reverted;
-      expect(await permissionsContract.connect(ceo).pausePlatform()).to.not
-        .reverted;
       expect(await permissionsContract.connect(cfo).pauseEntryMint()).to.not
+        .reverted;
+    });
+
+    it("CLevel should be able to pause investments", async () => {
+      const { ceo, cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      expect(await permissionsContract.connect(ceo).pauseInvestments()).to.not
         .reverted;
       expect(await permissionsContract.connect(cfo).pauseInvestments()).to.not
         .reverted;
+    });
+
+    it("CLevel should be able to pause puzzle mint", async () => {
+      const { ceo, cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      expect(await permissionsContract.connect(ceo).pausePuzzleMint()).to.not
+        .reverted;
       expect(await permissionsContract.connect(cfo).pausePuzzleMint()).to.not
+        .reverted;
+    });
+
+    it("CLevel should be able to pause platform", async () => {
+      const { ceo, cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      expect(await permissionsContract.connect(ceo).pausePlatform()).to.not
         .reverted;
       expect(await permissionsContract.connect(cfo).pausePlatform()).to.not
         .reverted;
     });
-    it("CEO should be able to unpause a contract", async () => {
+
+    it("CEO should be able to unpause entry mint", async () => {
       const { ceo, permissionsContract } = await loadFixture(
         deployContractFixture
       );
       expect(await permissionsContract.connect(ceo).unpauseEntryMint()).to.not
         .reverted;
+    });
+
+    it("CEO should be able to unpause investments", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
       expect(await permissionsContract.connect(ceo).unpauseInvestments()).to.not
         .reverted;
+    });
+
+    it("CEO should be able to unpause platform", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
       expect(await permissionsContract.connect(ceo).unpausePlatform()).to.not
         .reverted;
+    });
+
+    it("CEO should be able to unpause puzzle mint", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
       expect(await permissionsContract.connect(ceo).unpausePuzzleMint()).to.not
         .reverted;
     });
-    it("Not CLevel should not be able to pause a contract", async () => {
+
+    it("Not CLevel should not be able to pause entry mint", async () => {
       const { investor1, permissionsContract } = await loadFixture(
         deployContractFixture
       );
-      expect(await permissionsContract.connect(investor1).pauseEntryMint()).to
-        .reverted;
-      expect(await permissionsContract.connect(investor1).pauseInvestments()).to
-        .reverted;
-      expect(await permissionsContract.connect(investor1).pausePuzzleMint()).to
-        .reverted;
-      expect(await permissionsContract.connect(investor1).pausePlatform()).to
+      await expect(permissionsContract.connect(investor1).pauseEntryMint()).to
         .reverted;
     });
-    it("Not CEO should not be able to unpause a contract", async () => {
-      const { cfo, investor1, permissionsContract } = await loadFixture(
+
+    it("Not CLevel should not be able to pause investments", async () => {
+      const { investor1, permissionsContract } = await loadFixture(
         deployContractFixture
       );
-      expect(await permissionsContract.connect(investor1).unpauseEntryMint()).to
+      await expect(permissionsContract.connect(investor1).pauseInvestments()).to
         .reverted;
-      expect(await permissionsContract.connect(investor1).unpauseInvestments())
+    });
+
+    it("Not CLevel should not be able to pause puzzle mint", async () => {
+      const { investor1, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(investor1).pausePuzzleMint()).to
+        .reverted;
+    });
+    it("Not CEO should not be able to unpause entry mint", async () => {
+      const { investor1, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(investor1).unpauseEntryMint()).to
+        .reverted;
+    });
+
+    it("Not CEO should not be able to unpause investments", async () => {
+      const { investor1, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(investor1).unpauseInvestments())
         .to.reverted;
-      expect(await permissionsContract.connect(investor1).unpausePuzzleMint())
+    });
+
+    it("Not CEO should not be able to unpause puzzle mint", async () => {
+      const { investor1, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(investor1).unpausePuzzleMint())
         .to.reverted;
-      expect(await permissionsContract.connect(investor1).unpausePlatform()).to
+    });
+
+    it("Not CEO should not be able to unpause platform", async () => {
+      const { investor1, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(investor1).unpausePlatform()).to
         .reverted;
-      expect(await permissionsContract.connect(cfo).unpauseEntryMint()).to
+    });
+
+    it("CEO should not be able to unpause entry mint", async () => {
+      const { cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(cfo).unpauseEntryMint()).to
         .reverted;
-      expect(await permissionsContract.connect(cfo).unpauseInvestments()).to
+    });
+
+    it("CEO should not be able to unpause investments", async () => {
+      const { cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(cfo).unpauseInvestments()).to
         .reverted;
-      expect(await permissionsContract.connect(cfo).unpausePuzzleMint()).to
+    });
+
+    it("CEO should not be able to unpause puzzle mint", async () => {
+      const { cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(cfo).unpausePuzzleMint()).to
         .reverted;
-      expect(await permissionsContract.connect(cfo).unpausePlatform()).to
+    });
+
+    it("CEO should not be able to unpause platform", async () => {
+      const { cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(cfo).unpausePlatform()).to
         .reverted;
     });
   });
+
   describe("Setting Roles tests", async () => {
+    it("CEO should not be able to set allowed contracts passing the wrong _allowed value", async () => {
+      const { ceo, cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(
+        permissionsContract.connect(ceo).setAllowedContracts(cfo.address, 2)
+      ).to.be.revertedWithCustomError(permissionsContract, "InvalidNumber");
+    });
+
+    it("CFO should not be able to set allowed contracts", async () => {
+      const { ceo, cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(
+        permissionsContract.connect(cfo).setAllowedContracts(cfo.address, 1)
+      ).to.be.revertedWithCustomError(permissionsContract, "NotCEO");
+    });
+
     it("CEO should be able to set CEO", async () => {
       const { ceo, cfo, permissionsContract } = await loadFixture(
         deployContractFixture
       );
-      expect(await permissionsContract.connect(ceo).setCEO(cfo.address)).to.not
+      await expect(permissionsContract.connect(ceo).setCEO(cfo.address)).to.not
         .reverted;
     });
     it("CEO should be able to set CFO", async () => {
@@ -251,13 +414,20 @@ describe("Permissions Contract", async () => {
       expect(await permissionsContract.connect(ceo).setCFO(ceo.address)).to.not
         .reverted;
     });
-    it("CFO should NOT be able to set new Roles", async () => {
+
+    it("CFO should NOT be able to set new CEO", async () => {
       const { ceo, cfo, permissionsContract } = await loadFixture(
         deployContractFixture
       );
-      expect(await permissionsContract.connect(cfo).setCEO(cfo.address)).to
+      await expect(permissionsContract.connect(cfo).setCEO(cfo.address)).to
         .reverted;
-      expect(await permissionsContract.connect(cfo).setCFO(ceo.address)).to
+    });
+    it("CFO should NOT be able to set new CFO", async () => {
+      const { ceo, cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+
+      await expect(permissionsContract.connect(cfo).setCFO(ceo.address)).to
         .reverted;
     });
   });

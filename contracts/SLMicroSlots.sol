@@ -105,7 +105,7 @@ contract SLMicroSlots {
     function incrementXPositionInFactor3(
         uint32 number,
         uint32 position
-    ) internal view returns (uint32 _final) {
+    ) public view returns (uint32 _final) {
         //Verify if digit is incrementable
         uint32 digit = uint32(getPositionXInDivisionByY(number, position, 3));
         if (digit == 999) {
@@ -133,18 +133,18 @@ contract SLMicroSlots {
         uint256 number,
         uint32 position,
         uint256 newNumber
-    ) internal view returns (uint256 _final) {
+    ) public pure returns (uint256 _final) {
         //Verify if digit is incrementable
         if (newNumber > 99999) {
             revert InvalidNumber(newNumber, 99999);
+        } else {
+            //remount the number with new number using internal function
+            _final =
+                (number / 10 ** (position * 5)) *
+                10 ** (position * 5) +
+                newNumber *
+                10 ** (position * 5 - 5) +
+                (number % (10 ** (position * 5 - 5)));
         }
-
-        //remount the number with new number using internal function
-        _final =
-            (number / 10 ** (position * 5)) *
-            10 ** (position * 5) +
-            newNumber *
-            10 ** (position * 5 - 5) +
-            (number % (10 ** (position * 5 - 5)));
     }
 }
