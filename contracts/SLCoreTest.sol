@@ -12,12 +12,11 @@ contract SLCoreTest is SLCore {
         address _slPermissionsAddress
     ) SLCore(_slLogicsAddress, _slPermissionsAddress) {}
 
-
     /// @notice Mints 10 unique NFT pieces for a given level to the caller
     /// @dev helps testing level 2 and 3 functions
-    /// @param level the desired level 
-    function mintTest(uint level) public {
-        for (uint i = 0; i < 10; i++) {
+    /// @param level the desired level
+    function mintTest(uint256 level) public {
+        for (uint256 i = 0; i < 10; i++) {
             _mint(msg.sender, _getPuzzleCollectionIds(level)[i], 1, "");
             _incrementUserPuzzlePieces(msg.sender, level);
         }

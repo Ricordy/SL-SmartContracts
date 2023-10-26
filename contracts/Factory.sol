@@ -25,11 +25,11 @@ contract Factory {
     //-----EVENTS------
     ///
     /// @notice An event that is emitted when a new Investment contract is deployed.
-    /// @param ContractID The ID of the new contract in its level.
+    /// @param contractId The ID of the new contract in its level.
     /// @param conAddress The address of the new contract.
     /// @param conLevel The level of the new contract.
     event ContractCreated(
-        uint256 indexed ContractID,
+        uint256 indexed contractId,
         address indexed conAddress,
         uint256 indexed conLevel
     );
@@ -79,12 +79,14 @@ contract Factory {
         address _paymentTokenAddress1,
         uint256 _level
     ) external isCEO isNotGloballyStoped returns (address) {
+        // Check if addresses are valid
         if (slCoreAddress == address(0)) {
             revert InvalidAddress("SLCore");
         }
         if (_paymentTokenAddress0 == address(0)) {
             revert InvalidAddress("PaymentToken");
         }
+        // Check if level is valid
         if (_level == 0) {
             revert InvalidLevel(_level, 1, 3);
         }
@@ -92,7 +94,7 @@ contract Factory {
             revert InvalidLevel(_level, 1, 3);
         }
 
-        //Generate new Investment contract
+        //Generate new Investment contract with given parameters
         Investment inv = new Investment(
             _totalInvestment,
             SLPERMISSIONS_ADDRESS,
@@ -101,7 +103,7 @@ contract Factory {
             _paymentTokenAddress1,
             _level
         );
-        //Store the generated contract
+        //Store the generated contract in the array in the correct level position
         deployedContracts[_level].push(inv);
         //emit contract generation event
         emit ContractCreated(
@@ -109,7 +111,7 @@ contract Factory {
             address(inv),
             _level
         );
-        //return address
+        //return address of the new contract
         return address(inv);
     }
 
@@ -121,9 +123,11 @@ contract Factory {
     function setSLCoreAddress(
         address _slCoreAddress
     ) external isCEO isNotGloballyStoped {
+        // Check if address is valid
         if (_slCoreAddress == address(0)) {
             revert InvalidAddress("SLCore");
         }
+        // Update SLCore address
         slCoreAddress = _slCoreAddress;
     }
 
@@ -169,6 +173,7 @@ contract Factory {
     function getAddressOnContract(
         address _contractAddress
     ) external view returns (uint256 userTotal) {
+        //Get balance of caller in contract
         userTotal = ERC20(_contractAddress).balanceOf(msg.sender);
     }
 
@@ -179,11 +184,14 @@ contract Factory {
     function getLastDeployedContract(
         uint256 _level
     ) external view returns (address contractAddress) {
+        // Verify if there are any contracts deployed at the specified level
         if (deployedContracts[_level].length != 0) {
+            // Return the address of the last deployed contract
             contractAddress = address(
                 deployedContracts[_level][deployedContracts[_level].length - 1]
             );
         } else {
+            // Return a zero address
             contractAddress = address(0);
         }
     }

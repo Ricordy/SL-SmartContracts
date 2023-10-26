@@ -5,12 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ISLPermissions.sol";
-
-interface ISLCore {
-    function whichLevelUserHas(address user) external view returns (uint256);
-}
-
-interface IToken is IERC20 {}
+import "./ISLCore.sol";
 
 /// @title Investment Contract
 /// @author Something Legendary
@@ -138,7 +133,11 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @param input the invalid selected coin to pay
     /// @param firstCoinId the first allowed coin number
     /// @param secondCoinId the second allowed coin number
-    error InvalidPaymentId(uint input, uint firstCoinId, uint secondCoinId);
+    error InvalidPaymentId(
+        uint256 input,
+        uint256 firstCoinId,
+        uint256 secondCoinId
+    );
 
     /// @notice Reverts if user is not at least at contract level
     /// @param expectedLevel expected user minimum level
@@ -186,6 +185,7 @@ contract Investment is ERC20, ReentrancyGuard {
         address _paymentTokenAddress1,
         uint256 _contractLevel
     ) ERC20("InvestmentCurrency", "IC") {
+        // Check if addresses are valid
         if (_slCoreAddress == address(0)) {
             revert InvalidAddress("SLCore");
         }
@@ -195,13 +195,15 @@ contract Investment is ERC20, ReentrancyGuard {
         if (_paymentTokenAddress1 == address(0)) {
             revert InvalidAddress("PaymentToken1");
         }
+        // Assign values to state variables
         TOTAL_INVESTMENT = _totalInvestment * 10 ** decimals();
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         SLCORE_ADDRESS = _slCoreAddress;
         PAYMENT_TOKEN_ADDRESS_0 = _paymentTokenAddress0;
         PAYMENT_TOKEN_ADDRESS_1 = _paymentTokenAddress1;
-        _changeStatus(Status.Progress);
         CONTRACT_LEVEL = _contractLevel;
+        // Change status to Progress
+        _changeStatus(Status.Progress);
     }
 
     ///
@@ -278,15 +280,15 @@ contract Investment is ERC20, ReentrancyGuard {
         isWithdrawOrRefunding
         isNotGloballyStoped
     {
-        //Check if user has withdrawed already
+        //Check if user has already withdrew 
         if (userWithdrew[msg.sender] == 1) {
             revert CannotWithdrawTwice();
         }
-        //Set user as withdrawed
+        //Set user as withdrew 
         userWithdrew[msg.sender] = 1;
-        //Calculate final amount
+        //Calculate final amount to withdraw
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
-        //Transfer final amount
+        //Transfer final amount to user
         IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(msg.sender, finalAmount);
         emit Withdraw(msg.sender, finalAmount, block.timestamp);
     }
@@ -343,11 +345,11 @@ contract Investment is ERC20, ReentrancyGuard {
                 _amount
             );
         }
-        //globally sets profit rate amount
+        // Set return profit
         returnProfit = _profitRate;
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
-        //ask for caller tokens
+        // Transfer tokens from caller to contract
         IERC20(PAYMENT_TOKEN_ADDRESS_0).transferFrom(
             msg.sender,
             address(this),
@@ -487,24 +489,19 @@ contract Investment is ERC20, ReentrancyGuard {
 
     /// @notice Disallows investment token transfers from one address to another.
     /// @dev This function is overridden from the ERC20 standard and always returns false.
-    /// @param from The address to NOT transfer from.
-    /// @param to The address to NOT transfer to.
-    /// @param amount The amount to NOT be transferred.
     function transferFrom(
-        address from,
-        address to,
-        uint256 amount
+        address /* from */,
+        address /* to */,
+        uint256 /* amount */
     ) public override returns (bool) {
         return false;
     }
 
     /// @notice Disallows investment token transfers to another wallet.
     /// @dev This function is overridden from the ERC20 standard and always returns false.
-    /// @param to The address to NOT transfer to.
-    /// @param amount The amount to NOT be transferred.
     function transfer(
-        address to,
-        uint256 amount
+        address /* to */,
+        uint256 /* amount */
     ) public override returns (bool) {
         return false;
     }
