@@ -1,0 +1,153 @@
+import {
+  CoinTest,
+  CoinTest__factory,
+  Factory,
+  Factory__factory,
+  Investment__factory,
+  SLCore,
+  SLCoreTest,
+  SLCoreTest__factory,
+  SLCore__factory,
+  SLLogics,
+  SLLogics__factory,
+  SLPermissions,
+  SLPermissions__factory,
+} from "../typechain-types";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { ethers } from "hardhat";
+import { expect } from "chai";
+import { BigNumber } from "ethers";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+
+// Constants
+const COLLECTIONS = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+  ],
+  PAYMENT_TOKEN_AMOUNT = 20000,
+  ENTRY_LEVEL_NFT_ID = 1000, // 01000 batch - 0, cap - 1000
+  LEVEL2_NFT_ID = 11,
+  INVESTMENT1_AMOUNT = 100000,
+  INVESTMENT_2_AMOUNT = 150000,
+  INVESTMENT_LEVEL_2_AMOUNT = 200000,
+  INVESTMENT_LEVEL_3_AMOUNT = 300000,
+  INVESTOR1_INVESTMENT_AMOUNT = 6000,
+  INVESTOR1_INVESTMENT_2_AMOUNT = 5000,
+  INVESTOR1_INVESTMENT_LEVEL_2_AMOUNT = 10000,
+  INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT = 15000,
+  PAYMENT_TOKEN_ID_0 = 0,
+  PAYMENT_TOKEN_ID_1 = 1,
+  ENTRY_BATCH_CAP = 1000,
+  ENTRY_BATCH_PRICE = 100,
+  ENTRY_TOKEN_URI = "TOKEN_URI";
+
+function withDecimals(toConvert: number) {
+  return toConvert * 10 ** 6;
+}
+describe("Permissions Contract", async () => {
+  // Variables
+  let puzzleContract: SLCoreTest,
+    logcisContract: SLLogics,
+    paymentTokenContract: CoinTest,
+    paymentTokenContract2: CoinTest,
+    factoryContract: Factory,
+    permissionsContract: SLPermissions,
+    totalAccounts: number,
+    accounts: SignerWithAddress[],
+    owner: SignerWithAddress,
+    ceo: SignerWithAddress,
+    cfo: SignerWithAddress,
+    investor1: SignerWithAddress,
+    investor2: SignerWithAddress,
+    investor3: SignerWithAddress,
+    ownerBalanceBefore: BigNumber,
+    baseUriFromContract: string;
+
+  async function deployContractFixture() {
+    // Puzzle contract needs Factory and PaymentToken address to be deployed
+    // Get all signers
+    accounts = await ethers.getSigners();
+    totalAccounts = accounts.length;
+
+    // Assign used accounts from all signers
+    [owner, investor1, investor2, investor3] = accounts;
+    ceo = accounts[9];
+    cfo = accounts[10];
+    const paymentTokenContractFactory = new CoinTest__factory(owner);
+    const permissionsContractFacotry = new SLPermissions__factory(owner);
+    const puzzleContractFactory = new SLCoreTest__factory(owner);
+    const logicsContractFactory = new SLLogics__factory(owner);
+    const factoryContractFactory = new Factory__factory(owner);
+    // Deploy PaymentToken (CoinTest) contract from the factory
+    paymentTokenContract = await paymentTokenContractFactory.deploy();
+    await paymentTokenContract.deployed();
+
+    // Deploy PaymentToken (CoinTest) contract from the factory
+    paymentTokenContract2 = await paymentTokenContractFactory.deploy();
+    await paymentTokenContract2.deployed();
+
+    // Deploy PaymentToken (CoinTest) contract from the factory
+    permissionsContract = await permissionsContractFacotry.deploy(
+      ceo.address,
+      cfo.address
+    );
+    await paymentTokenContract.deployed();
+
+    // Deploy Factory contract from the factory
+    factoryContract = await factoryContractFactory.deploy(
+      permissionsContract.address
+    );
+    await factoryContract.deployed();
+    //Deploy SLLogics contract
+    logcisContract = await logicsContractFactory.deploy(
+      factoryContract.address,
+      paymentTokenContract.address,
+      permissionsContract.address
+    );
+    await logcisContract.deployed();
+    // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
+    puzzleContract = await puzzleContractFactory.deploy(
+      logcisContract.address,
+      permissionsContract.address
+    );
+    await puzzleContract.deployed();
+    // Set the Puzzle contract deployed as entry address on Factory contract
+    await factoryContract.connect(ceo).setSLCoreAddress(puzzleContract.address);
+    // Allow SLCore to make changes in SLLogics
+    await permissionsContract
+      .connect(ceo)
+      .setAllowedContracts(puzzleContract.address, 1);
+    // Create a new entry batch
+    await puzzleContract
+      .connect(ceo)
+      .generateNewEntryBatch(
+        ENTRY_BATCH_CAP,
+        ENTRY_BATCH_PRICE,
+        ENTRY_TOKEN_URI
+      );
+
+    return {
+      owner,
+      ceo,
+      cfo,
+      investor1,
+      investor2,
+      investor3,
+      paymentTokenContract,
+      permissionsContract,
+      puzzleContract,
+      factoryContract,
+      logcisContract,
+    };
+  }
+
+  describe("Deployment tests", async () => {
+    it("Should set the CEO address", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      expect(await permissionsContract.isCLevel(ceo.address)).to.be.true;
+    });
+  });
+});
