@@ -5,12 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ISLPermissions.sol";
-
-interface ISLCore {
-    function whichLevelUserHas(address user) external view returns (uint256);
-}
-
-interface IToken is IERC20 {}
+import "./ISLCore.sol";
 
 /// @title Investment Contract
 /// @author Something Legendary
@@ -138,7 +133,11 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @param input the invalid selected coin to pay
     /// @param firstCoinId the first allowed coin number
     /// @param secondCoinId the second allowed coin number
-    error InvalidPaymentId(uint input, uint firstCoinId, uint secondCoinId);
+    error InvalidPaymentId(
+        uint256 input,
+        uint256 firstCoinId,
+        uint256 secondCoinId
+    );
 
     /// @notice Reverts if user is not at least at contract level
     /// @param expectedLevel expected user minimum level
@@ -487,24 +486,19 @@ contract Investment is ERC20, ReentrancyGuard {
 
     /// @notice Disallows investment token transfers from one address to another.
     /// @dev This function is overridden from the ERC20 standard and always returns false.
-    /// @param from The address to NOT transfer from.
-    /// @param to The address to NOT transfer to.
-    /// @param amount The amount to NOT be transferred.
     function transferFrom(
-        address from,
-        address to,
-        uint256 amount
+        address /* from */,
+        address /* to */,
+        uint256 /* amount */
     ) public override returns (bool) {
         return false;
     }
 
     /// @notice Disallows investment token transfers to another wallet.
     /// @dev This function is overridden from the ERC20 standard and always returns false.
-    /// @param to The address to NOT transfer to.
-    /// @param amount The amount to NOT be transferred.
     function transfer(
-        address to,
-        uint256 amount
+        address /* to */,
+        uint256 /* amount */
     ) public override returns (bool) {
         return false;
     }
