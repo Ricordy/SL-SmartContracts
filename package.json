@@ -50,6 +50,7 @@
     "typescript": ">=4.5.0"
   },
   "dependencies": {
+    "solhint": "^3.6.2",
     "solidity-coverage": "^0.8.5"
   }
 }
