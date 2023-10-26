@@ -82,8 +82,9 @@ contract SLPermissions {
     modifier onlyCLevel() {
         if (msg.sender != ceoAddress && msg.sender != cfoAddress) {
             revert NotCLevel();
+        } else {
+            _;
         }
-        _;
     }
 
     /// @notice external function for CEO verification

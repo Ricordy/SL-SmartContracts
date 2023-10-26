@@ -83,7 +83,10 @@ contract Factory {
             revert InvalidAddress("SLCore");
         }
         if (_paymentTokenAddress0 == address(0)) {
-            revert InvalidAddress("PaymentToken");
+            revert InvalidAddress("PaymentToken1");
+        }
+        if (_paymentTokenAddress1 == address(0)) {
+            revert InvalidAddress("PaymentToken2");
         }
         if (_level == 0) {
             revert InvalidLevel(_level, 1, 3);

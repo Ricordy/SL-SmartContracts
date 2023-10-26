@@ -102,8 +102,7 @@ describe("Factory Contract Tests", async () => {
       permissionsContract.address
     );
     await puzzleContract.deployed();
-    // Set the Puzzle contract deployed as entry address on Factory contract
-    await factoryContract.connect(ceo).setSLCoreAddress(puzzleContract.address);
+
     // Allow SLCore to make changes in SLLogics
     await permissionsContract
       .connect(ceo)
@@ -137,7 +136,7 @@ describe("Factory Contract Tests", async () => {
       investor1,
       puzzleContract,
       logicsContract,
-    } = await loadFixture(deployContractFixture);
+    } = await loadFixture(slCoreContractSetted);
     await paymentTokenContract
       .connect(investor1)
       .mint(
@@ -241,10 +240,113 @@ describe("Factory Contract Tests", async () => {
       factoryContract,
     };
   }
+  async function slCoreContractSetted() {
+    const {
+      owner,
+      ceo,
+      cfo,
+      investor1,
+      investor2,
+      investor3,
+      paymentTokenContract,
+      puzzleContract,
+      factoryContract,
+      logicsContract,
+    } = await loadFixture(deployContractFixture);
+    // Set the Puzzle contract deployed as entry address on Factory contract
+    await factoryContract.connect(ceo).setSLCoreAddress(puzzleContract.address);
+    return {
+      owner,
+      ceo,
+      cfo,
+      investor1,
+      investor2,
+      investor3,
+      paymentTokenContract,
+      puzzleContract,
+      factoryContract,
+      logicsContract,
+    };
+  }
   describe("DeployNew function", async () => {
+    it("SLCore address must be defined", async () => {
+      const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(
+        factoryContract
+          .connect(ceo)
+          .deployNew(
+            INVESTMENT_1_AMOUNT,
+            paymentTokenContract.address,
+            paymentTokenContract2.address,
+            1
+          )
+      ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
+    });
+    it("PaymentToken0 address must be different than address(0)", async () => {
+      const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
+        slCoreContractSetted
+      );
+      await expect(
+        factoryContract
+          .connect(ceo)
+          .deployNew(
+            INVESTMENT_1_AMOUNT,
+            ethers.constants.AddressZero,
+            paymentTokenContract2.address,
+            1
+          )
+      ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
+    });
+    it("PaymentToken1 address must be different than address(0)", async () => {
+      const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
+        slCoreContractSetted
+      );
+      await expect(
+        factoryContract
+          .connect(ceo)
+          .deployNew(
+            INVESTMENT_1_AMOUNT,
+            paymentTokenContract2.address,
+            ethers.constants.AddressZero,
+            1
+          )
+      ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
+    });
+    it("Level must be greater than 0", async () => {
+      const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
+        slCoreContractSetted
+      );
+      await expect(
+        factoryContract
+          .connect(ceo)
+          .deployNew(
+            INVESTMENT_1_AMOUNT,
+            paymentTokenContract.address,
+            paymentTokenContract2.address,
+            0
+          )
+      ).to.be.revertedWithCustomError(factoryContract, "InvalidLevel");
+    });
+    it("Level must not be greater than 3", async () => {
+      const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
+        slCoreContractSetted
+      );
+      await expect(
+        factoryContract
+          .connect(ceo)
+          .deployNew(
+            INVESTMENT_1_AMOUNT,
+            paymentTokenContract.address,
+            paymentTokenContract2.address,
+            4
+          )
+      ).to.be.revertedWithCustomError(factoryContract, "InvalidLevel");
+    });
     it("caller must be the owner ", async () => {
       const { factoryContract, paymentTokenContract, investor1 } =
-        await loadFixture(deployContractFixture);
+        await loadFixture(slCoreContractSetted);
       await expect(
         factoryContract
           .connect(investor1)
@@ -257,7 +359,7 @@ describe("Factory Contract Tests", async () => {
       ).to.be.revertedWithCustomError(factoryContract, "NotCEO");
     });
     it("Should create a new Investment contract", async () => {
-      const { factoryContract } = await loadFixture(deployContractFixture);
+      const { factoryContract } = await loadFixture(slCoreContractSetted);
       await expect(
         factoryContract
           .connect(ceo)
@@ -272,7 +374,7 @@ describe("Factory Contract Tests", async () => {
         .withArgs(CONTRACT_NUMBER_ID, anyValue, 1);
     });
     it("Should be able to deploy contracts from multiple levels", async () => {
-      const { factoryContract } = await loadFixture(deployContractFixture);
+      const { factoryContract } = await loadFixture(slCoreContractSetted);
       for (let i = 0; i < 3; i++) {
         await expect(
           factoryContract
@@ -289,7 +391,7 @@ describe("Factory Contract Tests", async () => {
       }
     });
     it("Should keep all contracts stored in an array", async () => {
-      const { factoryContract } = await loadFixture(deployContractFixture);
+      const { factoryContract } = await loadFixture(slCoreContractSetted);
       await factoryContract
         .connect(ceo)
         .deployNew(
