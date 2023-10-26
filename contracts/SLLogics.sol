@@ -6,19 +6,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./SLMicroSlots.sol";
 import "./ISLPermissions.sol";
-
-interface IFactory {
-    function getAddressTotal(
-        address user
-    ) external view returns (uint256 userTotal);
-
-    function getAddressTotalInLevel(
-        address user,
-        uint256 level
-    ) external view returns (uint256 userTotal);
-}
-
-interface IToken is IERC20 {}
+import "./IFactory.sol";
 
 /// @title Base contract for SL puzzle management
 /// @author The name of the author

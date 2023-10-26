@@ -94,7 +94,7 @@ contract SLLevels is SLBase {
             }
         } else {
             //revert is for some reason the ID is not Level2 or 3 ID
-            revert("Not a valid level token ID");
+            revert InvalidTokenID();
         }
     }
 

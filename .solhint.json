@@ -5,6 +5,7 @@
       "avoid-suicide": "error",
       "avoid-sha3": "warn",
       "no-global-import": "off",
+      "no-empty-blocks": "off",
       "func-visibility": ["warn",{"ignoreConstructors":true}]
     }
   }

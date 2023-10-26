@@ -4,22 +4,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./SLMicroSlots.sol";
 import "./ISLPermissions.sol";
-
-//interface for SLLogics
-interface ISLLogics {
-    function _userAllowedToClaimPiece(
-        address user,
-        uint256 _tokenId,
-        uint256 _currentUserLevel,
-        uint256 _userPuzzlePiecesForUserCurrentLevel
-    ) external view;
-
-    function payEntryFee(address _user) external;
-
-    function setEntryPrice(uint256 _newPrice, string memory tokenUri) external;
-
-    function uri(uint256 _id) external view returns (string memory);
-}
+import "./ISLLogics.sol";
 
 /// @title SLBase
 /// @author Something Legendary
@@ -67,6 +52,9 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @param min minimum level value
     /// @param max maximum level value
     error InvalidLevel(uint256 input, uint256 min, uint256 max);
+
+    /// @notice Reverts if a token ID is invalid
+    error InvalidTokenID();
 
     /// @notice Reverts if user is not at least at contract level
     /// @param expectedLevel expected user minimum level
