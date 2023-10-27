@@ -126,8 +126,9 @@ contract Factory {
     ) external isCEO isNotGloballyStoped {
         if (_slCoreAddress == address(0)) {
             revert InvalidAddress("SLCore");
+        } else {
+            slCoreAddress = _slCoreAddress;
         }
-        slCoreAddress = _slCoreAddress;
     }
 
     /// @notice Returns the total amount invested by the user across all levels.
