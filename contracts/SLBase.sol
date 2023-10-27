@@ -244,7 +244,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @return uint256[] memory with ids for level 2 and 3 (30,31) or all level 1 collection ids
     function _getLevelTokenIds(
         uint256 level
-    ) internal view virtual returns (uint256[] memory) {}
+    ) public view virtual returns (uint256[] memory) {}
 
     /// @notice funtion that returns the puzzle pieces for a specified level
     /// @dev should be overriden

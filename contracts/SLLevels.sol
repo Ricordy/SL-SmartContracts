@@ -101,7 +101,7 @@ contract SLLevels is SLBase {
     /// @inheritdoc	SLBase
     function _getLevelTokenIds(
         uint256 _level
-    ) internal view override returns (uint256[] memory) {
+    ) public view override returns (uint256[] memory) {
         if (_level == 1) {
             uint256 arrayLenght = entryIdsArray.length;
             uint256[] memory entryTokenIds = new uint256[](arrayLenght);
@@ -117,6 +117,8 @@ contract SLLevels is SLBase {
             level2And3Ids[0] = 30;
             level2And3Ids[1] = 31;
             return level2And3Ids;
+        } else {
+            revert InvalidLevel(_level, 1, 3);
         }
     }
 

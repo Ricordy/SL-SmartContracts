@@ -141,6 +141,75 @@ describe("Puzzle Contract", async () => {
     };
   }
 
+  async function deployContractWithoutEntryBatchFixture() {
+    // Puzzle contract needs Factory and PaymentToken address to be deployed
+    // Get all signers
+    accounts = await ethers.getSigners();
+    totalAccounts = accounts.length;
+
+    // Assign used accounts from all signers
+    [owner, investor1, investor2, investor3] = accounts;
+    ceo = accounts[9];
+    cfo = accounts[10];
+    const paymentTokenContractFactory = new CoinTest__factory(owner);
+    const permissionsContractFacotry = new SLPermissions__factory(owner);
+    const puzzleContractFactory = new SLCoreTest__factory(owner);
+    const logicsContractFactory = new SLLogics__factory(owner);
+    const factoryContractFactory = new Factory__factory(owner);
+    // Deploy PaymentToken (CoinTest) contract from the factory
+    paymentTokenContract = await paymentTokenContractFactory.deploy();
+    await paymentTokenContract.deployed();
+
+    // Deploy PaymentToken (CoinTest) contract from the factory
+    paymentTokenContract2 = await paymentTokenContractFactory.deploy();
+    await paymentTokenContract2.deployed();
+
+    // Deploy PaymentToken (CoinTest) contract from the factory
+    permissionsContract = await permissionsContractFacotry.deploy(
+      ceo.address,
+      cfo.address
+    );
+    await paymentTokenContract.deployed();
+
+    // Deploy Factory contract from the factory
+    factoryContract = await factoryContractFactory.deploy(
+      permissionsContract.address
+    );
+    await factoryContract.deployed();
+    //Deploy SLLogics contract
+    logcisContract = await logicsContractFactory.deploy(
+      factoryContract.address,
+      paymentTokenContract.address,
+      permissionsContract.address
+    );
+    await logcisContract.deployed();
+    // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
+    puzzleContract = await puzzleContractFactory.deploy(
+      logcisContract.address,
+      permissionsContract.address
+    );
+    await puzzleContract.deployed();
+    // Set the Puzzle contract deployed as entry address on Factory contract
+    await factoryContract.connect(ceo).setSLCoreAddress(puzzleContract.address);
+    // Allow SLCore to make changes in SLLogics
+    await permissionsContract
+      .connect(ceo)
+      .setAllowedContracts(puzzleContract.address, 1);
+
+    return {
+      owner,
+      ceo,
+      cfo,
+      investor1,
+      investor2,
+      investor3,
+      paymentTokenContract,
+      puzzleContract,
+      factoryContract,
+      logcisContract,
+    };
+  }
+
   async function mintPaymentTokenFixture() {
     const { paymentTokenContract } = await loadFixture(deployContractFixture);
     await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
@@ -162,8 +231,13 @@ describe("Puzzle Contract", async () => {
   }
 
   async function ownerAndInvestor1AbleToMintFixture() {
-    const { paymentTokenContract, puzzleContract, factoryContract, ceo } =
-      await loadFixture(deployContractFixture);
+    const {
+      paymentTokenContract,
+      puzzleContract,
+      factoryContract,
+      logcisContract,
+      ceo,
+    } = await loadFixture(deployContractFixture);
     // Mint PaymentTokens to the owner
     await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
     // Mint PaymentTokens to the investor1
@@ -206,8 +280,12 @@ describe("Puzzle Contract", async () => {
   }
 
   async function investor1NotReeadyToClaimNFT() {
-    const { paymentTokenContract, puzzleContract, factoryContract } =
-      await loadFixture(deployContractFixture);
+    const {
+      paymentTokenContract,
+      puzzleContract,
+      factoryContract,
+      logcisContract,
+    } = await loadFixture(deployContractFixture);
 
     // Mint PaymentTokens to investor
     await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
@@ -247,8 +325,13 @@ describe("Puzzle Contract", async () => {
   }
 
   async function investor1readyToClaimNFT() {
-    const { paymentTokenContract, puzzleContract, factoryContract, ceo } =
-      await loadFixture(deployContractFixture);
+    const {
+      paymentTokenContract,
+      puzzleContract,
+      factoryContract,
+      logcisContract,
+      ceo,
+    } = await loadFixture(deployContractFixture);
 
     // Mint PaymentTokens to investor
     await paymentTokenContract.connect(investor1).mint(PAYMENT_TOKEN_AMOUNT);
@@ -290,8 +373,13 @@ describe("Puzzle Contract", async () => {
     return { paymentTokenContract, puzzleContract, factoryContract, ceo };
   }
   async function ownerAndInvestor1ReadyToBurnLevel2NFT() {
-    const { paymentTokenContract, puzzleContract, factoryContract, ceo } =
-      await loadFixture(deployContractFixture);
+    const {
+      paymentTokenContract,
+      puzzleContract,
+      factoryContract,
+      logcisContract,
+      ceo,
+    } = await loadFixture(deployContractFixture);
     // Mint PaymentTokens to the owner
     await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
     // Mint PaymentTokens to the investor1
@@ -472,7 +560,6 @@ describe("Puzzle Contract", async () => {
         ownerPaymentTokenBalanceBefore.add(withDecimals(PAYMENT_TOKEN_AMOUNT))
       );
     });
-
     it("Investor without allowing to spend funds should not be able to mint", async () => {
       const { puzzleContract } = await loadFixture(
         investor1DidntApproveSpendFixture
@@ -490,40 +577,20 @@ describe("Puzzle Contract", async () => {
         puzzleContract.connect(investor1).mintEntry()
       ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
     });
-  });
-  describe("Minting the entry NFT", async () => {
-    beforeEach(async () => {
-      ({ puzzleContract } = await loadFixture(
-        ownerAndInvestor1AbleToMintFixture
-      ));
-    });
-    it("Owner should be able to mint if they have enough funds and the funds were approved", async () => {
-      await expect(await puzzleContract.mintEntry())
-        .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(owner.address, ENTRY_LEVEL_NFT_ID);
-    });
-    it("Investor should be able to mint if they have enough funds and the funds were approved", async function () {
-      await expect(await puzzleContract.connect(investor1).mintEntry())
-        .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor1.address, ENTRY_LEVEL_NFT_ID);
-    });
-    it("Investor should have the Entry Level NFT after the mint", async () => {
-      await puzzleContract.connect(investor1).mintEntry();
-      const investor1HasEntryNFT = await puzzleContract
-        .connect(investor1)
-        .balanceOf(investor1.address, ENTRY_LEVEL_NFT_ID);
-      expect(investor1HasEntryNFT).to.be.eq(1);
-    });
-    it("Investor should not be able to have more than 1 Entry NFT", async () => {
-      await puzzleContract.connect(investor1).mintEntry();
+    it("Investor ready to mint shouldnt be able if there are no entry batches", async () => {
+      const { puzzleContract } = await loadFixture(
+        deployContractWithoutEntryBatchFixture
+      );
+
       await expect(
         puzzleContract.connect(investor1).mintEntry()
-      ).to.be.revertedWithCustomError(puzzleContract, "IncorrectUserLevel");
+      ).to.be.revertedWithCustomError(puzzleContract, "InexistentEntryBatch");
     });
+  });
+  describe("Minting the entry NFT", async () => {
     it("Investors should not be able to mint more than the collection limit", async () => {
-      const { paymentTokenContract, puzzleContract, ceo } = await loadFixture(
-        deployContractFixture
-      );
+      const { paymentTokenContract, puzzleContract, logcisContract, ceo } =
+        await loadFixture(deployContractFixture);
 
       await puzzleContract
         .connect(ceo)
@@ -546,6 +613,41 @@ describe("Puzzle Contract", async () => {
         puzzleContract.connect(accounts[accounts.length - 1]).mintEntry()
       ).to.be.revertedWithCustomError(puzzleContract, "NoTokensRemaining");
     });
+    it("Owner should be able to mint if they have enough funds and the funds were approved", async () => {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1AbleToMintFixture
+      );
+      await expect(await puzzleContract.mintEntry())
+        .to.emit(puzzleContract, "TokensClaimed")
+        .withArgs(owner.address, ENTRY_LEVEL_NFT_ID);
+    });
+    it("Investor should be able to mint if they have enough funds and the funds were approved", async function () {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1AbleToMintFixture
+      );
+      await expect(await puzzleContract.connect(investor1).mintEntry())
+        .to.emit(puzzleContract, "TokensClaimed")
+        .withArgs(investor1.address, ENTRY_LEVEL_NFT_ID);
+    });
+    it("Investor should have the Entry Level NFT after the mint", async () => {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1AbleToMintFixture
+      );
+      await puzzleContract.connect(investor1).mintEntry();
+      const investor1HasEntryNFT = await puzzleContract
+        .connect(investor1)
+        .balanceOf(investor1.address, ENTRY_LEVEL_NFT_ID);
+      expect(investor1HasEntryNFT).to.be.eq(1);
+    });
+    it("Investor should not be able to have more than 1 Entry NFT", async () => {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1AbleToMintFixture
+      );
+      await puzzleContract.connect(investor1).mintEntry();
+      await expect(
+        puzzleContract.connect(investor1).mintEntry()
+      ).to.be.revertedWithCustomError(puzzleContract, "IncorrectUserLevel");
+    });
   });
   describe("Pre-claim Puzzle NFT", async () => {
     beforeEach(async () => {
@@ -564,10 +666,8 @@ describe("Puzzle Contract", async () => {
     });
   });
   describe("Claim Puzzle NFT", async () => {
-    beforeEach(async () => {
-      ({ puzzleContract } = await loadFixture(investor1readyToClaimNFT));
-    });
     it("Investor should be able to call verifyClaim (to claim an NFT Puzzle) after having invested the minimum amount required", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
       expect(
         await puzzleContract
           .connect(investor1)
@@ -575,16 +675,19 @@ describe("Puzzle Contract", async () => {
       ).not.to.be.reverted;
     });
     it("Investor should be able to call  claim (to claim a NFT Puzzle) after having invested the minimum amount required", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
       await expect(await puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, anyValue);
     });
     it("user should be able to claim a piece", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
       await expect(puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, anyValue);
     });
     it("user should not be able to reclaim while he hasnt invested enough", async () => {
+      const { puzzleContract } = await loadFixture(investor1readyToClaimNFT);
       puzzleContract.connect(investor1).claimPiece();
       await expect(
         puzzleContract.connect(investor1).claimPiece()
@@ -595,16 +698,19 @@ describe("Puzzle Contract", async () => {
     });
   });
   describe("Pre-claim LEVEL2 NFT", async () => {
-    beforeEach(async () => {
-      ({ puzzleContract } = await loadFixture(investor1NotReeadyToClaimNFT));
-    });
     it("Owner should not be able to burn without the required Puzzle NFTs", async () => {
+      const { puzzleContract } = await loadFixture(
+        investor1NotReeadyToClaimNFT
+      );
       await expect(puzzleContract.claimLevel()).to.be.revertedWithCustomError(
         puzzleContract,
         "UserMustHaveCompletePuzzle"
       );
     });
     it("Investor should not be able to burn without the required Puzzle NFTs", async () => {
+      const { puzzleContract } = await loadFixture(
+        investor1NotReeadyToClaimNFT
+      );
       await expect(
         puzzleContract.connect(investor1).claimLevel()
       ).to.be.revertedWithCustomError(
@@ -614,17 +720,18 @@ describe("Puzzle Contract", async () => {
     });
   });
   describe("Claim LEVEL2 NFT", async () => {
-    beforeEach(async () => {
-      ({ puzzleContract } = await loadFixture(
-        ownerAndInvestor1ReadyToBurnLevel2NFT
-      ));
-    });
     it("Owner should be able to burn LEVEL2 NFT", async () => {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1ReadyToBurnLevel2NFT
+      );
       await expect(await puzzleContract.claimLevel())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(owner.address, 30);
     });
     it("Owner should be able to claim LEVEL2 NFT having 20 Puzzle NFTs and still have 10 left", async () => {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1ReadyToBurnLevel2NFT
+      );
       // Mint 10 more Puzzle NFTs to the owner
       await puzzleContract.mintTest(1);
       // Fill the array with owner's address
@@ -654,6 +761,9 @@ describe("Puzzle Contract", async () => {
         .true;
     });
     it("Investor should be able to claim LEVEL2 NFT having 20 Puzzle NFTs and still have 10 left", async () => {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1ReadyToBurnLevel2NFT
+      );
       // Mint 10 more Puzzle NFTs to the investor
       await puzzleContract.connect(investor1).mintTest(1);
       // Fill the array with investor's address
@@ -681,11 +791,26 @@ describe("Puzzle Contract", async () => {
         .true;
     });
     it("Investor should be able to claim LEVEL2 NFT", async () => {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1ReadyToBurnLevel2NFT
+      );
       await expect(await puzzleContract.connect(investor1).claimLevel())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, 30);
     });
+    it("Investor after claiming level 2, should not be able to verify if he can pass to level 2 again", async () => {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1ReadyToBurnLevel2NFT
+      );
+      await puzzleContract.connect(investor1).claimLevel();
+      await expect(
+        puzzleContract._userAllowedToBurnPuzzle(investor1.address, 30)
+      ).to.revertedWithCustomError(puzzleContract, "IncorrectUserLevel");
+    });
     it("Owner should when minting level again should be asked for Level2 Puzzle Pieces", async () => {
+      const { puzzleContract } = await loadFixture(
+        ownerAndInvestor1ReadyToBurnLevel2NFT
+      );
       await puzzleContract.claimLevel();
       await expect(puzzleContract.claimLevel()).to.be.revertedWithCustomError(
         puzzleContract,
@@ -694,12 +819,10 @@ describe("Puzzle Contract", async () => {
     });
   });
   describe("Pre-claim Puzzle NFT Level 2", async () => {
-    beforeEach(async () => {
-      ({ puzzleContract } = await loadFixture(
-        investor1NotReadyToClaimLevel2Piece
-      ));
-    });
     it("should not be allowed to call if the user has not invested enough on level 2 contracts", async () => {
+      const { puzzleContract } = await loadFixture(
+        investor1NotReadyToClaimLevel2Piece
+      );
       await expect(puzzleContract.claimPiece()).to.be.revertedWithCustomError(
         logcisContract,
         "MissingInvestmentToClaim"
@@ -796,6 +919,12 @@ describe("Puzzle Contract", async () => {
       expect(expectedArrayResults.every((element) => element === true)).to.be
         .true;
     });
+    it("Investor after claiming level 3, should not be able to verify if he can pass to level 3 again", async () => {
+      await puzzleContract.connect(investor1).claimLevel();
+      await expect(
+        puzzleContract._userAllowedToBurnPuzzle(investor1.address, 31)
+      ).to.revertedWithCustomError(puzzleContract, "IncorrectUserLevel");
+    });
     it("Investor should not be able to claim level 3 again", async () => {
       await puzzleContract.connect(investor1).claimLevel();
       await puzzleContract.balanceOf(investor1.address, 31);
@@ -818,11 +947,6 @@ describe("Puzzle Contract", async () => {
     });
   });
   describe("Claiming Puzzle NFT Level 3", async () => {
-    // beforeEach(async () => {
-    //   ({ puzzleContract } = await loadFixture(
-    //     investor1ReadyToClaimLevel3Piece
-    //   ));
-    // });
     it("should be able to claim after investing 15k on level3 contracts", async () => {
       const { puzzleContract } = await loadFixture(
         investor1ReadyToClaimLevel3Piece
@@ -864,10 +988,10 @@ describe("Puzzle Contract", async () => {
     });
   });
   describe("Puzzle && Factory", async () => {
-    beforeEach(async () => {
-      ({ factoryContract, ceo } = await loadFixture(investor1readyToClaimNFT));
-    });
     it("Should get Investor's balance from Factory", async () => {
+      const { factoryContract, ceo } = await loadFixture(
+        investor1readyToClaimNFT
+      );
       // Create new investment
       await factoryContract
         .connect(ceo)
@@ -901,6 +1025,34 @@ describe("Puzzle Contract", async () => {
           INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_2_AMOUNT
         )
       );
+    });
+  });
+  describe("Function calls", async () => {
+    describe("_userAllowedToBurnPuzzle", () => {
+      it("Should revert if the token sent is not valid", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        await expect(
+          puzzleContract._userAllowedToBurnPuzzle(investor1.address, 10003)
+        ).to.revertedWith("Not a valid level token ID");
+      });
+    });
+    describe("_getLevelTokenIds", () => {
+      it("Should revert if the level sent is not valid", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        await expect(
+          puzzleContract._getLevelTokenIds(10003)
+        ).to.revertedWithCustomError(puzzleContract, "InvalidLevel");
+      });
+      it("Should give valid level 2 tokenId", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        const ids = await puzzleContract._getLevelTokenIds(2);
+        expect(ids[0]).to.eq(30);
+      });
+      it("Should give valid level 3 tokenId", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        const ids = await puzzleContract._getLevelTokenIds(2);
+        expect(ids[1]).to.eq(31);
+      });
     });
   });
 });
