@@ -142,12 +142,43 @@ describe("Permissions Contract", async () => {
     };
   }
 
+  async function pauseAllButPlatform() {
+    const { ceo, permissionsContract } = await loadFixture(
+      deployContractFixture
+    );
+    await permissionsContract.connect(ceo).pauseEntryMint();
+    await permissionsContract.connect(ceo).pauseInvestments();
+    await permissionsContract.connect(ceo).pausePuzzleMint();
+
+    return {
+      ceo,
+      permissionsContract,
+    };
+  }
+
+  async function pausedPlatform() {
+    const { ceo, permissionsContract } = await loadFixture(
+      deployContractFixture
+    );
+    await permissionsContract.connect(ceo).pausePlatform();
+
+    return {
+      ceo,
+      permissionsContract,
+    };
+  }
+
   describe("Deployment tests", async () => {
     it("Should set the CEO address", async () => {
       const { ceo, permissionsContract } = await loadFixture(
         deployContractFixture
       );
       expect(await permissionsContract.isCEO(ceo.address)).to.be.true;
+    });
+    it("CEO Should be CLevel", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
       expect(await permissionsContract.isCLevel(ceo.address)).to.be.true;
     });
     it("Should set the CFO address", async () => {
@@ -155,54 +186,92 @@ describe("Permissions Contract", async () => {
         deployContractFixture
       );
       expect(await permissionsContract.isCFO(cfo.address)).to.be.true;
+    });
+    it("CFO Should be CLevel", async () => {
+      const { cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+
       expect(await permissionsContract.isCLevel(cfo.address)).to.be.true;
     });
 
     it("Platform should be unpaused", async () => {
       const { permissionsContract } = await loadFixture(deployContractFixture);
-      expect(await permissionsContract.isInvestmentsPaused()).to.be.false;
-      expect(await permissionsContract.isClaimPaused()).to.be.false;
-      expect(await permissionsContract.isEntryMintPaused()).to.be.false;
       expect(await permissionsContract.isPlatformPaused()).to.be.false;
+    });
+
+    it("Investments should be unpaused", async () => {
+      const { permissionsContract } = await loadFixture(deployContractFixture);
+      expect(await permissionsContract.isInvestmentsPaused()).to.be.false;
+    });
+
+    it("Claim should be unpaused", async () => {
+      const { permissionsContract } = await loadFixture(deployContractFixture);
+      expect(await permissionsContract.isClaimPaused()).to.be.false;
+    });
+
+    it("Entry mint should be unpaused", async () => {
+      const { permissionsContract } = await loadFixture(deployContractFixture);
+      expect(await permissionsContract.isEntryMintPaused()).to.be.false;
     });
   });
   describe("Pause/Unpause tests", async () => {
-    it("CLevel should be able to pause entry mint", async () => {
-      const { ceo, cfo, permissionsContract } = await loadFixture(
+    it("CEO should be able to pause entry mint", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
         deployContractFixture
       );
       expect(await permissionsContract.connect(ceo).pauseEntryMint()).to.not
         .reverted;
+    });
+    it("CFO should be able to pause entry mint", async () => {
+      const { cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
       expect(await permissionsContract.connect(cfo).pauseEntryMint()).to.not
         .reverted;
     });
 
-    it("CLevel should be able to pause investments", async () => {
-      const { ceo, cfo, permissionsContract } = await loadFixture(
+    it("CEO should be able to pause investments", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
         deployContractFixture
       );
       expect(await permissionsContract.connect(ceo).pauseInvestments()).to.not
         .reverted;
+    });
+    it("CFO should be able to pause investments", async () => {
+      const { cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
       expect(await permissionsContract.connect(cfo).pauseInvestments()).to.not
         .reverted;
     });
 
-    it("CLevel should be able to pause puzzle mint", async () => {
-      const { ceo, cfo, permissionsContract } = await loadFixture(
+    it("CEO should be able to pause puzzle mint", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
         deployContractFixture
       );
       expect(await permissionsContract.connect(ceo).pausePuzzleMint()).to.not
         .reverted;
+    });
+    it("CFO should be able to pause puzzle mint", async () => {
+      const { cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
       expect(await permissionsContract.connect(cfo).pausePuzzleMint()).to.not
         .reverted;
     });
 
-    it("CLevel should be able to pause platform", async () => {
-      const { ceo, cfo, permissionsContract } = await loadFixture(
+    it("CEO should be able to pause platform", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
         deployContractFixture
       );
       expect(await permissionsContract.connect(ceo).pausePlatform()).to.not
         .reverted;
+    });
+    it("CFO should be able to pause platform", async () => {
+      const { cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
       expect(await permissionsContract.connect(cfo).pausePlatform()).to.not
         .reverted;
     });
@@ -236,6 +305,14 @@ describe("Permissions Contract", async () => {
         deployContractFixture
       );
       expect(await permissionsContract.connect(ceo).unpausePuzzleMint()).to.not
+        .reverted;
+    });
+
+    it("NOT CLevel should NOT be able to pause platform", async () => {
+      const { investor1, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(permissionsContract.connect(investor1).pausePlatform()).to.be
         .reverted;
     });
 
@@ -294,36 +371,35 @@ describe("Permissions Contract", async () => {
         .reverted;
     });
 
-    it("CEO should not be able to unpause entry mint", async () => {
-      const { cfo, permissionsContract } = await loadFixture(
-        deployContractFixture
-      );
-      await expect(permissionsContract.connect(cfo).unpauseEntryMint()).to
-        .reverted;
-    });
-
-    it("CEO should not be able to unpause investments", async () => {
-      const { cfo, permissionsContract } = await loadFixture(
-        deployContractFixture
-      );
-      await expect(permissionsContract.connect(cfo).unpauseInvestments()).to
-        .reverted;
-    });
-
-    it("CEO should not be able to unpause puzzle mint", async () => {
-      const { cfo, permissionsContract } = await loadFixture(
-        deployContractFixture
-      );
-      await expect(permissionsContract.connect(cfo).unpausePuzzleMint()).to
-        .reverted;
-    });
-
-    it("CEO should not be able to unpause platform", async () => {
-      const { cfo, permissionsContract } = await loadFixture(
-        deployContractFixture
-      );
-      await expect(permissionsContract.connect(cfo).unpausePlatform()).to
-        .reverted;
+    describe("when some functionalities are paused, the platform should reflect that", () => {
+      it("Mint entry should be paused ", async () => {
+        const { permissionsContract } = await loadFixture(pauseAllButPlatform);
+        expect(await permissionsContract.isEntryMintPaused()).to.be.true;
+      });
+      it("Investments should be paused ", async () => {
+        const { permissionsContract } = await loadFixture(pauseAllButPlatform);
+        expect(await permissionsContract.isInvestmentsPaused()).to.be.true;
+      });
+      it("Claim should be paused ", async () => {
+        const { permissionsContract } = await loadFixture(pauseAllButPlatform);
+        expect(await permissionsContract.isClaimPaused()).to.be.true;
+      });
+      it("Platform should be paused  ", async () => {
+        const { permissionsContract } = await loadFixture(pausedPlatform);
+        expect(await permissionsContract.isPlatformPaused()).to.be.true;
+      });
+      it("When platform is paused Mint entry automatically becomes paused", async () => {
+        const { permissionsContract } = await loadFixture(pausedPlatform);
+        expect(await permissionsContract.isEntryMintPaused()).to.be.true;
+      });
+      it("When platform is paused Investments automatically becomes paused", async () => {
+        const { permissionsContract } = await loadFixture(pausedPlatform);
+        expect(await permissionsContract.isInvestmentsPaused()).to.be.true;
+      });
+      it("When platform is paused Claim automatically becomes paused", async () => {
+        const { permissionsContract } = await loadFixture(pausedPlatform);
+        expect(await permissionsContract.isClaimPaused()).to.be.true;
+      });
     });
   });
 
