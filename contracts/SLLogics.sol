@@ -101,6 +101,9 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
         if (_paymentTokenAddress == address(0)) {
             revert InvalidAddress("Payment Token");
         }
+        if (_slPermissionsAddress == address(0)) {
+            revert InvalidAddress("SLPermissions");
+        }
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         factoryAddress = _factoryAddress;
         paymentTokenAddress = _paymentTokenAddress;
@@ -114,9 +117,7 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
     /// @notice Transfer the entry fee from the user's account to the contract's account
     /// @dev Uses the ERC20 `transferFrom` function
     /// @param _user The address of the user
-    function payEntryFee(
-        address _user
-    ) external isAllowedContract nonReentrant {
+    function payEntryFee(address _user) external isAllowedContract {
         IERC20(paymentTokenAddress).safeTransferFrom(
             _user,
             address(this),
