@@ -167,60 +167,6 @@ describe("Permissions Contract", async () => {
     });
   });
   describe("Pause/Unpause tests", async () => {
-    describe("Setting Roles tests", async () => {
-      it("CEO should be able to set CEO", async () => {
-        const { ceo, cfo, permissionsContract } = await loadFixture(
-          deployContractFixture
-        );
-        expect(await permissionsContract.connect(ceo).setCEO(cfo.address)).to
-          .not.reverted;
-      });
-
-      it("CEO should be able to set CFO", async () => {
-        const { ceo, cfo, permissionsContract } = await loadFixture(
-          deployContractFixture
-        );
-        expect(await permissionsContract.connect(ceo).setCFO(ceo.address)).to
-          .not.reverted;
-      });
-
-      it("CFO should NOT be able to set new CEO", async () => {
-        const { ceo, cfo, investor1, permissionsContract } = await loadFixture(
-          deployContractFixture
-        );
-        await expect(
-          permissionsContract.connect(cfo).setCEO(investor1.address)
-        ).to.be.revertedWithCustomError(permissionsContract, "NotCEO");
-      });
-
-      it("CFO should NOT be able to set new CFO", async () => {
-        const { ceo, cfo, investor1, permissionsContract } = await loadFixture(
-          deployContractFixture
-        );
-        await expect(
-          permissionsContract.connect(cfo).setCFO(investor1.address)
-        ).to.be.revertedWithCustomError(permissionsContract, "NotCEO");
-      });
-
-      it("CEO should NOT be able to set new CEO to zero address", async () => {
-        const { ceo, permissionsContract } = await loadFixture(
-          deployContractFixture
-        );
-        await expect(
-          permissionsContract.connect(ceo).setCEO(ethers.constants.AddressZero)
-        ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
-      });
-
-      it("CEO should NOT be able to set new CFO to zero address", async () => {
-        const { ceo, permissionsContract } = await loadFixture(
-          deployContractFixture
-        );
-        await expect(
-          permissionsContract.connect(ceo).setCFO(ethers.constants.AddressZero)
-        ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
-      });
-    });
-
     it("CLevel should be able to pause entry mint", async () => {
       const { ceo, cfo, permissionsContract } = await loadFixture(
         deployContractFixture
@@ -382,6 +328,57 @@ describe("Permissions Contract", async () => {
   });
 
   describe("Setting Roles tests", async () => {
+    it("CEO should be able to set CEO", async () => {
+      const { ceo, cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      expect(await permissionsContract.connect(ceo).setCEO(cfo.address)).to.not
+        .reverted;
+    });
+
+    it("CEO should be able to set CFO", async () => {
+      const { ceo, cfo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      expect(await permissionsContract.connect(ceo).setCFO(ceo.address)).to.not
+        .reverted;
+    });
+
+    it("CFO should NOT be able to set new CEO", async () => {
+      const { ceo, cfo, investor1, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(
+        permissionsContract.connect(cfo).setCEO(investor1.address)
+      ).to.be.revertedWithCustomError(permissionsContract, "NotCEO");
+    });
+
+    it("CFO should NOT be able to set new CFO", async () => {
+      const { ceo, cfo, investor1, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(
+        permissionsContract.connect(cfo).setCFO(investor1.address)
+      ).to.be.revertedWithCustomError(permissionsContract, "NotCEO");
+    });
+
+    it("CEO should NOT be able to set new CEO to zero address", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(
+        permissionsContract.connect(ceo).setCEO(ethers.constants.AddressZero)
+      ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
+    });
+
+    it("CEO should NOT be able to set new CFO to zero address", async () => {
+      const { ceo, permissionsContract } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(
+        permissionsContract.connect(ceo).setCFO(ethers.constants.AddressZero)
+      ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
+    });
     it("CEO should not be able to set allowed contracts passing the wrong _allowed value", async () => {
       const { ceo, cfo, permissionsContract } = await loadFixture(
         deployContractFixture
@@ -398,37 +395,6 @@ describe("Permissions Contract", async () => {
       await expect(
         permissionsContract.connect(cfo).setAllowedContracts(cfo.address, 1)
       ).to.be.revertedWithCustomError(permissionsContract, "NotCEO");
-    });
-
-    it("CEO should be able to set CEO", async () => {
-      const { ceo, cfo, permissionsContract } = await loadFixture(
-        deployContractFixture
-      );
-      await expect(permissionsContract.connect(ceo).setCEO(cfo.address)).to.not
-        .reverted;
-    });
-    it("CEO should be able to set CFO", async () => {
-      const { ceo, cfo, permissionsContract } = await loadFixture(
-        deployContractFixture
-      );
-      expect(await permissionsContract.connect(ceo).setCFO(ceo.address)).to.not
-        .reverted;
-    });
-
-    it("CFO should NOT be able to set new CEO", async () => {
-      const { ceo, cfo, permissionsContract } = await loadFixture(
-        deployContractFixture
-      );
-      await expect(permissionsContract.connect(cfo).setCEO(cfo.address)).to
-        .reverted;
-    });
-    it("CFO should NOT be able to set new CFO", async () => {
-      const { ceo, cfo, permissionsContract } = await loadFixture(
-        deployContractFixture
-      );
-
-      await expect(permissionsContract.connect(cfo).setCFO(ceo.address)).to
-        .reverted;
     });
   });
 });
