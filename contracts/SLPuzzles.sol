@@ -69,7 +69,7 @@ contract SLPuzzles is SLLevels {
         } else if (level == 3) {
             ids = getMultiplePositionsXInDivisionByY(COLLECTION_IDS, 21, 10, 2);
         } else {
-            revert("Not a valid puzzle level");
+            revert InvalidLevel(level, 1, 3);
         }
         return ids;
     }

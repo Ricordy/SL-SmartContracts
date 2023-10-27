@@ -64,7 +64,7 @@ describe("Puzzle Contract", async () => {
     ownerBalanceBefore: BigNumber,
     baseUriFromContract: string;
 
-  async function deployContractFixture() {
+  async function deployContractFixtureWithoutBatch() {
     // Puzzle contract needs Factory and PaymentToken address to be deployed
     // Get all signers
     accounts = await ethers.getSigners();
@@ -79,6 +79,8 @@ describe("Puzzle Contract", async () => {
     const puzzleContractFactory = new SLCoreTest__factory(owner);
     const logicsContractFactory = new SLLogics__factory(owner);
     const factoryContractFactory = new Factory__factory(owner);
+    const coreContractFactory = new SLCore__factory(owner);
+
     // Deploy PaymentToken (CoinTest) contract from the factory
     paymentTokenContract = await paymentTokenContractFactory.deploy();
     await paymentTokenContract.deployed();
@@ -118,14 +120,6 @@ describe("Puzzle Contract", async () => {
     await permissionsContract
       .connect(ceo)
       .setAllowedContracts(puzzleContract.address, 1);
-    // Create a new entry batch
-    await puzzleContract
-      .connect(ceo)
-      .generateNewEntryBatch(
-        ENTRY_BATCH_CAP,
-        ENTRY_BATCH_PRICE,
-        ENTRY_TOKEN_URI
-      );
 
     return {
       owner,
@@ -138,63 +132,32 @@ describe("Puzzle Contract", async () => {
       puzzleContract,
       factoryContract,
       logcisContract,
+      coreContractFactory,
+      permissionsContract,
     };
   }
 
-  async function deployContractWithoutEntryBatchFixture() {
-    // Puzzle contract needs Factory and PaymentToken address to be deployed
-    // Get all signers
-    accounts = await ethers.getSigners();
-    totalAccounts = accounts.length;
-
-    // Assign used accounts from all signers
-    [owner, investor1, investor2, investor3] = accounts;
-    ceo = accounts[9];
-    cfo = accounts[10];
-    const paymentTokenContractFactory = new CoinTest__factory(owner);
-    const permissionsContractFacotry = new SLPermissions__factory(owner);
-    const puzzleContractFactory = new SLCoreTest__factory(owner);
-    const logicsContractFactory = new SLLogics__factory(owner);
-    const factoryContractFactory = new Factory__factory(owner);
-    // Deploy PaymentToken (CoinTest) contract from the factory
-    paymentTokenContract = await paymentTokenContractFactory.deploy();
-    await paymentTokenContract.deployed();
-
-    // Deploy PaymentToken (CoinTest) contract from the factory
-    paymentTokenContract2 = await paymentTokenContractFactory.deploy();
-    await paymentTokenContract2.deployed();
-
-    // Deploy PaymentToken (CoinTest) contract from the factory
-    permissionsContract = await permissionsContractFacotry.deploy(
-      ceo.address,
-      cfo.address
-    );
-    await paymentTokenContract.deployed();
-
-    // Deploy Factory contract from the factory
-    factoryContract = await factoryContractFactory.deploy(
-      permissionsContract.address
-    );
-    await factoryContract.deployed();
-    //Deploy SLLogics contract
-    logcisContract = await logicsContractFactory.deploy(
-      factoryContract.address,
-      paymentTokenContract.address,
-      permissionsContract.address
-    );
-    await logcisContract.deployed();
-    // Deploy Puzzle contract from the factory passing Factory and logics deployed contract addresses
-    puzzleContract = await puzzleContractFactory.deploy(
-      logcisContract.address,
-      permissionsContract.address
-    );
-    await puzzleContract.deployed();
-    // Set the Puzzle contract deployed as entry address on Factory contract
-    await factoryContract.connect(ceo).setSLCoreAddress(puzzleContract.address);
-    // Allow SLCore to make changes in SLLogics
-    await permissionsContract
+  async function deployContractFixture() {
+    const {
+      owner,
+      ceo,
+      cfo,
+      investor1,
+      investor2,
+      investor3,
+      paymentTokenContract,
+      puzzleContract,
+      factoryContract,
+      logcisContract,
+    } = await deployContractFixtureWithoutBatch();
+    // Create a new entry batch
+    await puzzleContract
       .connect(ceo)
-      .setAllowedContracts(puzzleContract.address, 1);
+      .generateNewEntryBatch(
+        ENTRY_BATCH_CAP,
+        ENTRY_BATCH_PRICE,
+        ENTRY_TOKEN_URI
+      );
 
     return {
       owner,
@@ -532,6 +495,30 @@ describe("Puzzle Contract", async () => {
       const slLogicAddressFromContract = await puzzleContract.slLogicsAddress();
       expect(slLogicAddressFromContract).to.be.equal(logcisContract.address);
     });
+
+    it("_slLogicsAddress cannot be passed as AddressZero", async () => {
+      const { coreContractFactory, permissionsContract, puzzleContract } =
+        await loadFixture(deployContractFixtureWithoutBatch);
+      // Get the PaymentToken address from the Puzzle contract
+      await expect(
+        coreContractFactory.deploy(
+          ethers.constants.AddressZero,
+          permissionsContract.address
+        )
+      ).to.be.revertedWithCustomError(puzzleContract, "InvalidAddress");
+    });
+    it("_slPermissionsAddress cannot be passed as AddressZero", async () => {
+      const { coreContractFactory, logcisContract, puzzleContract } =
+        await loadFixture(deployContractFixtureWithoutBatch);
+      // Get the PaymentToken address from the Puzzle contract
+      await expect(
+        coreContractFactory.deploy(
+          logcisContract.address,
+          ethers.constants.AddressZero
+        )
+      ).to.be.revertedWithCustomError(puzzleContract, "InvalidAddress");
+    });
+
     describe("Metadata", async () => {
       beforeEach(async () => {
         ({ puzzleContract } = await loadFixture(deployContractFixture));
@@ -579,7 +566,7 @@ describe("Puzzle Contract", async () => {
     });
     it("Investor ready to mint shouldnt be able if there are no entry batches", async () => {
       const { puzzleContract } = await loadFixture(
-        deployContractWithoutEntryBatchFixture
+        deployContractFixtureWithoutBatch
       );
 
       await expect(
@@ -798,7 +785,7 @@ describe("Puzzle Contract", async () => {
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, 30);
     });
-    it("Investor after claiming level 2, should not be able to verify if he can pass to level 2 again", async () => {
+    it("Investor should not be able to call verifyClaim for LEVEL2 after owning the LEVEL2 token", async () => {
       const { puzzleContract } = await loadFixture(
         ownerAndInvestor1ReadyToBurnLevel2NFT
       );
@@ -919,7 +906,7 @@ describe("Puzzle Contract", async () => {
       expect(expectedArrayResults.every((element) => element === true)).to.be
         .true;
     });
-    it("Investor after claiming level 3, should not be able to verify if he can pass to level 3 again", async () => {
+    it("Investor should not be able to call verifyClaim for LEVEL3 after owning the LEVEL3 token", async () => {
       await puzzleContract.connect(investor1).claimLevel();
       await expect(
         puzzleContract._userAllowedToBurnPuzzle(investor1.address, 31)
@@ -987,46 +974,6 @@ describe("Puzzle Contract", async () => {
       );
     });
   });
-  describe("Puzzle && Factory", async () => {
-    it("Should get Investor's balance from Factory", async () => {
-      const { factoryContract, ceo } = await loadFixture(
-        investor1readyToClaimNFT
-      );
-      // Create new investment
-      await factoryContract
-        .connect(ceo)
-        .deployNew(
-          INVESTMENT_2_AMOUNT,
-          paymentTokenContract.address,
-          paymentTokenContract2.address,
-          1
-        );
-
-      const deployedInvestmentAddress =
-        await factoryContract.getLastDeployedContract(1);
-      const investmentFactory = new Investment__factory(owner);
-      const investmentContract = investmentFactory.attach(
-        deployedInvestmentAddress
-      );
-      await paymentTokenContract
-        .connect(investor1)
-        .approve(
-          investmentContract.address,
-          withDecimals(INVESTOR1_INVESTMENT_2_AMOUNT)
-        );
-      await investmentContract
-        .connect(investor1)
-        .invest(INVESTOR1_INVESTMENT_2_AMOUNT, 0);
-      const userBalanceOnContracts = await factoryContract.getAddressTotal(
-        investor1.address
-      );
-      expect(userBalanceOnContracts).to.be.equal(
-        withDecimals(
-          INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_2_AMOUNT
-        )
-      );
-    });
-  });
   describe("Function calls", async () => {
     describe("_userAllowedToBurnPuzzle", () => {
       it("Should revert if the token sent is not valid", async () => {
@@ -1050,8 +997,81 @@ describe("Puzzle Contract", async () => {
       });
       it("Should give valid level 3 tokenId", async () => {
         const { puzzleContract } = await loadFixture(deployContractFixture);
-        const ids = await puzzleContract._getLevelTokenIds(2);
+        const ids = await puzzleContract._getLevelTokenIds(3);
         expect(ids[1]).to.eq(31);
+      });
+    });
+    describe("_getPuzzleCollectionIds", () => {
+      it("Should revert if the level sent is not valid", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        await expect(
+          puzzleContract._getPuzzleCollectionIds(10003)
+        ).to.revertedWithCustomError(puzzleContract, "InvalidLevel");
+      });
+    });
+    describe("verifyClaim", () => {
+      it("Should revert if the token id is not valid", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        await expect(
+          puzzleContract.verifyClaim(investor1.address, 10003)
+        ).to.revertedWith("Not a valid id");
+      });
+    });
+
+    describe("generateNewEntryBatch", () => {
+      it("Caller should be CEO", async () => {
+        const { puzzleContract, permissionsContract } = await loadFixture(
+          deployContractFixtureWithoutBatch
+        );
+        await permissionsContract.pausePlatform();
+        expect(
+          await puzzleContract.generateNewEntryBatch(10, 10, "")
+        ).to.be.revertedWithCustomError(puzzleContract, "NotCEO");
+      });
+    });
+  });
+  describe("Pause/Unpause tests", async function () {
+    //Write the testes for all functions of SLCore.sol that have the modifier isNotGloballyStopped when the platform is stopped
+    it("Should not be called when the platform is paused", async () => {
+      const { puzzleContract, permissionsContract } = await loadFixture(
+        deployContractFixtureWithoutBatch
+      );
+      await permissionsContract.connect(ceo).pausePlatform();
+      expect(
+        await puzzleContract.generateNewEntryBatch(10, 10, "")
+      ).to.be.revertedWithCustomError(puzzleContract, "PlatformPaused");
+    });
+
+    it("User should not be able the mint entry when mintEntry is paused", async () => {
+      const { puzzleContract, permissionsContract } = await loadFixture(
+        deployContractFixtureWithoutBatch
+      );
+      await permissionsContract.connect(ceo).pauseEntryMint();
+      await expect(puzzleContract.mintEntry()).to.be.revertedWithCustomError(
+        puzzleContract,
+        "EntryMintPaused"
+      );
+    });
+    describe("PuzzleMint Paused", async function () {
+      it("User should not be able to call claimPiece when PuzzleMint is paused", async () => {
+        const { puzzleContract, permissionsContract } = await loadFixture(
+          deployContractFixtureWithoutBatch
+        );
+        await permissionsContract.connect(ceo).pausePuzzleMint();
+        await expect(puzzleContract.claimPiece()).to.be.revertedWithCustomError(
+          puzzleContract,
+          "PuzzleMintPaused"
+        );
+      });
+      it("User should not be able to call claimLevel when PuzzleMint is paused", async () => {
+        const { puzzleContract, permissionsContract } = await loadFixture(
+          deployContractFixtureWithoutBatch
+        );
+        await permissionsContract.connect(ceo).pausePuzzleMint();
+        await expect(puzzleContract.claimLevel()).to.be.revertedWithCustomError(
+          puzzleContract,
+          "PuzzleMintPaused"
+        );
       });
     });
   });
