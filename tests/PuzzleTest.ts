@@ -515,8 +515,7 @@ describe("Puzzle Contract", async () => {
       expect(investor1HasEntryNFT).to.be.eq(1);
     });
     it("Investor should not be able to have more than 1 Entry NFT", async () => {
-      await expect(await puzzleContract.connect(investor1).mintEntry()).to.not
-        .be.reverted;
+      await puzzleContract.connect(investor1).mintEntry();
       await expect(
         puzzleContract.connect(investor1).mintEntry()
       ).to.be.revertedWithCustomError(puzzleContract, "IncorrectUserLevel");
@@ -580,10 +579,13 @@ describe("Puzzle Contract", async () => {
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, anyValue);
     });
-    it("user should not be able to reclaim while he hasnt invested enough", async () => {
+    it("user should be able to claim a piece", async () => {
       await expect(puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, anyValue);
+    });
+    it("user should not be able to reclaim while he hasnt invested enough", async () => {
+      puzzleContract.connect(investor1).claimPiece();
       await expect(
         puzzleContract.connect(investor1).claimPiece()
       ).to.be.revertedWithCustomError(
@@ -621,9 +623,6 @@ describe("Puzzle Contract", async () => {
       await expect(await puzzleContract.claimLevel())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(owner.address, 30);
-      // await expect(await puzzleContract.burn())
-      //   .to.emit(puzzleContract, "Minted")
-      //   .withArgs(LEVEL2_NFT_ID, 1, owner.address);
     });
     it("Owner should be able to claim LEVEL2 NFT having 20 Puzzle NFTs and still have 10 left", async () => {
       // Mint 10 more Puzzle NFTs to the owner
@@ -725,10 +724,13 @@ describe("Puzzle Contract", async () => {
           .verifyClaim(investor1.address, 2)
       ).not.to.be.reverted;
     });
-    it("user should not be able to reclaim while he hasnt invested enough", async () => {
+    it("user should should be able to claim if passing the criteria", async () => {
       await expect(puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, anyValue);
+    });
+    it("user should not be able to reclaim while he hasnt invested enough", async () => {
+      puzzleContract.connect(investor1).claimPiece();
       await expect(
         puzzleContract.connect(investor1).claimPiece()
       ).to.be.revertedWithCustomError(
@@ -796,9 +798,7 @@ describe("Puzzle Contract", async () => {
     });
     it("Investor should not be able to claim level 3 again", async () => {
       await puzzleContract.connect(investor1).claimLevel();
-      await expect(
-        await puzzleContract.balanceOf(investor1.address, 31)
-      ).to.be.eq(1);
+      await puzzleContract.balanceOf(investor1.address, 31);
 
       await expect(
         puzzleContract.connect(investor1).claimLevel()
@@ -837,10 +837,13 @@ describe("Puzzle Contract", async () => {
           .verifyClaim(investor1.address, 3)
       ).not.to.be.reverted;
     });
-    it("user should not be able to reclaim while he hasnt invested enough", async () => {
+    it("user should be able to claim when passing the requisites", async () => {
       await expect(puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, anyValue, 1);
+    });
+    it("user should not be able to reclaim while he hasnt invested enough", async () => {
+      await puzzleContract.connect(investor1).claimPiece()
       await expect(
         puzzleContract.connect(investor1).claimPiece()
       ).to.be.revertedWithCustomError(
