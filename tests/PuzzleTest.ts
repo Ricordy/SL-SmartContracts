@@ -162,9 +162,8 @@ describe("Puzzle Contract", async () => {
   }
 
   async function ownerAndInvestor1AbleToMintFixture() {
-    const { paymentTokenContract, puzzleContract } = await loadFixture(
-      deployContractFixture
-    );
+    const { paymentTokenContract, puzzleContract, factoryContract, ceo } =
+      await loadFixture(deployContractFixture);
     // Mint PaymentTokens to the owner
     await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
     // Mint PaymentTokens to the investor1
@@ -178,7 +177,13 @@ describe("Puzzle Contract", async () => {
     await paymentTokenContract
       .connect(investor1)
       .approve(logcisContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
-    return { paymentTokenContract, puzzleContract, logcisContract };
+    return {
+      paymentTokenContract,
+      puzzleContract,
+      logcisContract,
+      factoryContract,
+      ceo,
+    };
   }
 
   async function investor1DidntApproveSpendFixture() {
@@ -376,13 +381,12 @@ describe("Puzzle Contract", async () => {
 
   async function investor1ReadyToClaimLevel3Piece() {
     const { paymentTokenContract, factoryContract, puzzleContract, ceo } =
-      await loadFixture(investor1ReadyToClaimLevel3);
-    //User in level 3
-    console.log("mint level 3");
-
+      await loadFixture(ownerAndInvestor1AbleToMintFixture);
+    await puzzleContract.connect(investor1).mintEntry();
+    await puzzleContract.connect(investor1).mintTest(1);
+    await puzzleContract.connect(investor1).mintTest(2);
     await puzzleContract.connect(investor1).claimLevel();
-
-    console.log("level 3 minted");
+    await puzzleContract.connect(investor1).claimLevel();
 
     await paymentTokenContract
       .connect(investor1)
@@ -397,8 +401,6 @@ describe("Puzzle Contract", async () => {
         paymentTokenContract2.address,
         3
       );
-
-    console.log("deployed level 3 investment");
 
     await deployNewTx.wait();
     const deployedInvestmentAddress =
@@ -416,11 +418,9 @@ describe("Puzzle Contract", async () => {
         withDecimals(INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT)
       );
     // Invest an amount on investment1
-    console.log("investing in level 3");
     await investmentContract2
       .connect(investor1)
       .invest(INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT, 0);
-    console.log("investment succeeded");
     return { puzzleContract, paymentTokenContract, factoryContract, ceo };
   }
 
@@ -818,19 +818,24 @@ describe("Puzzle Contract", async () => {
     });
   });
   describe("Claiming Puzzle NFT Level 3", async () => {
-    beforeEach(async () => {
-      ({ puzzleContract } = await loadFixture(
-        investor1ReadyToClaimLevel3Piece
-      ));
-    });
+    // beforeEach(async () => {
+    //   ({ puzzleContract } = await loadFixture(
+    //     investor1ReadyToClaimLevel3Piece
+    //   ));
+    // });
     it("should be able to claim after investing 15k on level3 contracts", async () => {
-      console.log("entered test");
+      const { puzzleContract } = await loadFixture(
+        investor1ReadyToClaimLevel3Piece
+      );
 
       await expect(puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
         .withArgs(investor1.address, anyValue);
     });
     it("Investor should be able to call verifyClaim (to claim an NFT Puzzle) after having invested the minimum amount required", async () => {
+      const { puzzleContract } = await loadFixture(
+        investor1ReadyToClaimLevel3Piece
+      );
       expect(
         await puzzleContract
           .connect(investor1)
@@ -838,12 +843,18 @@ describe("Puzzle Contract", async () => {
       ).not.to.be.reverted;
     });
     it("user should be able to claim when passing the requisites", async () => {
+      const { puzzleContract } = await loadFixture(
+        investor1ReadyToClaimLevel3Piece
+      );
       await expect(puzzleContract.connect(investor1).claimPiece())
         .to.emit(puzzleContract, "TokensClaimed")
-        .withArgs(investor1.address, anyValue, 1);
+        .withArgs(investor1.address, anyValue);
     });
     it("user should not be able to reclaim while he hasnt invested enough", async () => {
-      await puzzleContract.connect(investor1).claimPiece()
+      const { puzzleContract } = await loadFixture(
+        investor1ReadyToClaimLevel3Piece
+      );
+      await puzzleContract.connect(investor1).claimPiece();
       await expect(
         puzzleContract.connect(investor1).claimPiece()
       ).to.be.revertedWithCustomError(
@@ -852,7 +863,6 @@ describe("Puzzle Contract", async () => {
       );
     });
   });
-
   describe("Puzzle && Factory", async () => {
     beforeEach(async () => {
       ({ factoryContract, ceo } = await loadFixture(investor1readyToClaimNFT));
