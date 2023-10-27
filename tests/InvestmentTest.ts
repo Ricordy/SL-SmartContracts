@@ -56,16 +56,12 @@ describe("Investment Contract Tests", async () => {
     investmentContract: Investment,
     investmentContract2: Investment,
     permissionsContract: SLPermissions,
-    totalAccounts: number,
     accounts: SignerWithAddress[],
     owner: SignerWithAddress,
     ceo: SignerWithAddress,
     cfo: SignerWithAddress,
     investor1: SignerWithAddress,
     investor2: SignerWithAddress,
-    investor3: SignerWithAddress,
-    ownerBalanceBefore: BigNumber,
-    baseUriFromContract: string,
     minimunInvestment: BigNumber,
     crucialInvestor: SignerWithAddress;
 
@@ -73,10 +69,9 @@ describe("Investment Contract Tests", async () => {
     // Puzzle contract needs Factory and PaymentToken address to be deployed
     // Get all signers
     accounts = await ethers.getSigners();
-    totalAccounts = accounts.length;
 
     // Assign used accounts from all signers
-    [owner, investor1, investor2, investor3] = accounts;
+    [owner, investor1, investor2] = accounts;
     ceo = accounts[9];
     cfo = accounts[10];
     const paymentTokenContractFactory = new CoinTest__factory(owner);
@@ -153,14 +148,17 @@ describe("Investment Contract Tests", async () => {
 
     return {
       owner,
+      ceo,
       investor1,
       investor2,
       accounts,
       paymentTokenContract,
+      permissionsContract,
       paymentTokenContract2,
       puzzleContract,
       logcisContract,
       factoryContract,
+      investmentContractFactory,
       investmentContract,
       investmentContract2,
       minimunInvestment,
@@ -169,10 +167,12 @@ describe("Investment Contract Tests", async () => {
   async function ownerAndInvestorApprovedTokenToSpend() {
     const {
       owner,
+      ceo,
       investor1,
       investmentContract,
       paymentTokenContract,
       paymentTokenContract2,
+      permissionsContract,
       puzzleContract,
       logcisContract,
       minimunInvestment,
@@ -220,14 +220,15 @@ describe("Investment Contract Tests", async () => {
 
     return {
       owner,
+      ceo,
       investor1,
+      permissionsContract,
       investmentContract,
       paymentTokenContract,
       paymentTokenContract2,
       minimunInvestment,
     };
   }
-
   async function oneInvestCallLeftToFill() {
     const {
       investor1,
@@ -313,9 +314,8 @@ describe("Investment Contract Tests", async () => {
     };
   }
   async function ownerAndInvestor1AbleToMintFixture() {
-    const { paymentTokenContract, puzzleContract } = await loadFixture(
-      deployContractFixture
-    );
+    const { paymentTokenContract, puzzleContract, investmentContract } =
+      await loadFixture(deployContractFixture);
     // Mint PaymentTokens to the owner
     await paymentTokenContract.mint(PAYMENT_TOKEN_AMOUNT);
     // Mint PaymentTokens to the investor1
@@ -329,9 +329,8 @@ describe("Investment Contract Tests", async () => {
     await paymentTokenContract
       .connect(investor1)
       .approve(logcisContract.address, withDecimals(PAYMENT_TOKEN_AMOUNT));
-    return { paymentTokenContract, puzzleContract };
+    return { paymentTokenContract, puzzleContract, investmentContract };
   }
-
   async function investor1ReadyToClaimNFT() {
     const { paymentTokenContract, puzzleContract, factoryContract } =
       await loadFixture(deployContractFixture);
@@ -429,6 +428,60 @@ describe("Investment Contract Tests", async () => {
   }
 
   describe("When the contract is deployed", async function () {
+    it("Should not be bale to deploy passing SLCore Address as address(0)", async () => {
+      const {
+        investmentContractFactory,
+        permissionsContract,
+        paymentTokenContract,
+        paymentTokenContract2,
+      } = await loadFixture(deployContractFixture);
+      await expect(
+        investmentContractFactory.deploy(
+          INVESTMENT_1_AMOUNT,
+          permissionsContract.address,
+          ethers.constants.AddressZero,
+          paymentTokenContract.address,
+          paymentTokenContract2.address,
+          1
+        )
+      ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
+    });
+    it("Should ne able to deploy passing paymenttoken0 address as address(0)", async () => {
+      const {
+        investmentContractFactory,
+        puzzleContract,
+        permissionsContract,
+        paymentTokenContract2,
+      } = await loadFixture(deployContractFixture);
+      await expect(
+        investmentContractFactory.deploy(
+          INVESTMENT_1_AMOUNT,
+          permissionsContract.address,
+          puzzleContract.address,
+          ethers.constants.AddressZero,
+          paymentTokenContract2.address,
+          1
+        )
+      ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
+    });
+    it("Should ne able to deploy passing paymenttoken1 address as address(0)", async () => {
+      const {
+        investmentContractFactory,
+        puzzleContract,
+        permissionsContract,
+        paymentTokenContract2,
+      } = await loadFixture(deployContractFixture);
+      await expect(
+        investmentContractFactory.deploy(
+          INVESTMENT_1_AMOUNT,
+          permissionsContract.address,
+          puzzleContract.address,
+          paymentTokenContract2.address,
+          ethers.constants.AddressZero,
+          1
+        )
+      ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
+    });
     it("Should set the total Investment", async () => {
       const { investmentContract } = await loadFixture(deployContractFixture);
       const totalInvestment = await investmentContract.TOTAL_INVESTMENT();
@@ -464,8 +517,16 @@ describe("Investment Contract Tests", async () => {
       const contractStatus = await investmentContract.status();
       expect(contractStatus).to.be.equal(STATUS_PROGRESS);
     });
+    it("Not CEO should not be able to change status", async () => {
+      const { investmentContract, investor1 } = await loadFixture(
+        deployContractFixture
+      );
+      await expect(
+        investmentContract.connect(investor1).changeStatus(STATUS_PAUSE)
+      ).to.be.revertedWithCustomError(investmentContract, "NotCEO");
+    });
     describe("Invest function", async () => {
-      it("Investor must have NFTEntry", async () => {
+      it("Investor without entry nft, are not able to invest", async () => {
         const { investmentContract, investor1 } = await loadFixture(
           deployContractFixture
         );
@@ -477,6 +538,14 @@ describe("Investment Contract Tests", async () => {
           investmentContract,
           "IncorrectUserLevel"
         );
+      });
+      it("Investor should pass the correct payment token to invest into", async () => {
+        const { investmentContract, investor1 } = await loadFixture(
+          ownerAndInvestorApprovedTokenToSpend
+        );
+        await expect(
+          investmentContract.connect(investor1).invest(INVESTMENT_1_AMOUNT, 2)
+        ).to.be.revertedWithCustomError(investmentContract, "InvalidPaymentId");
       });
       it("Investor should not be allowed to invest less than the minimum required", async () => {
         const { investmentContract, investor1 } = await loadFixture(
@@ -701,11 +770,14 @@ describe("Investment Contract Tests", async () => {
           await paymentTokenContract.balanceOf(investmentContract.address)
         ).to.equal(0);
       });
-      it("Owner should be able to withdraw all funds and contract balance of both stable coins should be 0", async () => {
+      it("Owner should be able to withdraw all funds and contract balance of stable coin 0 should be 0", async () => {
         await investmentContract.connect(cfo).withdrawSL();
         expect(
           await paymentTokenContract.balanceOf(investmentContract.address)
         ).to.equal(0);
+      });
+      it("Owner should be able to withdraw all funds and contract balance of stable coin 1 should be 0", async () => {
+        await investmentContract.connect(cfo).withdrawSL();
         expect(
           await paymentTokenContract2.balanceOf(investmentContract.address)
         ).to.equal(0);
@@ -726,12 +798,10 @@ describe("Investment Contract Tests", async () => {
           ownerBalanceAfterWithdraw.sub(contractBalance)
         );
       });
-      it("Owner's both Payment Token balances should be increased by its balance on the contract", async () => {
+      it("Owner's Payment Token 0 balance should be increased by its balance on the contract", async () => {
         const ownerBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(
           cfo.address
         );
-        const ownerBalanceBeforeWithdrawStable2 =
-          await paymentTokenContract2.balanceOf(cfo.address);
 
         const { paymentToken0Balance, paymentToken1Balance } =
           await investmentContract.totalContractBalanceForEachPaymentToken();
@@ -741,22 +811,33 @@ describe("Investment Contract Tests", async () => {
         const ownerBalanceAfterWithdraw = await paymentTokenContract.balanceOf(
           cfo.address
         );
-        const ownerBalanceAfterWithdrawStable2 =
-          await paymentTokenContract2.balanceOf(cfo.address);
 
         expect(ownerBalanceBeforeWithdraw).to.be.equal(
           ownerBalanceAfterWithdraw.sub(paymentToken0Balance)
         );
+      });
+      it("Owner's Payment Token 1 balance should be increased by its balance on the contract", async () => {
+        const ownerBalanceBeforeWithdrawStable2 =
+          await paymentTokenContract2.balanceOf(cfo.address);
+
+        const { paymentToken0Balance, paymentToken1Balance } =
+          await investmentContract.totalContractBalanceForEachPaymentToken();
+
+        // Withdraw funds
+        await investmentContract.connect(cfo).withdrawSL();
+
+        const ownerBalanceAfterWithdrawStable2 =
+          await paymentTokenContract2.balanceOf(cfo.address);
+
         expect(ownerBalanceBeforeWithdrawStable2).to.be.equal(
           ownerBalanceAfterWithdrawStable2.sub(paymentToken1Balance)
         );
       });
-      // it("Should not be called when contract balance is less than 80%", async () => {
-      //   await investmentContract.connect(cfo).withdrawSL();
-      //   await expect(
-      //     investmentContract.connect(cfo).withdrawSL()
-      //   ).to.be.revertedWith("Total not reached");
-      // });
+      it("Should not be called when contract balance is less than 80%", async () => {
+        await investmentContract.connect(cfo).withdrawSL();
+        await expect(investmentContract.connect(cfo).withdrawSL()).to.be
+          .reverted;
+      });
     });
     describe("Function Refill", async () => {
       beforeEach("set state to process", async () => {
@@ -779,11 +860,11 @@ describe("Investment Contract Tests", async () => {
             .refill(REFILL_VALUE, PROFIT_RATE)
         ).to.be.revertedWithCustomError(investmentContract, "NotCFO");
       });
-      // it("Cannot refill while contract still have funds!", async () => {
+      // it("Cannot refill while contract still have funds!", async () => { WE TOOK THIS FUNCTIONALITY OF SINCE IT OPENS A BACKDOR FOR A DoS ATTACK
       //   await expect(
       //     investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
       //   ).to.be.revertedWith("Contract still have funds");
-      // }); WE TOOK THIS FUNCTIONALITY OF SINCE IT OPENS A BACKDOR FOR A DoS
+      // });
       it("Cannot call function with wrong amount to refill (totalInvestment * profitRate) == amount(refilled) ", async () => {
         await investmentContract.connect(cfo).withdrawSL();
         await expect(
@@ -856,15 +937,16 @@ describe("Investment Contract Tests", async () => {
         expect(contractStatus).to.be.equal(STATUS_WITHDRAW);
       });
       it("Investor should have the Entry NFT", async () => {
-        const { puzzleContract } = await loadFixture(
+        const { investmentContract } = await loadFixture(
           ownerAndInvestor1AbleToMintFixture
         );
-        await puzzleContract.connect(investor1).mintEntry();
-        const investor1HasEntryNFT = await puzzleContract.balanceOf(
-          investor1.address,
-          ENTRY_LEVEL_NFT_ID
+        await investmentContract.connect(ceo).changeStatus(STATUS_WITHDRAW);
+        await expect(
+          investmentContract.connect(investor1).withdraw()
+        ).to.be.revertedWithCustomError(
+          investmentContract,
+          "IncorrectUserLevel"
         );
-        expect(investor1HasEntryNFT).to.be.eq(1);
       });
       it("Investor should have invested at least the minimum amount to be able to withdraw", async () => {
         const { factoryContract, deployedInvestmentAddress } =
@@ -880,7 +962,6 @@ describe("Investment Contract Tests", async () => {
     describe("After Withdraw", async () => {
       let paymentTokenBalanceBeforeWithdraw: BigNumber,
         amountInvested: BigNumber;
-
       beforeEach("Make withdraw", async () => {
         const {
           investmentContract,
@@ -1036,6 +1117,64 @@ describe("Investment Contract Tests", async () => {
           withDecimals(GENERAL_INVEST_AMOUNT_TO_REFUND)
         );
       });
+    });
+  });
+  describe("Platform globally stopped", async function () {
+    //Write the testes for all functions of Investment.sol that have the modifier isNotGloballyStopped when the platform is stopped
+    it("Should not be able to call invest function", async function () {
+      const { investmentContract, permissionsContract, ceo } =
+        await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+      await permissionsContract.connect(ceo).pausePlatform();
+      await expect(
+        investmentContract.connect(investor1).invest(100, 0)
+      ).to.be.revertedWithCustomError(investmentContract, "PlatformPaused");
+    });
+    it("Should not be able to call withdraw function", async function () {
+      const { investmentContract, permissionsContract, ceo } =
+        await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+      await investmentContract.connect(ceo).changeStatus(STATUS_WITHDRAW);
+      await permissionsContract.connect(ceo).pausePlatform();
+      await expect(
+        investmentContract.connect(investor1).withdraw()
+      ).to.be.revertedWithCustomError(investmentContract, "PlatformPaused");
+    });
+    it("Should not be able to call withdrawSL function", async function () {
+      const { investmentContract, permissionsContract, ceo } =
+        await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+      await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
+      await permissionsContract.connect(ceo).pausePlatform();
+      await expect(
+        investmentContract.connect(cfo).withdrawSL()
+      ).to.be.revertedWithCustomError(investmentContract, "PlatformPaused");
+    });
+    it("Should not be able to call refill function", async function () {
+      const { investmentContract, permissionsContract, ceo } =
+        await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+      await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
+      await permissionsContract.connect(ceo).pausePlatform();
+      await expect(
+        investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
+      ).to.be.revertedWithCustomError(investmentContract, "PlatformPaused");
+    });
+  });
+  describe("Overriden functions", async function () {
+    it("Should revert when calling trasnferFrom", async () => {
+      const { investmentContract } = await loadFixture(deployContractFixture);
+
+      await expect(
+        investmentContract.transferFrom(
+          owner.address,
+          investor1.address,
+          1000000
+        )
+      ).to.be.revertedWithCustomError(investmentContract, "NotAccessable");
+    });
+    it("Should revert when calling trasnfer", async () => {
+      const { investmentContract } = await loadFixture(deployContractFixture);
+
+      await expect(
+        investmentContract.transfer(investor1.address, 1000000)
+      ).to.be.revertedWithCustomError(investmentContract, "NotAccessable");
     });
   });
 });

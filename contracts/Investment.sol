@@ -167,6 +167,9 @@ contract Investment is ERC20, ReentrancyGuard {
     ///Function caller is not CEO level
     error NotCFO();
 
+    ///Functions that don't allow access to the caller (Overriden functions)
+    error NotAccessable();
+
     ///
     //-----CONSTRUCTOR------
     ///
@@ -295,7 +298,11 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @dev The function requires the contract to be in Process status and the platform to be active.
     function withdrawSL() external isProcess isNotGloballyStoped isCFO {
         //check if total invested is at least 80% of totalInvestment
-        if (totalContractBalance() < (TOTAL_INVESTMENT * 80) / 100) {
+        if (
+            ERC20(PAYMENT_TOKEN_ADDRESS_0).balanceOf(address(this)) +
+                ERC20(PAYMENT_TOKEN_ADDRESS_1).balanceOf(address(this)) <
+            (TOTAL_INVESTMENT * 80) / 100
+        ) {
             revert NotEnoughForProcess(
                 (TOTAL_INVESTMENT * 80) / 100,
                 totalContractBalance()
@@ -495,7 +502,7 @@ contract Investment is ERC20, ReentrancyGuard {
         address to,
         uint256 amount
     ) public override returns (bool) {
-        return false;
+        revert NotAccessable();
     }
 
     /// @notice Disallows investment token transfers to another wallet.
@@ -506,6 +513,6 @@ contract Investment is ERC20, ReentrancyGuard {
         address to,
         uint256 amount
     ) public override returns (bool) {
-        return false;
+        revert NotAccessable();
     }
 }
