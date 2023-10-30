@@ -1017,6 +1017,34 @@ describe("Puzzle Contract", async () => {
         ).to.revertedWith("Not a valid id");
       });
     });
+    describe("claimLevel", () => {
+      it("Should revert if the token id is less than 30", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        await expect(
+          puzzleContract._claimLevelTest(investor1.address, 29)
+        ).to.revertedWithCustomError(puzzleContract, "InvalidLevel");
+      });
+      it("Should revert if the token id is bigger than 32", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        await expect(
+          puzzleContract._claimLevelTest(investor1.address, 33)
+        ).to.revertedWithCustomError(puzzleContract, "InvalidLevel");
+      });
+    });
+    describe("claimPiece", () => {
+      it("Should revert if the token id is 0", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        await expect(
+          puzzleContract._claimPieceTest(investor1.address, 0)
+        ).to.revertedWithCustomError(puzzleContract, "InvalidLevel");
+      });
+      it("Should revert if the token id is bigger than 3", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        await expect(
+          puzzleContract._claimPieceTest(investor1.address, 4)
+        ).to.revertedWithCustomError(puzzleContract, "InvalidLevel");
+      });
+    });
 
     describe("generateNewEntryBatch", () => {
       it("Caller should be CEO", async () => {
