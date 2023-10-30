@@ -488,7 +488,7 @@ contract Investment is ERC20, ReentrancyGuard {
     ///
     /// @notice Returns the number of decimals for investment token. Is the same number of decimals as the payment token!
     /// @dev This function is overridden from the ERC20 standard.
-    function decimals() public view override returns (uint8) {
+    function decimals() public pure override returns (uint8) {
         return 6;
     }
 

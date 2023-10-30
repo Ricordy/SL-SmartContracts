@@ -21,7 +21,7 @@ contract SLMicroSlots {
         uint256 number,
         uint256 position,
         uint256 factor
-    ) internal view returns (uint256) {
+    ) internal pure returns (uint256) {
         return
             ((number % (10 ** (factor * position))) -
                 (number % (10 ** ((factor * position) - factor)))) /
@@ -39,7 +39,7 @@ contract SLMicroSlots {
         uint256 startPosition,
         uint256 numberOfResults,
         uint256 factor
-    ) internal view returns (uint256[] memory) {
+    ) internal pure returns (uint256[] memory) {
         uint256[] memory results = new uint256[](numberOfResults);
         for (uint256 i; i < numberOfResults; ++i) {
             results[i] = (
@@ -57,7 +57,7 @@ contract SLMicroSlots {
     function mountEntryValue(
         uint256 cap,
         uint256 currentID
-    ) internal view returns (uint24) {
+    ) internal pure returns (uint24) {
         return uint24((cap * 10000) + currentID);
     }
 
@@ -68,7 +68,7 @@ contract SLMicroSlots {
     /// @return currentID the current token Id
     function unmountEntryValue(
         uint24 value
-    ) internal view returns (uint256 cap, uint256 currentID) {
+    ) internal pure returns (uint256 cap, uint256 currentID) {
         currentID = getPositionXInDivisionByY(value, 1, 4);
         cap = (value - currentID) / 10000;
     }
@@ -81,7 +81,7 @@ contract SLMicroSlots {
     function mountEntryID(
         uint256 batch,
         uint256 cap
-    ) internal view returns (uint256) {
+    ) internal pure returns (uint256) {
         return ((batch * 10000) + cap);
     }
 
@@ -92,7 +92,7 @@ contract SLMicroSlots {
     /// @return cap Collection limit
     function unmountEntryID(
         uint256 id
-    ) public view returns (uint256 batch, uint256 cap) {
+    ) public pure returns (uint256 batch, uint256 cap) {
         cap = getPositionXInDivisionByY(id, 1, 4);
         batch = (id - cap) / 10000;
     }
@@ -105,7 +105,7 @@ contract SLMicroSlots {
     function incrementXPositionInFactor3(
         uint32 number,
         uint32 position
-    ) public view returns (uint32 _final) {
+    ) public pure returns (uint32 _final) {
         //Verify if digit is incrementable
         uint32 digit = uint32(getPositionXInDivisionByY(number, position, 3));
         if (digit == 999) {

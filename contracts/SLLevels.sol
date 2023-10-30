@@ -6,7 +6,7 @@ import "./SLBase.sol";
 /// @title SLLevels
 /// @author Something Legendary
 /// @notice contract that manages levels
-contract SLLevels is SLBase {
+abstract contract SLLevels is SLBase {
     /// @notice Function to deal with data of buying a new NFT entry token
     /// @dev Call the function and add needed logic (Payment, etc)
     /// @param _receiver buyer
@@ -45,7 +45,7 @@ contract SLLevels is SLBase {
     ///
 
     /// Added logic that verifies the possibility of passing the level
-    /// @inheritdoc	SLBase
+    /// @inheritdoc	ASLBase
     function _userAllowedToBurnPuzzle(
         address _claimer,
         uint256 _tokenId
@@ -112,7 +112,7 @@ contract SLLevels is SLBase {
         }
     }
 
-    /// @inheritdoc	SLBase
+    /// @inheritdoc	ASLBase
     function _getLevelTokenIds(
         uint256 _level
     ) public view override returns (uint256[] memory) {

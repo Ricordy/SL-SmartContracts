@@ -4,6 +4,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./SLMicroSlots.sol";
 import "./ISLPermissions.sol";
+import "./ASLBase.sol";
 
 //interface for SLLogics
 interface ISLLogics {
@@ -26,7 +27,7 @@ interface ISLLogics {
 /// @notice Centralizes information on this contract, making sure that all of the ERC1155 communications and
 /// memory writting calls happens thorugh here!
 /// @dev Extra details about storage: https://app.diagrams.net/#G1Wi7A1SK0y8F9X-XDm65IUdfRJ81Fo7bF
-contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
+abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
     ///
     //-----STATE VARIABLES------
     ///
@@ -147,32 +148,8 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     }
 
     ///
-    //-------------------------FUNCTIONS TO BE OVERRIDEN----------------------
-    ///
-    /// @notice Verifies if user can claim given piece or level NFT
-    /// @dev Override the verify claim function to check if user has the right to claim the next level or puzzle piece
-    /// @param _claimer the user's address
-    /// @param _tokenIdOrPuzzleLevel The token id of the level (30 or 30) or LEvel of the piece (1,2,3)
-    function verifyClaim(
-        address _claimer,
-        uint256 _tokenIdOrPuzzleLevel
-    ) public view virtual {}
-
-    /// @notice returns random number
-    function _random() public view virtual returns (uint8) {}
-
-    ///
     //-----------------INTERNAL OVERRIDE FUNCTIONS----------------
     ///
-    /// @notice Function that defines which piece is going to be minted
-    /// @dev Override to implement puzzle piece claiming logic
-    /// @param _receiver the user's address
-    /// @param _puzzleLevel The level of the piece (1,2,3)
-    /// @return _collectionToMint the collection from which the piece is going to be minted
-    function _dealWithPuzzleClaiming(
-        address _receiver,
-        uint256 _puzzleLevel
-    ) internal virtual returns (uint8 _collectionToMint) {}
 
     /// @notice Auxiliary function to burn user puzzle depending on his level
     /// @dev burns in batch to be gas wiser
@@ -195,15 +172,6 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
             _burnBatch(_user, _getPuzzleCollectionIds(2), amountsForBurn);
         }
     }
-
-    /// @notice Function that verifies if user is allowed to pass to the next level
-    /// @dev function have no return, it should fail if user is not allowed to burn
-    /// @param _claimer the user's address
-    /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
-    function _userAllowedToBurnPuzzle(
-        address _claimer,
-        uint256 _levelId
-    ) public view virtual {}
 
     ///
     //----------------INTERNAL NON-OVERRIDE FUNCTIONS------------------
@@ -237,23 +205,6 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
 
     ///
     //------------------GETTERS MOST OVERRIDEN------------------------
-    ///
-    /// @notice funtion that returns the level token ids
-    /// @dev should be overriden
-    /// @param level the level that we want the token IDs
-    /// @return uint256[] memory with ids for level 2 and 3 (30,31) or all level 1 collection ids
-    function _getLevelTokenIds(
-        uint256 level
-    ) public view virtual returns (uint256[] memory) {}
-
-    /// @notice funtion that returns the puzzle pieces for a specified level
-    /// @dev should be overriden
-    /// @param level the level that we want the token IDs
-    /// @return uint256[] memory with 10 ids for 10 pieces
-    function _getPuzzleCollectionIds(
-        uint256 level
-    ) public view virtual returns (uint256[] memory) {}
-
     //
     /// @notice function to create a user address array with the given size
     /// @param _user user intented to create the array
