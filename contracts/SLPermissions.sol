@@ -54,7 +54,7 @@ contract SLPermissions {
     /// @notice Reverts if a certain address == address(0)
     /// @param max max input value
     /// @param input input value
-    error InvalidNumber(uint max, uint input);
+    error InvalidNumber(uint256 max, uint256 input);
 
     ///Function caller is not CEO level
     error NotCEO();

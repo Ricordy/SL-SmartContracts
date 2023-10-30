@@ -11,15 +11,15 @@ contract SLCore is SLPuzzles {
     /// @param _slLogicsAddress The address of the SLLogics contract.
     /// @param _slPermissionsAddress The address of the SLPermissions contract.
     constructor(address _slLogicsAddress, address _slPermissionsAddress) {
+        // Check if addresses are valid
         if (_slLogicsAddress == address(0)) {
             revert InvalidAddress("SLLogics");
         }
         if (_slPermissionsAddress == address(0)) {
             revert InvalidAddress("SLPermissions");
         }
-
+        // Set addresses
         slLogicsAddress = _slLogicsAddress;
-
         slPermissionsAddress = _slPermissionsAddress;
     }
 
@@ -82,7 +82,9 @@ contract SLCore is SLPuzzles {
         uint256 _entryPrice,
         string memory _tokenUri
     ) public isNotGloballyStoped isCEO {
+        // Push the new entry batch ID to the entryIdsArray
         entryIdsArray.push(mountEntryValue(_cap, 0));
+        //Set the price and URI for the new entry batch
         ISLLogics(slLogicsAddress).setEntryPrice(_entryPrice, _tokenUri);
     }
 

@@ -6,19 +6,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./SLMicroSlots.sol";
 import "./ISLPermissions.sol";
-
-interface IFactory {
-    function getAddressTotal(
-        address user
-    ) external view returns (uint256 userTotal);
-
-    function getAddressTotalInLevel(
-        address user,
-        uint256 level
-    ) external view returns (uint256 userTotal);
-}
-
-interface IToken is IERC20 {}
+import "./IFactory.sol";
 
 /// @title Base contract for SL puzzle management
 /// @author The name of the author
@@ -41,13 +29,13 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
     address public paymentTokenAddress;
     /// @notice Uint to store minimum claim amount for all levels and the current entry price
     /// @dev This value is set at the time of contract deployment. Entry price changes in time
-    uint256 public min_claim_amount_and_entry_price = 100150001000005000;
+    uint256 public minClaimAmountAndEntryPrice = 100150001000005000;
     /// @notice Base uri for 0 -> 31 token
     /// @dev This value is set at the time of contract deployment.
     string public constant URI = "INSERT_HERE";
     // @notice uri for each entry batch
     /// @dev This value is set at the time of batch creation.
-    string[] public batches_uri;
+    string[] public batchesUri;
 
     ///
     //-----ERRORS------
@@ -95,6 +83,7 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
         address _paymentTokenAddress,
         address _slPermissionsAddress
     ) {
+        // Check if addresses are valid
         if (_factoryAddress == address(0)) {
             revert InvalidAddress("Factory");
         }
@@ -104,6 +93,7 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
         if (_slPermissionsAddress == address(0)) {
             revert InvalidAddress("SLPermissions");
         }
+        // Set addresses
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         factoryAddress = _factoryAddress;
         paymentTokenAddress = _paymentTokenAddress;
@@ -208,19 +198,18 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
         uint256 _newPrice,
         string memory _tokenURI
     ) external isAllowedContract {
-        min_claim_amount_and_entry_price = changetXPositionInFactor5(
-            min_claim_amount_and_entry_price,
+        minClaimAmountAndEntryPrice = changetXPositionInFactor5(
+            minClaimAmountAndEntryPrice,
             4,
             _newPrice
         );
-        batches_uri.push(_tokenURI);
+        batchesUri.push(_tokenURI);
     }
 
     /// @notice returns entry NFT price
     /// @return uint256 price of entry
     function _getEntryPrice() public view returns (uint256) {
-        return
-            getPositionXInDivisionByY(min_claim_amount_and_entry_price, 4, 5);
+        return getPositionXInDivisionByY(minClaimAmountAndEntryPrice, 4, 5);
     }
 
     /// @notice returns the minimum amount for claiming a puzzle piece per level
@@ -233,11 +222,7 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
             revert InvalidLevel(_level, 1, 3);
         }
         return
-            getPositionXInDivisionByY(
-                min_claim_amount_and_entry_price,
-                _level,
-                5
-            );
+            getPositionXInDivisionByY(minClaimAmountAndEntryPrice, _level, 5);
     }
 
     /// @notice returns the uri of specified collection id
@@ -255,7 +240,7 @@ contract SLLogics is ReentrancyGuard, SLMicroSlots {
                 );
         } else {
             (uint256 batch, ) = unmountEntryID(_tokenID);
-            return batches_uri[batch];
+            return batchesUri[batch];
         }
     }
 

@@ -22,6 +22,7 @@ contract SLMicroSlots {
         uint256 position,
         uint256 factor
     ) internal pure returns (uint256) {
+        // return the position in the number using the factor as the number of digits in each position and the position as the position of the result
         return
             ((number % (10 ** (factor * position))) -
                 (number % (10 ** ((factor * position) - factor)))) /
@@ -40,6 +41,7 @@ contract SLMicroSlots {
         uint256 numberOfResults,
         uint256 factor
     ) internal pure returns (uint256[] memory) {
+        // return the position in the number using the factor as the number of digits in each position and the position as the position of the result for the number of results needed
         uint256[] memory results = new uint256[](numberOfResults);
         for (uint256 i; i < numberOfResults; ++i) {
             results[i] = (

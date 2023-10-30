@@ -37,7 +37,7 @@ contract SLPuzzles is SLLevels {
                 )
             );
         } else {
-            revert("Not a valid id");
+            revert InvalidTokenID();
         }
     }
 

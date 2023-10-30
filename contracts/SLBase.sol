@@ -5,22 +5,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./SLMicroSlots.sol";
 import "./ISLPermissions.sol";
 import "./ASLBase.sol";
-
-//interface for SLLogics
-interface ISLLogics {
-    function _userAllowedToClaimPiece(
-        address user,
-        uint256 _tokenId,
-        uint256 _currentUserLevel,
-        uint256 _userPuzzlePiecesForUserCurrentLevel
-    ) external view;
-
-    function payEntryFee(address _user) external;
-
-    function setEntryPrice(uint256 _newPrice, string memory tokenUri) external;
-
-    function uri(uint256 _id) external view returns (string memory);
-}
+import "./ISLLogics.sol";
 
 /// @title SLBase
 /// @author Something Legendary
@@ -69,6 +54,9 @@ abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
     /// @param max maximum level value
     error InvalidLevel(uint256 input, uint256 min, uint256 max);
 
+    /// @notice Reverts if a token ID is invalid
+    error InvalidTokenID();
+
     /// @notice Reverts if user is not at least at contract level
     /// @param expectedLevel expected user minimum level
     /// @param userLevel user level
@@ -107,6 +95,7 @@ abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
     /// @param _tokenId the collection id that the user wants to mint from
     /// @custom:requires _tokenId should be 30(level 2) or 31(level 3)
     function _claimLevel(address _receiver, uint256 _tokenId) internal {
+        // Check if token id is valid
         if (_tokenId < 30) {
             revert InvalidLevel(_tokenId, 30, 31);
         }
@@ -129,6 +118,7 @@ abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
     /// @param _receiver the recevier of the puzzle piece (the user).
     /// @param _puzzleLevel the level from which the user wants to mint the puzzle from
     function _claimPiece(address _receiver, uint256 _puzzleLevel) internal {
+        // Check if level is valid
         if (_puzzleLevel == 0) {
             revert InvalidLevel(_puzzleLevel, 1, 3);
         }
