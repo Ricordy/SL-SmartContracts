@@ -33,7 +33,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     /// @notice Array to store the the levels and puzzles collection ids
     /// @dev Each ID is stored in 2 slots of the variable. Ex: IDs {00, 01, 02, ..., 30, 31}
     uint256 public constant COLLECTION_IDS =
-        3130292827262524232221201918171615141312111009080706050403020100;
+        323130292827262524232221201918171615141312111009080706050403020100;
     /// @notice Array to store the entry batchs' IDs
     /// @dev Key: Entry batch number, reutrns enough to compute TokenID, max lotation and current token ID.
     uint24[] public entryIdsArray;

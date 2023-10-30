@@ -1023,11 +1023,19 @@ describe("Puzzle Contract", async () => {
         const { puzzleContract, permissionsContract } = await loadFixture(
           deployContractFixtureWithoutBatch
         );
-        await permissionsContract.pausePlatform();
-        expect(
-          await puzzleContract.generateNewEntryBatch(10, 10, "")
+        await expect(
+          puzzleContract.generateNewEntryBatch(10, 10, "")
         ).to.be.revertedWithCustomError(puzzleContract, "NotCEO");
       });
+      // it("CEO should be able to call", async () => {
+      //   const { puzzleContract, permissionsContract } = await loadFixture(
+      //     deployContractFixtureWithoutBatch
+      //   );
+      //   await permissionsContract.pausePlatform();
+      //   expect(
+      //     await puzzleContract.generateNewEntryBatch(10, 10, "")
+      //   ).to.be.revertedWithCustomError(puzzleContract, "NotCEO");
+      // });
     });
   });
   describe("Pause/Unpause tests", async function () {
@@ -1037,8 +1045,8 @@ describe("Puzzle Contract", async () => {
         deployContractFixtureWithoutBatch
       );
       await permissionsContract.connect(ceo).pausePlatform();
-      expect(
-        await puzzleContract.generateNewEntryBatch(10, 10, "")
+      await expect(
+        puzzleContract.generateNewEntryBatch(10, 10, "")
       ).to.be.revertedWithCustomError(puzzleContract, "PlatformPaused");
     });
 
@@ -1060,7 +1068,7 @@ describe("Puzzle Contract", async () => {
         await permissionsContract.connect(ceo).pausePuzzleMint();
         await expect(puzzleContract.claimPiece()).to.be.revertedWithCustomError(
           puzzleContract,
-          "PuzzleMintPaused"
+          "ClaimingPaused"
         );
       });
       it("User should not be able to call claimLevel when PuzzleMint is paused", async () => {
@@ -1070,7 +1078,7 @@ describe("Puzzle Contract", async () => {
         await permissionsContract.connect(ceo).pausePuzzleMint();
         await expect(puzzleContract.claimLevel()).to.be.revertedWithCustomError(
           puzzleContract,
-          "PuzzleMintPaused"
+          "ClaimingPaused"
         );
       });
     });

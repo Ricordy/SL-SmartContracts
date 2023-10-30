@@ -138,7 +138,12 @@ describe("SLLogics", () => {
       .connect(investor1)
       .approve(investmentContract.address, withDecimals(INVESTMENT_1_AMOUNT));
 
-    investmentContract.connect(investor1).invest(INVES_AMOUNT, 0);
+    await investmentContract.connect(investor1).invest(INVES_AMOUNT, 0);
+
+    console.log(
+      "Investment : ",
+      await investmentContract.balanceOf(investor1.address)
+    );
 
     return {
       owner,
@@ -214,7 +219,7 @@ describe("SLLogics", () => {
             1,
             0
           )
-        ).to.be.true;
+        ).be.true;
       });
       it(" user must be able to call this externally", async () => {
         const { logcisContract } = await loadFixture(deployContractFixture);
