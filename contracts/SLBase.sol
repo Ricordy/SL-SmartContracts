@@ -109,7 +109,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         if (_tokenId < 30) {
             revert InvalidLevel(_tokenId, 30, 31);
         }
-        if (_tokenId > 31) {
+        if (_tokenId > 32) {
             revert InvalidLevel(_tokenId, 30, 31);
         }
         //Check if user has the right to claim the next level or puzzle piece

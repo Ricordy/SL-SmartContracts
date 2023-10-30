@@ -92,6 +92,20 @@ contract SLLevels is SLBase {
                     revert UserMustHaveCompletePuzzle(2);
                 }
             }
+        } else if (_tokenId == 32) {
+            //Check for user level token ownership
+            if (balanceOf(_claimer, _tokenId) != 0) {
+                revert IncorrectUserLevel(3, 4);
+            }
+            //Get balance of the user
+            balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(3));
+            //verify if balance meets the condition
+            uint256 balanceLength = balance.length;
+            for (uint256 i; i < balanceLength; ++i) {
+                if (balance[i] == 0) {
+                    revert UserMustHaveCompletePuzzle(3);
+                }
+            }
         } else {
             //revert is for some reason the ID is not Level2 or 3 ID
             revert("Not a valid level token ID");
