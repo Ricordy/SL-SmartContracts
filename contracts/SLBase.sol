@@ -230,7 +230,7 @@ abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
         }
         _;
     }
-    /// @notice Verifies if puzzle and level 2 and 3 minting is stoped.
+    /// @notice Verifies if puzzle and level 2 and 3 minting is stopped.
     /// @dev If it is paused, the only action available is mintEntry()
     modifier isPuzzleMintNotPaused() {
         if (ISLPermissions(slPermissionsAddress).isClaimPaused()) {
@@ -240,7 +240,7 @@ abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
     }
     /// @notice Verifies if platform is paused.
     /// @dev If platform is paused, the whole contract is stopped
-    modifier isNotGloballyStoped() {
+    modifier isNotGloballyStopped() {
         if (ISLPermissions(slPermissionsAddress).isPlatformPaused()) {
             revert PlatformPaused();
         }

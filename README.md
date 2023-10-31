@@ -309,7 +309,7 @@ function deployNew(
 	uint256 _totalInvestment,
 	address _paymentTokenAddress,
 	uint256 _level
-) external isCEO isNotGloballyStoped returns (address) {}
+) external isCEO isNotGloballyStopped returns (address) {}
 
 ```
 
@@ -325,7 +325,7 @@ function deployNew(
 /// @custom:intent If SLCore gets compromised, there's a way to fix the factory without the need of redeploying
 function setSLCoreAddress(
 	address _slCoreAddress
-) external isCEO isNotGloballyStoped {}
+) external isCEO isNotGloballyStopped {}
 
 ```
 
@@ -435,7 +435,7 @@ error NotCEO();
 ```solidity
 /// @notice Verifies if platform is paused.
 /// @dev If platform is paused, the whole contract is stopped
-modifier isNotGloballyStoped() {}
+modifier isNotGloballyStopped() {}
 
 /// @notice Verifies if user is CEO.
 /// @dev CEO has the right to interact with: deployNew() and setSLCoreAddress()
@@ -457,7 +457,7 @@ function deployNew(
     uint256 _totalInvestment,
     address _paymentTokenAddress,
     uint256 _level
-) external isCEO isNotGloballyStoped returns (address) {}
+) external isCEO isNotGloballyStopped returns (address) {}
 
 /// @notice Updates the SLCore address.
 /// @dev The function requires the caller to be a CEO and the platform to be active. It also checks if the _slCoreAddress is not a zero address.
@@ -466,7 +466,7 @@ function deployNew(
 /// @custom:intent If SLCore gets compromised, there's a way to fix the factory without the need of redeploying
 function setSLCoreAddress(
     address _slCoreAddress
-) external isCEO isNotGloballyStoped {}
+) external isCEO isNotGloballyStopped {}
 
 ```
 
@@ -540,7 +540,7 @@ constructor(
 function invest(
     uint256 _amount,
     uint256 _paymentToken
-) public nonReentrant isAllowed isProgress isNotGloballyStoped {}
+) public nonReentrant isAllowed isProgress isNotGloballyStopped {}
 
 ```
 
@@ -560,7 +560,7 @@ function withdraw()
     nonReentrant
     isAllowed
     isWithdrawOrRefunding
-    isNotGloballyStoped
+    isNotGloballyStopped
 {}
 
 ```
@@ -574,7 +574,7 @@ function withdraw()
 ```solidity
 // @notice Allows the CFO to withdraw funds for processing.
 /// @dev The function requires the contract to be in Process status and the platform to be active.
-function withdrawSL() external isProcess isNotGloballyStoped isCFO {}
+function withdrawSL() external isProcess isNotGloballyStopped isCFO {}
 
 // @notice Allows the CFO to refill the contract.
 /// @dev The function requires the contract to be in Process status and the platform to be active.
@@ -583,7 +583,7 @@ function withdrawSL() external isProcess isNotGloballyStoped isCFO {}
 function refill(
     uint256 _amount,
     uint256 _profitRate
-) public nonReentrant isNotGloballyStoped isProcess isCFO {}
+) public nonReentrant isNotGloballyStopped isProcess isCFO {}
 
 ```
 
@@ -792,7 +792,7 @@ error NotCFO();
 ```solidity
 /// @notice Verifies if the platform is paused.
 /// @dev If the platform is paused, the whole contract is stopped.
-modifier isNotGloballyStoped() {}
+modifier isNotGloballyStopped() {}
 
 /// @notice Verifies if the contract is in progress status.
 /// @dev If the contract is in progress, the only available functions are invest() and changeStatus().
@@ -829,16 +829,16 @@ modifier isCFO() {}
 function invest(
     uint256 _amount,
     uint256 _paymentToken
-) public nonReentrant isAllowed isProgress isNotGloballyStoped {}
+) public nonReentrant isAllowed isProgress isNotGloballyStopped {}
 
 /// @notice Allows a user to withdraw their investment.
 /// @dev The function requires the contract to be in Withdraw or Refunding status and the platform to be active.
 /// @custom:logic If the contract is in Refunding status, profit will be 0, and users will withdraw exactly the same amount invested.
-function withdraw() external nonReentrant isAllowed isWithdrawOrRefunding isNotGloballyStoped {}
+function withdraw() external nonReentrant isAllowed isWithdrawOrRefunding isNotGloballyStopped {}
 
 /// @notice Allows the CFO to withdraw funds for processing.
 /// @dev The function requires the contract to be in Process status and the platform to be active.
-function withdrawSL() external isProcess isNotGloballyStoped isCFO {}
+function withdrawSL() external isProcess isNotGloballyStopped isCFO {}
 
 /// @notice Allows the CFO to refill the contract.
 /// @dev The function requires the contract to be in Process status and the platform to be active.
@@ -847,7 +847,7 @@ function withdrawSL() external isProcess isNotGloballyStoped isCFO {}
 function refill(
     uint256 _amount,
     uint256 _profitRate
-) public nonReentrant isNotGloballyStoped isProcess isCFO {}
+) public nonReentrant isNotGloballyStopped isProcess isCFO {}
 
 ```
 
@@ -2362,7 +2362,7 @@ function claimLevel() public isPuzzleMintNotPaused nonReentrant userHasLevel(1) 
 
 // Generates a new entry batch.
 // This function can only be called by the CEO and when the system is not globally stopped.
-function generateNewEntryBatch(uint256 _cap, uint256 _entryPrice, string memory _tokenUri) public isNotGloballyStoped isCEO {
+function generateNewEntryBatch(uint256 _cap, uint256 _entryPrice, string memory _tokenUri) public isNotGloballyStopped isCEO {
     entryIdsArray.push(mountEntryValue(_cap, 0));
     ISLLogics(slLogicsAddress).setEntryPrice(_entryPrice, _tokenUri);
 }
