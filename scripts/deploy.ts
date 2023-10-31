@@ -96,14 +96,14 @@ async function main() {
   await factoryContract
     .connect(CEO_SIGNED)
     .setSLCoreAddress(puzzleContract.address);
-  console.log("6. Automated call: Setted slcore address in Factory contract.");
+  console.log("6. Automated call: Set slcore address in Factory contract.");
   // Allow SLCore to make changes in SLLogics
   await permissionsContract
     .connect(CEO_SIGNED)
     .setAllowedContracts(puzzleContract.address, 1);
 
   console.log(
-    "6. Automated call: Setted slcore as allowedContract in SLPermissions"
+    "6. Automated call: Set slcore as allowedContract in SLPermissions"
   );
 
   // Create a new entry batch

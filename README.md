@@ -14,10 +14,10 @@ Something Legendary is an investment platform for the purchase, renovation and s
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
-- [**Something Legendary Smart Contracts**](#something-legendary-smart-contracts)
-  - [**Introduction 🎬**](#introduction-)
-  - [**Table of content 📖**](#table-of-content-)
-  - [**Something Legendary Platform 🚘**](#something-legendary-platform-)
+- [Something Legendary Smart Contracts](#something-legendary-smart-contracts)
+  - [Introduction 🎬](#introduction-)
+  - [Table of content 📖](#table-of-content-)
+  - [Something Legendary Platform 🚘](#something-legendary-platform-)
   - [Functional Requirements ⚙️](#functional-requirements-)
     - [Roles 💂](#roles-)
     - [Features 🕊](#features-)
@@ -28,11 +28,11 @@ Something Legendary is an investment platform for the purchase, renovation and s
     - [Dependencies 🦿](#dependencies-)
     - [Contract Information ℹ️](#contract-information-)
   - [Getting started 🚀](#getting-started-)
-    - [**Prerequisites 💺**](#prerequisites-)
-    - [**Clone the Repository ㊢**](#clone-the-repository-)
-    - [**Install Dependencies 🧑‍🔧**](#install-dependencies-)
+    - [Prerequisites 💺](#prerequisites-)
+    - [Clone the Repository ㊢](#clone-the-repository-)
+    - [Install Dependencies 🧑‍🔧](#install-dependencies-)
     - [Update the .env file 🚑](#update-the-env-file-)
-    - [**Run the Project 🔥**](#run-the-project-)
+    - [Run the Project 🔥](#run-the-project-)
   - [Smart Contract Scripts 💻](#smart-contract-scripts-)
     - [Deploy Smart Contract (Localhost) 🚓](#deploy-smart-contract-localhost-)
     - [Deploy Smart Contract (Mumbai Testnet) 🚲](#deploy-smart-contract-mumbai-testnet-)
@@ -69,11 +69,11 @@ Something Legendary offers an innovative approach to classic car investment. Her
 
 Something Legendary has 3 main roles, and an “abstract” one. The abstract role is assigned to certain smartcontracts of our schema, that need to be able to change values in other contracts.
 
-- CEO - The CEO can reassign other roles and change the addresses of our dependent smartcontracts. It is also the only role that can unpause the platform or any specific contract. It is initially set to the address that deployed the smart contract, in the contract constructor.
-- CFO - The CFO is the role that manages all funds in the platform. It is responsible for withdrawing the entry fees, also withdraws the funds from all investment contracts as well as the subsequent refill of the contracts.
-- User - The user can mint a Membership card. Without the Membership card, the user will not be allowed to do anything else
-- Membership carded user - A user with a Membership card. This user is able to interact with every level 1 investment. By progressing to each level, the user is able to invest in same-level cars, without losing the ability to invest in lower levels.
-- Allowed contracts (abstract actor) - This actor is responsible for the management of funds in SLLogics contract. This role is given to SLCore in order to deal with the payments (the funds are stored in SLLogics), as well as updating the Membership card price when a new batch is released.
+- **CEO** - The CEO can reassign other roles and change the addresses of our dependent smartcontracts. It is also the only role that can unpause the platform or any specific contract. It is initially set to the address that deployed the smart contract, in the contract constructor.
+- **CFO** - The CFO is the role that manages all funds in the platform. It is responsible for withdrawing the entry fees, also withdraws the funds from all investment contracts as well as the subsequent refill of the contracts.
+- **User** - The user can mint a Membership card. Without the Membership card, the user will not be allowed to do anything else
+- **Membership carded user** - A user with a Membership card. This user is able to interact with every level 1 investment. By progressing to each level, the user is able to invest in same-level cars, without losing the ability to invest in lower levels.
+- **Allowed contracts (abstract actor)** - This actor is responsible for the management of funds in SLLogics contract. This role is given to SLCore in order to deal with the payments (the funds are stored in SLLogics), as well as updating the Membership card price when a new batch is released.
 
 <!-- TOC --><a name="features-"></a>
 

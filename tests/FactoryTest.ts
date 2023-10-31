@@ -137,7 +137,7 @@ describe("Factory Contract Tests", async () => {
       investor1,
       puzzleContract,
       logicsContract,
-    } = await loadFixture(slCoreContractSetted);
+    } = await loadFixture(slCoreContractSet);
     await paymentTokenContract
       .connect(investor1)
       .mint(
@@ -241,7 +241,7 @@ describe("Factory Contract Tests", async () => {
       factoryContract,
     };
   }
-  async function slCoreContractSetted() {
+  async function slCoreContractSet() {
     const {
       owner,
       ceo,
@@ -344,7 +344,7 @@ describe("Factory Contract Tests", async () => {
     });
     it("PaymentToken0 address must be different than address(0)", async () => {
       const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
-        slCoreContractSetted
+        slCoreContractSet
       );
       await expect(
         factoryContract
@@ -359,7 +359,7 @@ describe("Factory Contract Tests", async () => {
     });
     it("PaymentToken1 address must be different than address(0)", async () => {
       const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
-        slCoreContractSetted
+        slCoreContractSet
       );
       await expect(
         factoryContract
@@ -374,7 +374,7 @@ describe("Factory Contract Tests", async () => {
     });
     it("Level must be greater than 0", async () => {
       const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
-        slCoreContractSetted
+        slCoreContractSet
       );
       await expect(
         factoryContract
@@ -389,7 +389,7 @@ describe("Factory Contract Tests", async () => {
     });
     it("Level must not be greater than 3", async () => {
       const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
-        slCoreContractSetted
+        slCoreContractSet
       );
       await expect(
         factoryContract
@@ -404,7 +404,7 @@ describe("Factory Contract Tests", async () => {
     });
     it("caller must be the owner ", async () => {
       const { factoryContract, paymentTokenContract, investor1 } =
-        await loadFixture(slCoreContractSetted);
+        await loadFixture(slCoreContractSet);
       await expect(
         factoryContract
           .connect(investor1)
@@ -417,7 +417,7 @@ describe("Factory Contract Tests", async () => {
       ).to.be.revertedWithCustomError(factoryContract, "NotCEO");
     });
     it("Should create a new Investment contract", async () => {
-      const { factoryContract } = await loadFixture(slCoreContractSetted);
+      const { factoryContract } = await loadFixture(slCoreContractSet);
       await expect(
         factoryContract
           .connect(ceo)
@@ -432,7 +432,7 @@ describe("Factory Contract Tests", async () => {
         .withArgs(CONTRACT_NUMBER_ID, anyValue, 1);
     });
     it("Should be able to deploy contracts from multiple levels", async () => {
-      const { factoryContract } = await loadFixture(slCoreContractSetted);
+      const { factoryContract } = await loadFixture(slCoreContractSet);
       for (let i = 0; i < 3; i++) {
         await expect(
           factoryContract
@@ -449,7 +449,7 @@ describe("Factory Contract Tests", async () => {
       }
     });
     it("Should keep all contracts stored in an array", async () => {
-      const { factoryContract } = await loadFixture(slCoreContractSetted);
+      const { factoryContract } = await loadFixture(slCoreContractSet);
       await factoryContract
         .connect(ceo)
         .deployNew(
