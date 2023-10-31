@@ -283,11 +283,11 @@ contract Investment is ERC20, ReentrancyGuard {
         isWithdrawOrRefunding
         isNotGloballyStoped
     {
-        //Check if user has already withdrew 
+        //Check if user has already withdrew
         if (userWithdrew[msg.sender] == 1) {
             revert CannotWithdrawTwice();
         }
-        //Set user as withdrew 
+        //Set user as withdrew
         userWithdrew[msg.sender] = 1;
         //Calculate final amount to withdraw
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
@@ -500,7 +500,7 @@ contract Investment is ERC20, ReentrancyGuard {
         address /* from */,
         address /* to */,
         uint256 /* amount */
-    ) public override returns (bool) {
+    ) public pure override returns (bool) {
         revert NotAccessable();
     }
 
@@ -509,7 +509,7 @@ contract Investment is ERC20, ReentrancyGuard {
     function transfer(
         address /* to */,
         uint256 /* amount */
-    ) public override returns (bool) {
+    ) public pure override returns (bool) {
         revert NotAccessable();
     }
 }
