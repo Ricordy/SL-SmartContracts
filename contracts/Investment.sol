@@ -218,7 +218,7 @@ contract Investment is ERC20, ReentrancyGuard {
     function invest(
         uint256 _amount,
         uint256 _paymentToken
-    ) public nonReentrant isAllowed isProgress isNotGloballyStoped {
+    ) public nonReentrant isAllowed isProgress isNotGloballyStopped {
         //Check is payment token selection is valid
         if (_paymentToken > 1) {
             revert InvalidPaymentId(_paymentToken, 0, 1);
@@ -281,7 +281,7 @@ contract Investment is ERC20, ReentrancyGuard {
         nonReentrant
         isAllowed
         isWithdrawOrRefunding
-        isNotGloballyStoped
+        isNotGloballyStopped
     {
         //Check if user has already withdrew
         if (userWithdrew[msg.sender] == 1) {
@@ -298,7 +298,7 @@ contract Investment is ERC20, ReentrancyGuard {
 
     // @notice Allows the CFO to withdraw funds for processing.
     /// @dev The function requires the contract to be in Process status and the platform to be active.
-    function withdrawSL() external isProcess isNotGloballyStoped isCFO {
+    function withdrawSL() external isProcess isNotGloballyStopped isCFO {
         //check if total invested is at least 80% of totalInvestment
         if (
             ERC20(PAYMENT_TOKEN_ADDRESS_0).balanceOf(address(this)) +
@@ -338,7 +338,7 @@ contract Investment is ERC20, ReentrancyGuard {
     function refill(
         uint256 _amount,
         uint256 _profitRate
-    ) public nonReentrant isNotGloballyStoped isProcess isCFO {
+    ) public nonReentrant isNotGloballyStopped isProcess isCFO {
         //Verify if _amount is the total needed to fulfill users withdraw
         if (
             TOTAL_INVESTMENT + ((TOTAL_INVESTMENT * _profitRate) / 100) !=
@@ -413,7 +413,7 @@ contract Investment is ERC20, ReentrancyGuard {
     ///
     /// @notice Verifies if platform is paused.
     /// @dev If platform is paused, the whole contract is stopped
-    modifier isNotGloballyStoped() {
+    modifier isNotGloballyStopped() {
         if (ISLPermissions(SLPERMISSIONS_ADDRESS).isPlatformPaused()) {
             revert PlatformPaused();
         }

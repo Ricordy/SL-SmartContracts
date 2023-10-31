@@ -78,7 +78,7 @@ contract Factory {
         address _paymentTokenAddress0,
         address _paymentTokenAddress1,
         uint256 _level
-    ) external isCEO isNotGloballyStoped returns (address) {
+    ) external isCEO isNotGloballyStopped returns (address) {
         // Check if addresses are valid
         if (slCoreAddress == address(0)) {
             revert InvalidAddress("SLCore");
@@ -125,7 +125,7 @@ contract Factory {
     /// @custom:intent If SLCore gets compromised, there's a way to fix the factory withouth the need of redeploying
     function setSLCoreAddress(
         address _slCoreAddress
-    ) external isCEO isNotGloballyStoped {
+    ) external isCEO isNotGloballyStopped {
         // Check if address is valid
         if (_slCoreAddress == address(0)) {
             revert InvalidAddress("SLCore");
@@ -206,7 +206,7 @@ contract Factory {
     ///
     /// @notice Verifies if platform is paused.
     /// @dev If platform is paused, the whole contract is stopped
-    modifier isNotGloballyStoped() {
+    modifier isNotGloballyStopped() {
         if (ISLPermissions(SLPERMISSIONS_ADDRESS).isPlatformPaused()) {
             revert PlatformPaused();
         }

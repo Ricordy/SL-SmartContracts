@@ -81,7 +81,7 @@ contract SLCore is SLPuzzles {
         uint256 _cap,
         uint256 _entryPrice,
         string memory _tokenUri
-    ) public isNotGloballyStoped isCEO {
+    ) public isNotGloballyStopped isCEO {
         // Push the new entry batch ID to the entryIdsArray
         entryIdsArray.push(mountEntryValue(_cap, 0));
         //Set the price and URI for the new entry batch
