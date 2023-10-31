@@ -14,7 +14,7 @@ import {
   SLPermissions,
   SLPermissions__factory,
 } from "../typechain-types";
-import { Investment__factory } from "../typechain-types/factories/contracts/Investment.sol/Investment__factory";
+import { Investment__factory } from "../typechain-types/factories/contracts/Investment__factory";
 import { CoinTest__factory } from "../typechain-types/factories/contracts/CoinTest__factory";
 import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";

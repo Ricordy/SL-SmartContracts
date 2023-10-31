@@ -1,4 +1,5 @@
 import {
+  AttackSLCoreEntry__factory,
   CoinTest,
   CoinTest__factory,
   Factory,
@@ -1064,6 +1065,24 @@ describe("Puzzle Contract", async () => {
       //     await puzzleContract.generateNewEntryBatch(10, 10, "")
       //   ).to.be.revertedWithCustomError(puzzleContract, "NotCEO");
       // });
+    });
+  });
+  describe("Reentrancy test", async () => {
+    it("mintEntry", async () => {
+      const { puzzleContract, paymentTokenContract, logcisContract } =
+        await loadFixture(deployContractFixture);
+      const mockFactory = new AttackSLCoreEntry__factory(owner);
+      const mockContract = await mockFactory.deploy(puzzleContract.address);
+      await paymentTokenContract.mint(100000000);
+      await paymentTokenContract.transfer(mockContract.address, 100000000);
+      await mockContract.approveERC20(
+        paymentTokenContract.address,
+        logcisContract.address,
+        100000000
+      );
+      await expect(mockContract.startAttack()).to.be.revertedWith(
+        "ReentrancyGuard: reentrant call"
+      );
     });
   });
   describe("Pause/Unpause tests", async function () {
