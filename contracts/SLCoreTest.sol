@@ -29,4 +29,11 @@ contract SLCoreTest is SLCore {
     function _claimPieceTest(address _receiver, uint256 _puzzleLevel) public {
         _claimPiece(_receiver, _puzzleLevel);
     }
+
+    function _dealWithPuzzleBurningTest(
+        address _receiver,
+        uint256 _tokenId
+    ) public {
+        _dealWithPuzzleBurning(_receiver, _tokenId);
+    }
 }

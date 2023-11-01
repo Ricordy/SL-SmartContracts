@@ -1,5 +1,7 @@
 import {
   AttackSLCoreEntry__factory,
+  AttackSLCoreClaimPiece__factory,
+  AttackSLCoreClaimLevel__factory,
   CoinTest,
   CoinTest__factory,
   Factory,
@@ -19,6 +21,7 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { log } from "console";
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 // Constants
@@ -975,6 +978,79 @@ describe("Puzzle Contract", async () => {
       );
     });
   });
+  describe("Pre-claim FINAL NFT", async () => {
+    beforeEach(async () => {
+      ({ puzzleContract } = await loadFixture(
+        investor1NotReadyToClaimLevel3Piece
+      ));
+    });
+    it("Investor should not be able to burn without the required Puzzle NFTs", async () => {
+      await expect(
+        puzzleContract.connect(investor1).claimLevel()
+      ).to.be.revertedWithCustomError(
+        puzzleContract,
+        "UserMustHaveCompletePuzzle"
+      );
+    });
+  });
+  describe("Claim FINAL NFT", async () => {
+    beforeEach(async () => {
+      ({ puzzleContract } = await loadFixture(investor1ReadyToClaimLevel3));
+      await puzzleContract.connect(investor1).claimLevel();
+      await puzzleContract.connect(investor1).mintTest(3);
+    });
+    it("Investor should be able to claim FINAL NFT", async () => {
+      await expect(await puzzleContract.connect(investor1).claimLevel())
+        .to.emit(puzzleContract, "TokensClaimed")
+        .withArgs(investor1.address, 32);
+    });
+    it("Investor should have FINAL NFT on his wallet", async () => {
+      await puzzleContract.connect(investor1).claimLevel();
+      await expect(
+        await puzzleContract.balanceOf(investor1.address, 32)
+      ).to.be.eq(1);
+    });
+    it("Investor should be able to claim FINAL NFT having 20 Puzzle NFTs and still have 10 left", async () => {
+      // Mint 10 more Puzzle NFTs to the investor
+      await puzzleContract.connect(investor1).mintTest(3);
+      // Fill the array with investor's address
+      const accounts = new Array(10).fill(investor1.address);
+      // Shallow-clone sliced collections array
+      const NFTIds = [...COLLECTIONS.slice(20, 30)];
+      // Balance before Burn
+      const puzzleNftBalanceBeforeBurn = await puzzleContract
+        .connect(investor1)
+        .balanceOfBatch(accounts, NFTIds);
+      // Burn LEVEL2 NFT token
+      await puzzleContract.connect(investor1).claimLevel();
+      // Balance after Burn
+      const puzzleNftBalanceAfterBurn = await puzzleContract
+        .connect(investor1)
+        .balanceOfBatch(accounts, NFTIds);
+      const expectedArrayResults = puzzleNftBalanceAfterBurn.map(function (
+        value: BigNumber,
+        i: number
+      ) {
+        return value.add(1).eq(puzzleNftBalanceBeforeBurn[i]);
+      });
+
+      expect(expectedArrayResults.every((element) => element === true)).to.be
+        .true;
+    });
+    it("Investor should not be able to call verifyClaim for FINAL NFT after owning the FINAL NFT token", async () => {
+      await puzzleContract.connect(investor1).claimLevel();
+      await expect(
+        puzzleContract._userAllowedToBurnPuzzle(investor1.address, 32)
+      ).to.revertedWithCustomError(puzzleContract, "IncorrectUserLevel");
+    });
+    it("Investor should not be able to claim FINAL NFT again", async () => {
+      await puzzleContract.connect(investor1).claimLevel();
+
+      await expect(
+        puzzleContract.connect(investor1).claimLevel()
+      ).to.be.revertedWithCustomError(puzzleContract, "IncorrectUserLevel");
+    });
+  });
   describe("Function calls", async () => {
     describe("_userAllowedToBurnPuzzle", () => {
       it("Should revert if the token sent is not valid", async () => {
@@ -1016,6 +1092,24 @@ describe("Puzzle Contract", async () => {
         await expect(
           puzzleContract.verifyClaim(investor1.address, 10003)
         ).to.revertedWith("Not a valid id");
+      });
+    });
+    describe("_dealWithPuzzleBurning", () => {
+      it("Should revert if the level is not 30, 31 or 32", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        await expect(
+          puzzleContract._dealWithPuzzleBurningTest(investor1.address, 10003)
+        ).to.revertedWithCustomError(puzzleContract, "InvalidLevel");
+      });
+      it("Should give valid level 2 tokenId", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        const ids = await puzzleContract._getLevelTokenIds(2);
+        expect(ids[0]).to.eq(30);
+      });
+      it("Should give valid level 3 tokenId", async () => {
+        const { puzzleContract } = await loadFixture(deployContractFixture);
+        const ids = await puzzleContract._getLevelTokenIds(3);
+        expect(ids[1]).to.eq(31);
       });
     });
     describe("claimLevel", () => {
@@ -1080,6 +1174,55 @@ describe("Puzzle Contract", async () => {
         logcisContract.address,
         100000000
       );
+      await expect(mockContract.startAttack()).to.be.revertedWith(
+        "ReentrancyGuard: reentrant call"
+      );
+    });
+    it("claimLevel", async () => {
+      const { puzzleContract, paymentTokenContract, logcisContract } =
+        await loadFixture(deployContractFixture);
+      const mockFactory = new AttackSLCoreClaimLevel__factory(owner);
+      const mockContract = await mockFactory.deploy(
+        puzzleContract.address,
+        paymentTokenContract.address,
+        logcisContract.address,
+        5_000_000_000
+      );
+
+      await expect(mockContract.startAttack()).to.be.revertedWith(
+        "ReentrancyGuard: reentrant call"
+      );
+    });
+    it("claimPiece", async () => {
+      const {
+        puzzleContract,
+        paymentTokenContract,
+        logcisContract,
+        factoryContract,
+      } = await loadFixture(deployContractFixture);
+
+      const mockFactory = new AttackSLCoreClaimPiece__factory(owner);
+      const investmentFactory = new Investment__factory(owner);
+      await factoryContract
+        .connect(ceo)
+        .deployNew(
+          200_000,
+          paymentTokenContract.address,
+          paymentTokenContract2.address,
+          1
+        );
+      const investmentContract = investmentFactory.attach(
+        await factoryContract.getLastDeployedContract(1)
+      );
+
+      const mockContract = await mockFactory.deploy(
+        puzzleContract.address,
+        paymentTokenContract.address,
+        investmentContract.address,
+        logcisContract.address,
+        5_000_000_000
+      );
+
       await expect(mockContract.startAttack()).to.be.revertedWith(
         "ReentrancyGuard: reentrant call"
       );

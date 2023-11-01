@@ -2258,8 +2258,8 @@ function claimPiece() public isPuzzleMintNotPaused nonReentrant userHasLevel(1) 
 2. Each level requires 10 unique pieces from the previous level:
    1. Reach/mint level 2 NFT: 10 unique level 1 puzzle pieces
    2. Reach/mint level 3 NFT: 10 unique level 2 puzzle pieces
-   3. Reach/mint level 3 completion NFT: 10 unique level 3 puzzle pieces
-3. The contract computes the user level, meaning the user can only mint the level he/she is one.
+   3. Reach/mint FINAL NFT: 10 unique level 3 puzzle pieces
+3. The contract computes the user level, meaning the user can only mint the level they are in.
 4. This function can be externally paused by SLPermissions.sol
 5. This action happens through:
 

@@ -145,7 +145,7 @@ abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
     /// @dev burns in batch to be gas wiser
     /// @param _user the user's address
     /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
-    function _dealWithPuzzleBurning(address _user, uint256 _levelId) private {
+    function _dealWithPuzzleBurning(address _user, uint256 _levelId) internal {
         //Helpers
         uint256 helperSize = 10;
         uint256[] memory amountsForBurn = new uint256[](helperSize);
@@ -160,6 +160,10 @@ abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
             //Puzzle verification for passing to level3
         } else if (_levelId == 31) {
             _burnBatch(_user, _getPuzzleCollectionIds(2), amountsForBurn);
+        } else if (_levelId == 32) {
+            _burnBatch(_user, _getPuzzleCollectionIds(3), amountsForBurn);
+        } else {
+            revert InvalidLevel(4, 1, 3);
         }
     }
 

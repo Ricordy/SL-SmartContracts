@@ -149,7 +149,9 @@ abstract contract SLLevels is SLBase {
         //call function to check user balance of token id 30 and 31
 
         //Verify level 2 and 3 token ownership
-        if (balanceOf(_user, 31) != 0) {
+        if (balanceOf(_user, 32) != 0) {
+            return 4;
+        } else if (balanceOf(_user, 31) != 0) {
             return 3;
         } else if (balanceOf(_user, 30) != 0) {
             return 2;

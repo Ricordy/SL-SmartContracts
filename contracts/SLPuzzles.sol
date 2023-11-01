@@ -18,7 +18,11 @@ contract SLPuzzles is SLLevels {
         uint256 _tokenIdOrPuzzleLevel
     ) public view override {
         //Check if given piece is a puzzle piece or a level
-        if (_tokenIdOrPuzzleLevel == 31 || _tokenIdOrPuzzleLevel == 30) {
+        if (
+            _tokenIdOrPuzzleLevel == 32 ||
+            _tokenIdOrPuzzleLevel == 31 ||
+            _tokenIdOrPuzzleLevel == 30
+        ) {
             //Check if user has the ability to burn the puzzle piece
             _userAllowedToBurnPuzzle(_claimer, _tokenIdOrPuzzleLevel);
         } else if (
