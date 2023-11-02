@@ -21,7 +21,7 @@ contract SLMicroSlots {
         uint256 number,
         uint256 position,
         uint256 factor
-    ) internal view returns (uint256) {
+    ) internal pure returns (uint256) {
         // return the position in the number using the factor as the number of digits in each position and the position as the position of the result
         return
             ((number % (10 ** (factor * position))) -
@@ -40,7 +40,7 @@ contract SLMicroSlots {
         uint256 startPosition,
         uint256 numberOfResults,
         uint256 factor
-    ) internal view returns (uint256[] memory) {
+    ) internal pure returns (uint256[] memory) {
         // return the position in the number using the factor as the number of digits in each position and the position as the position of the result for the number of results needed
         uint256[] memory results = new uint256[](numberOfResults);
         for (uint256 i; i < numberOfResults; ++i) {
@@ -59,7 +59,7 @@ contract SLMicroSlots {
     function mountEntryValue(
         uint256 cap,
         uint256 currentID
-    ) internal view returns (uint24) {
+    ) internal pure returns (uint24) {
         return uint24((cap * 10000) + currentID);
     }
 
@@ -70,7 +70,7 @@ contract SLMicroSlots {
     /// @return currentID the current token Id
     function unmountEntryValue(
         uint24 value
-    ) internal view returns (uint256 cap, uint256 currentID) {
+    ) internal pure returns (uint256 cap, uint256 currentID) {
         currentID = getPositionXInDivisionByY(value, 1, 4);
         cap = (value - currentID) / 10000;
     }
@@ -83,7 +83,7 @@ contract SLMicroSlots {
     function mountEntryID(
         uint256 batch,
         uint256 cap
-    ) internal view returns (uint256) {
+    ) internal pure returns (uint256) {
         return ((batch * 10000) + cap);
     }
 
@@ -94,7 +94,7 @@ contract SLMicroSlots {
     /// @return cap Collection limit
     function unmountEntryID(
         uint256 id
-    ) public view returns (uint256 batch, uint256 cap) {
+    ) public pure returns (uint256 batch, uint256 cap) {
         cap = getPositionXInDivisionByY(id, 1, 4);
         batch = (id - cap) / 10000;
     }
@@ -107,7 +107,7 @@ contract SLMicroSlots {
     function incrementXPositionInFactor3(
         uint32 number,
         uint32 position
-    ) internal view returns (uint32 _final) {
+    ) public pure returns (uint32 _final) {
         //Verify if digit is incrementable
         uint32 digit = uint32(getPositionXInDivisionByY(number, position, 3));
         if (digit == 999) {
@@ -135,18 +135,18 @@ contract SLMicroSlots {
         uint256 number,
         uint32 position,
         uint256 newNumber
-    ) internal view returns (uint256 _final) {
+    ) public pure returns (uint256 _final) {
         //Verify if digit is incrementable
         if (newNumber > 99999) {
             revert InvalidNumber(newNumber, 99999);
+        } else {
+            //remount the number with new number using internal function
+            _final =
+                (number / 10 ** (position * 5)) *
+                10 ** (position * 5) +
+                newNumber *
+                10 ** (position * 5 - 5) +
+                (number % (10 ** (position * 5 - 5)));
         }
-
-        //remount the number with new number using internal function
-        _final =
-            (number / 10 ** (position * 5)) *
-            10 ** (position * 5) +
-            newNumber *
-            10 ** (position * 5 - 5) +
-            (number % (10 ** (position * 5 - 5)));
     }
 }

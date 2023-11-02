@@ -21,7 +21,8 @@
     "deployInvest": "hardhat run scripts/deployInvest.ts --network localhost",
     "deployInvestT": "hardhat run scripts/deployInvest.ts --network mumbai",
     "compile": "hardhat clean && hardhat compile",
-    "bc": "hardhat node"
+    "bc": "hardhat node",
+    "coverage": "hardhat coverage"
   },
   "packageManager": "yarn@3.3.0",
   "devDependencies": {

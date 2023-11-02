@@ -58,13 +58,14 @@ contract SLCore is SLPuzzles {
         nonReentrant
         userHasLevel(1)
     {
+        uint256 userLevel = _whichLevelUserHas(msg.sender);
         //Check if user has the highest level
-        if (_whichLevelUserHas(msg.sender) > 2) {
-            revert IncorrectUserLevel(_whichLevelUserHas(msg.sender), 2);
+        if (userLevel > 3) {
+            revert IncorrectUserLevel(userLevel, 3);
         }
 
         //Claim next level for user depending on the level he has
-        _claimLevel(msg.sender, _whichLevelUserHas(msg.sender) == 1 ? 30 : 31);
+        _claimLevel(msg.sender, userLevel == 1 ? 30 : userLevel == 2 ? 31 : 32);
     }
 
     ///
@@ -80,7 +81,7 @@ contract SLCore is SLPuzzles {
         uint256 _cap,
         uint256 _entryPrice,
         string memory _tokenUri
-    ) public isNotGloballyStoped isCEO {
+    ) public isNotGloballyStopped isCEO {
         // Push the new entry batch ID to the entryIdsArray
         entryIdsArray.push(mountEntryValue(_cap, 0));
         //Set the price and URI for the new entry batch

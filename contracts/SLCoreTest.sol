@@ -21,4 +21,19 @@ contract SLCoreTest is SLCore {
             _incrementUserPuzzlePieces(msg.sender, level);
         }
     }
+
+    function _claimLevelTest(address _receiver, uint256 _tokenId) public {
+        _claimLevel(_receiver, _tokenId);
+    }
+
+    function _claimPieceTest(address _receiver, uint256 _puzzleLevel) public {
+        _claimPiece(_receiver, _puzzleLevel);
+    }
+
+    function _dealWithPuzzleBurningTest(
+        address _receiver,
+        uint256 _tokenId
+    ) public {
+        _dealWithPuzzleBurning(_receiver, _tokenId);
+    }
 }

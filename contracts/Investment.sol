@@ -166,6 +166,9 @@ contract Investment is ERC20, ReentrancyGuard {
     ///Function caller is not CEO level
     error NotCFO();
 
+    ///Functions that don't allow access to the caller (Overriden functions)
+    error NotAccessable();
+
     ///
     //-----CONSTRUCTOR------
     ///
@@ -215,7 +218,7 @@ contract Investment is ERC20, ReentrancyGuard {
     function invest(
         uint256 _amount,
         uint256 _paymentToken
-    ) public nonReentrant isAllowed isProgress isNotGloballyStoped {
+    ) public nonReentrant isAllowed isProgress isNotGloballyStopped {
         //Check is payment token selection is valid
         if (_paymentToken > 1) {
             revert InvalidPaymentId(_paymentToken, 0, 1);
@@ -278,13 +281,13 @@ contract Investment is ERC20, ReentrancyGuard {
         nonReentrant
         isAllowed
         isWithdrawOrRefunding
-        isNotGloballyStoped
+        isNotGloballyStopped
     {
-        //Check if user has already withdrew 
+        //Check if user has already withdrew
         if (userWithdrew[msg.sender] == 1) {
             revert CannotWithdrawTwice();
         }
-        //Set user as withdrew 
+        //Set user as withdrew
         userWithdrew[msg.sender] = 1;
         //Calculate final amount to withdraw
         uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
@@ -295,9 +298,13 @@ contract Investment is ERC20, ReentrancyGuard {
 
     // @notice Allows the CFO to withdraw funds for processing.
     /// @dev The function requires the contract to be in Process status and the platform to be active.
-    function withdrawSL() external isProcess isNotGloballyStoped isCFO {
+    function withdrawSL() external isProcess isNotGloballyStopped isCFO {
         //check if total invested is at least 80% of totalInvestment
-        if (totalContractBalance() < (TOTAL_INVESTMENT * 80) / 100) {
+        if (
+            ERC20(PAYMENT_TOKEN_ADDRESS_0).balanceOf(address(this)) +
+                ERC20(PAYMENT_TOKEN_ADDRESS_1).balanceOf(address(this)) <
+            (TOTAL_INVESTMENT * 80) / 100
+        ) {
             revert NotEnoughForProcess(
                 (TOTAL_INVESTMENT * 80) / 100,
                 totalContractBalance()
@@ -331,7 +338,7 @@ contract Investment is ERC20, ReentrancyGuard {
     function refill(
         uint256 _amount,
         uint256 _profitRate
-    ) public nonReentrant isNotGloballyStoped isProcess isCFO {
+    ) public nonReentrant isNotGloballyStopped isProcess isCFO {
         //Verify if _amount is the total needed to fulfill users withdraw
         if (
             TOTAL_INVESTMENT + ((TOTAL_INVESTMENT * _profitRate) / 100) !=
@@ -406,7 +413,7 @@ contract Investment is ERC20, ReentrancyGuard {
     ///
     /// @notice Verifies if platform is paused.
     /// @dev If platform is paused, the whole contract is stopped
-    modifier isNotGloballyStoped() {
+    modifier isNotGloballyStopped() {
         if (ISLPermissions(SLPERMISSIONS_ADDRESS).isPlatformPaused()) {
             revert PlatformPaused();
         }
@@ -483,7 +490,7 @@ contract Investment is ERC20, ReentrancyGuard {
     ///
     /// @notice Returns the number of decimals for investment token. Is the same number of decimals as the payment token!
     /// @dev This function is overridden from the ERC20 standard.
-    function decimals() public view override returns (uint8) {
+    function decimals() public pure override returns (uint8) {
         return 6;
     }
 
@@ -493,8 +500,8 @@ contract Investment is ERC20, ReentrancyGuard {
         address /* from */,
         address /* to */,
         uint256 /* amount */
-    ) public override returns (bool) {
-        return false;
+    ) public pure override returns (bool) {
+        revert NotAccessable();
     }
 
     /// @notice Disallows investment token transfers to another wallet.
@@ -502,7 +509,7 @@ contract Investment is ERC20, ReentrancyGuard {
     function transfer(
         address /* to */,
         uint256 /* amount */
-    ) public override returns (bool) {
-        return false;
+    ) public pure override returns (bool) {
+        revert NotAccessable();
     }
 }

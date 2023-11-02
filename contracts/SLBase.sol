@@ -4,6 +4,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./SLMicroSlots.sol";
 import "./ISLPermissions.sol";
+import "./ASLBase.sol";
 import "./ISLLogics.sol";
 
 /// @title SLBase
@@ -11,14 +12,14 @@ import "./ISLLogics.sol";
 /// @notice Centralizes information on this contract, making sure that all of the ERC1155 communications and
 /// memory writting calls happens thorugh here!
 /// @dev Extra details about storage: https://app.diagrams.net/#G1Wi7A1SK0y8F9X-XDm65IUdfRJ81Fo7bF
-contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
+abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
     ///
     //-----STATE VARIABLES------
     ///
     /// @notice Array to store the the levels and puzzles collection ids
     /// @dev Each ID is stored in 2 slots of the variable. Ex: IDs {00, 01, 02, ..., 30, 31}
     uint256 public constant COLLECTION_IDS =
-        3130292827262524232221201918171615141312111009080706050403020100;
+        323130292827262524232221201918171615141312111009080706050403020100;
     /// @notice Array to store the entry batchs' IDs
     /// @dev Key: Entry batch number, reutrns enough to compute TokenID, max lotation and current token ID.
     uint24[] public entryIdsArray;
@@ -98,7 +99,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         if (_tokenId < 30) {
             revert InvalidLevel(_tokenId, 30, 31);
         }
-        if (_tokenId > 31) {
+        if (_tokenId > 32) {
             revert InvalidLevel(_tokenId, 30, 31);
         }
         //Check if user has the right to claim the next level or puzzle piece
@@ -137,47 +138,14 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     }
 
     ///
-    //-------------------------FUNCTIONS TO BE OVERRIDEN----------------------
-    ///
-    /// @notice Verifies if user can claim given piece or level NFT
-    /// @dev Override the verify claim function to check if user has the right to claim the next level or puzzle piece
-    /// @param _claimer the user's address
-    /// @param _tokenIdOrPuzzleLevel The token id of the level (30 or 30) or LEvel of the piece (1,2,3)
-    function verifyClaim(
-        address _claimer,
-        uint256 _tokenIdOrPuzzleLevel
-    ) public view virtual {}
-
-    /// @notice returns random number
-    function _random() public view virtual returns (uint8) {}
-
-    /// @notice Function that verifies if user is allowed to pass to the next level
-    /// @dev function have no return, it should fail if user is not allowed to burn
-    /// @param _claimer the user's address
-    /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
-    function _userAllowedToBurnPuzzle(
-        address _claimer,
-        uint256 _levelId
-    ) public view virtual {}
-
-    ///
     //-----------------INTERNAL OVERRIDE FUNCTIONS----------------
     ///
-    /// @notice Function that defines which piece is going to be minted
-    /// @dev Override to implement puzzle piece claiming logic
-    /// @param _receiver the user's address
-    /// @param _puzzleLevel The level of the piece (1,2,3)
-    /// @return _collectionToMint the collection from which the piece is going to be minted
-    function _dealWithPuzzleClaiming(
-        address _receiver,
-        uint256 _puzzleLevel
-    ) internal virtual returns (uint8 _collectionToMint) {}
 
     /// @notice Auxiliary function to burn user puzzle depending on his level
     /// @dev burns in batch to be gas wiser
     /// @param _user the user's address
     /// @param _levelId The id of piece's level (lvl 2->30, lvl3->31)
-    function _dealWithPuzzleBurning(address _user, uint256 _levelId) private {
+    function _dealWithPuzzleBurning(address _user, uint256 _levelId) internal {
         //Helpers
         uint256 helperSize = 10;
         uint256[] memory amountsForBurn = new uint256[](helperSize);
@@ -192,6 +160,10 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
             //Puzzle verification for passing to level3
         } else if (_levelId == 31) {
             _burnBatch(_user, _getPuzzleCollectionIds(2), amountsForBurn);
+        } else if (_levelId == 32) {
+            _burnBatch(_user, _getPuzzleCollectionIds(3), amountsForBurn);
+        } else {
+            revert InvalidLevel(4, 1, 3);
         }
     }
 
@@ -227,23 +199,6 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
 
     ///
     //------------------GETTERS MOST OVERRIDEN------------------------
-    ///
-    /// @notice funtion that returns the level token ids
-    /// @dev should be overriden
-    /// @param level the level that we want the token IDs
-    /// @return uint256[] memory with ids for level 2 and 3 (30,31) or all level 1 collection ids
-    function _getLevelTokenIds(
-        uint256 level
-    ) internal view virtual returns (uint256[] memory) {}
-
-    /// @notice funtion that returns the puzzle pieces for a specified level
-    /// @dev should be overriden
-    /// @param level the level that we want the token IDs
-    /// @return uint256[] memory with 10 ids for 10 pieces
-    function _getPuzzleCollectionIds(
-        uint256 level
-    ) public view virtual returns (uint256[] memory) {}
-
     //
     /// @notice function to create a user address array with the given size
     /// @param _user user intented to create the array
@@ -279,7 +234,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
         }
         _;
     }
-    /// @notice Verifies if puzzle and level 2 and 3 minting is stoped.
+    /// @notice Verifies if puzzle and level 2 and 3 minting is stopped.
     /// @dev If it is paused, the only action available is mintEntry()
     modifier isPuzzleMintNotPaused() {
         if (ISLPermissions(slPermissionsAddress).isClaimPaused()) {
@@ -289,7 +244,7 @@ contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots {
     }
     /// @notice Verifies if platform is paused.
     /// @dev If platform is paused, the whole contract is stopped
-    modifier isNotGloballyStoped() {
+    modifier isNotGloballyStopped() {
         if (ISLPermissions(slPermissionsAddress).isPlatformPaused()) {
             revert PlatformPaused();
         }

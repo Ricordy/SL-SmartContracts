@@ -6,7 +6,7 @@ import "./SLBase.sol";
 /// @title SLLevels
 /// @author Something Legendary
 /// @notice contract that manages levels
-contract SLLevels is SLBase {
+abstract contract SLLevels is SLBase {
     /// @notice Function to deal with data of buying a new NFT entry token
     /// @dev Call the function and add needed logic (Payment, etc)
     /// @param _receiver buyer
@@ -45,7 +45,7 @@ contract SLLevels is SLBase {
     ///
 
     /// Added logic that verifies the possibility of passing the level
-    /// @inheritdoc	SLBase
+    /// @inheritdoc	ASLBase
     function _userAllowedToBurnPuzzle(
         address _claimer,
         uint256 _tokenId
@@ -92,16 +92,30 @@ contract SLLevels is SLBase {
                     revert UserMustHaveCompletePuzzle(2);
                 }
             }
+        } else if (_tokenId == 32) {
+            //Check for user level token ownership
+            if (balanceOf(_claimer, _tokenId) != 0) {
+                revert IncorrectUserLevel(3, 4);
+            }
+            //Get balance of the user
+            balance = balanceOfBatch(userAddress, _getPuzzleCollectionIds(3));
+            //verify if balance meets the condition
+            uint256 balanceLength = balance.length;
+            for (uint256 i; i < balanceLength; ++i) {
+                if (balance[i] == 0) {
+                    revert UserMustHaveCompletePuzzle(3);
+                }
+            }
         } else {
             //revert is for some reason the ID is not Level 2 or 3 ID
             revert InvalidTokenID();
         }
     }
 
-    /// @inheritdoc	SLBase
+    /// @inheritdoc	ASLBase
     function _getLevelTokenIds(
         uint256 _level
-    ) internal view override returns (uint256[] memory) {
+    ) public view override returns (uint256[] memory) {
         if (_level == 1) {
             uint256 arrayLenght = entryIdsArray.length;
             uint256[] memory entryTokenIds = new uint256[](arrayLenght);
@@ -117,6 +131,8 @@ contract SLLevels is SLBase {
             level2And3Ids[0] = 30;
             level2And3Ids[1] = 31;
             return level2And3Ids;
+        } else {
+            revert InvalidLevel(_level, 1, 3);
         }
     }
 
@@ -133,7 +149,9 @@ contract SLLevels is SLBase {
         //call function to check user balance of token id 30 and 31
 
         //Verify level 2 and 3 token ownership
-        if (balanceOf(_user, 31) != 0) {
+        if (balanceOf(_user, 32) != 0) {
+            return 4;
+        } else if (balanceOf(_user, 31) != 0) {
             return 3;
         } else if (balanceOf(_user, 30) != 0) {
             return 2;

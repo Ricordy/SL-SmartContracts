@@ -1,52 +1,57 @@
 <!-- TOC --><a name="something-legendary-smart-contracts"></a>
+
 # **Something Legendary Smart Contracts**
 
 <!-- TOC --><a name="introduction-"></a>
+
 ## **Introduction 🎬**
 
 Something Legendary is an investment platform for the purchase, renovation and subsequent sale of classic cars, using Web 3.0 tools as a method of financial ease of use and as a gamification element.
 
 <!-- TOC --><a name="table-of-content-"></a>
+
 ## **Table of content 📖**
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
-- [**Something Legendary Smart Contracts**](#something-legendary-smart-contracts)
-   * [**Introduction 🎬**](#introduction-)
-   * [**Table of content 📖**](#table-of-content-)
-   * [**Something Legendary Platform 🚘**](#something-legendary-platform-)
-   * [Functional Requirements ⚙️](#functional-requirements-)
-      + [Roles 💂](#roles-)
-      + [Features 🕊](#features-)
-      + [Use cases ⛹️‍♀️](#use-cases-)
-   * [Technical requirements 😮‍💨](#technical-requirements-)
-      + [Quick overview 👀](#quick-overview-)
-      + [Architecture Overview 🏛](#architecture-overview-)
-      + [Dependencies 🦿](#dependencies-)
-      + [Contract Information ℹ️](#contract-information-)
-   * [Getting started 🚀](#getting-started-)
-      + [**Prerequisites 💺**](#prerequisites-)
-      + [**Clone the Repository ㊢**](#clone-the-repository-)
-      + [**Install Dependencies 🧑‍🔧**](#install-dependencies-)
-      + [Update the .env file 🚑](#update-the-env-file-)
-      + [**Run the Project 🔥**](#run-the-project-)
-   * [Smart Contract Scripts 💻](#smart-contract-scripts-)
-      + [Deploy Smart Contract (Localhost) 🚓](#deploy-smart-contract-localhost-)
-      + [Deploy Smart Contract (Mumbai Testnet)  🚲](#deploy-smart-contract-mumbai-testnet-)
-      + [Mint Tokens (Localhost) 🥺](#mint-tokens-localhost-)
-      + [Mint Payment Token (Localhost) 💰](#mint-payment-token-localhost-)
-      + [Mint Puzzle Token (Localhost) 🧩](#mint-puzzle-token-localhost-)
-      + [Mint Puzzle Token Level 2 (Localhost) 🧩](#mint-puzzle-token-level-2-localhost-)
-      + [Invest (Localhost) 🤑](#invest-localhost-)
-      + [Invest 5k with Level 1 Contract (Localhost) 🤑💰](#invest-5k-with-level-1-contract-localhost-)
-      + [Invest 10k with Level 2 Access (Localhost)💰💰](#invest-10k-with-level-2-access-localhost)
-      + [Invest 15k with Level 3 Access (Localhost)💰🤑💰](#invest-15k-with-level-3-access-localhost)
-      + [Deploy Investment Contract (Localhost) 🕊](#deploy-investment-contract-localhost-)
-      + [Compile Contracts 📚](#compile-contracts-)
-      + [Start Local Hardhat Node 🕸](#start-local-hardhat-node-)
+- [Something Legendary Smart Contracts](#something-legendary-smart-contracts)
+  - [Introduction 🎬](#introduction-)
+  - [Table of content 📖](#table-of-content-)
+  - [Something Legendary Platform 🚘](#something-legendary-platform-)
+  - [Functional Requirements ⚙️](#functional-requirements-)
+    - [Roles 💂](#roles-)
+    - [Features 🕊](#features-)
+    - [Use cases ⛹️‍♀️](#use-cases-)
+  - [Technical requirements 😮‍💨](#technical-requirements-)
+    - [Quick overview 👀](#quick-overview-)
+    - [Architecture Overview 🏛](#architecture-overview-)
+    - [Dependencies 🦿](#dependencies-)
+    - [Contract Information ℹ️](#contract-information-)
+  - [Getting started 🚀](#getting-started-)
+    - [Prerequisites 💺](#prerequisites-)
+    - [Clone the Repository ㊢](#clone-the-repository-)
+    - [Install Dependencies 🧑‍🔧](#install-dependencies-)
+    - [Update the .env file 🚑](#update-the-env-file-)
+    - [Run the Project 🔥](#run-the-project-)
+  - [Smart Contract Scripts 💻](#smart-contract-scripts-)
+    - [Deploy Smart Contract (Localhost) 🚓](#deploy-smart-contract-localhost-)
+    - [Deploy Smart Contract (Mumbai Testnet) 🚲](#deploy-smart-contract-mumbai-testnet-)
+    - [Mint Tokens (Localhost) 🥺](#mint-tokens-localhost-)
+    - [Mint Payment Token (Localhost) 💰](#mint-payment-token-localhost-)
+    - [Mint Puzzle Token (Localhost) 🧩](#mint-puzzle-token-localhost-)
+    - [Mint Puzzle Token Level 2 (Localhost) 🧩](#mint-puzzle-token-level-2-localhost-)
+    - [Mint Puzzle Token Level 3 (Localhost) 🧩](#mint-puzzle-token-level-3-localhost-)
+    - [Invest (Localhost) 🤑](#invest-localhost-)
+    - [Invest 5k with Level 1 Contract (Localhost) 🤑💰](#invest-5k-with-level-1-contract-localhost-)
+    - [Invest 10k with Level 2 Access (Localhost)💰💰](#invest-10k-with-level-2-access-localhost)
+    - [Invest 15k with Level 3 Access (Localhost)💰🤑💰](#invest-15k-with-level-3-access-localhost)
+    - [Deploy Investment Contract (Localhost) 🕊](#deploy-investment-contract-localhost-)
+    - [Compile Contracts 📚](#compile-contracts-)
+    - [Start Local Hardhat Node 🕸](#start-local-hardhat-node-)
 
 <!-- TOC end -->
 <!-- TOC --><a name="something-legendary-platform-"></a>
+
 ## **Something Legendary Platform 🚘**
 
 Something Legendary offers an innovative approach to classic car investment. Here are some key aspects of the platform:
@@ -56,20 +61,23 @@ Something Legendary offers an innovative approach to classic car investment. Her
 - **Gamification:** Levels 2 and 3 are achieved by collecting NFT puzzle pieces. These pieces are randomly minted, and when 10 distinct ones are collected, the user will be able to claim the next level, adding a gamification aspect to the platform. Users can also use trades and secondary markets to enhance their experience.
 
 <!-- TOC --><a name="functional-requirements-"></a>
+
 ## Functional Requirements ⚙️
 
 <!-- TOC --><a name="roles-"></a>
+
 ### Roles 💂
 
 Something Legendary has 3 main roles, and an “abstract” one. The abstract role is assigned to certain smartcontracts of our schema, that need to be able to change values in other contracts.
 
-- CEO - The CEO can reassign other roles and change the addresses of our dependent smartcontracts. It is also the only role that can unpause the platform or any specific contract. It is initially set to the address that deployed the smart contract, in the contract constructor.
-- CFO - The CFO is the role that manages all funds in the platform. It is responsible for withdrawing the entry fees, also withdraws the funds from all investment contracts as well as the subsequent refill of the contracts.
-- User - The user can mint a Membership card. Without the Membership card, the user will not be allowed to do anything else
-- Membership carded user - A user with a Membership card. This user is able to interact with every level 1 investment. By progressing to each level, the user is able to invest in same-level cars, without losing the ability to invest in lower levels.
-- Allowed contracts (abstract actor) - This actor is responsible for the management of funds in SLLogics contract. This role is given to SLCore in order to deal with the payments (the funds are stored in SLLogics), as well as updating the Membership card price when a new batch is released.
+- **CEO** - The CEO can reassign other roles and change the addresses of our dependent smartcontracts. It is also the only role that can unpause the platform or any specific contract. It is initially set to the address that deployed the smart contract, in the contract constructor.
+- **CFO** - The CFO is the role that manages all funds in the platform. It is responsible for withdrawing the entry fees, also withdraws the funds from all investment contracts as well as the subsequent refill of the contracts.
+- **User** - The user can mint a Membership card. Without the Membership card, the user will not be allowed to do anything else
+- **Membership carded user** - A user with a Membership card. This user is able to interact with every level 1 investment. By progressing to each level, the user is able to invest in same-level cars, without losing the ability to invest in lower levels.
+- **Allowed contracts (abstract actor)** - This actor is responsible for the management of funds in SLLogics contract. This role is given to SLCore in order to deal with the payments (the funds are stored in SLLogics), as well as updating the Membership card price when a new batch is released.
 
 <!-- TOC --><a name="features-"></a>
+
 ### Features 🕊
 
 Something Legendary has the following features:
@@ -93,14 +101,15 @@ Something Legendary has the following features:
 - Change CEO (CEO)
 
 <!-- TOC --><a name="use-cases-"></a>
+
 ### Use cases ⛹️‍♀️
 
 1. The investment contract has an estimated end date, but this can be changed due to fewer investments than expected and an agreement with the seller of the car.
 2. When the investment contract reaches the maximum or reaches the end date, the CFO will withdraw all tokens to begin the process, from this moment on, this contract will be impossible to invest in. After the process of restoration and selling is completed, the CFO sets the profit rate and refills the contract, with the previous total investment plus the necessary to cover the profit rates of the users.
 3. When a new entry batch is created, the CEO can set a new price for the batch and a new uri for this token.
 
-
 <!-- TOC --><a name="technical-requirements-"></a>
+
 ## Technical requirements 😮‍💨
 
 This project has been developed with Solidity language, using Hardhat as a
@@ -110,31 +119,31 @@ their GitHub.
 
 In the project folder, the following structure is found:
 
-[Link](https://tree.nathanfriend.io/?s=(%27optibs!(%27fancy!true~fullPath!false~trailxgSlash!true~rootDot!false)~X(%27X%27SomethxgLegendary-SmartV4artifacO4node_modules4typechax-types4V*CoxT87Y7IKW7IHBaseQCoreQLevelsQLogicsQMicroSloO7H9.sol4scripO*deploy6deployIK6iK5kL16iK10kL26iK15kL3JJPayWTokenJ9J9L26totalSupply.O4t8s*%20YGIKWGLogicsG9GUserPathsT8.O%5Cn4utils%20*%20addresses.O4.envTemplate4.mocharcNflow.md4hardhat.cbfig.O4Z-lockNZNREADME.md4yarn.lock%27)~versib!%271%27)*4q%204%5Cnq6.O*7.sol*8est9PuzzleGT86%20HSLPermissibsQJ6mxtKnv8N.jsb4OtsQ7SLVcbtracOWmentXsource!YFactoryZpackagebonq%20%20xin%01xqbZYXWVQONKJHG98764*)
+[Link](<https://tree.nathanfriend.io/?s=(%27optibs!(%27fancy!true~fullPath!false~trailxgSlash!true~rootDot!false)~X(%27X%27SomethxgLegendary-SmartV4artifacO4node_modules4typechax-types4V*CoxT87Y7IKW7IHBaseQCoreQLevelsQLogicsQMicroSloO7H9.sol4scripO*deploy6deployIK6iK5kL16iK10kL26iK15kL3JJPayWTokenJ9J9L26totalSupply.O4t8s*%20YGIKWGLogicsG9GUserPathsT8.O%5Cn4utils%20*%20addresses.O4.envTemplate4.mocharcNflow.md4hardhat.cbfig.O4Z-lockNZNREADME.md4yarn.lock%27)~versib!%271%27)*4q%204%5Cnq6.O*7.sol*8est9PuzzleGT86%20HSLPermissibsQJ6mxtKnv8N.jsb4OtsQ7SLVcbtracOWmentXsource!YFactoryZpackagebonq%20%20xin%01xqbZYXWVQONKJHG98764*>)
 
 SomethingLegendary-Smartcontracts/
 
+```
 ├── artifacts
-
 ├── node_modules
-
 ├── typechain-types
-
 ├── contracts/
-
+│   ├── ASLBase.sol
 │   ├── CoinTest.sol
-
 │   ├── Factory.sol
-
+│   ├── IFactory.sol
 │   ├── Investment.sol
+│   ├── ISLCore.sol
+│   ├── ISLLogics.sol
 │   ├── ISLPermissions.sol
 │   ├── SLBase.sol
 │   ├── SLCore.sol
+│   ├── SLCoreTest.sol
 │   ├── SLLevels.sol
 │   ├── SLLogics.sol
 │   ├── SLMicroSlots.sol
 │   ├── SLPermissions.sol
-│   └── SLPuzzle.sol
+│   └── SLPuzzles.sol
 ├── scripts/
 │   ├── deploy.ts
 │   ├── deployInvest.ts
@@ -145,13 +154,16 @@ SomethingLegendary-Smartcontracts/
 │   ├── mintPaymentToken.ts
 │   ├── mintPuzzle.ts
 │   ├── mintPuzzleL2.ts
-│   └── totalSupply.ts
+│   └── mintPuzzleL3.ts
 ├── tests/
 │   ├── FactoryTest.ts
 │   ├── InvestmentTest.ts
 │   ├── LogicsTest.ts
+│   ├── PermissionsTest.ts
 │   ├── PuzzleTest.ts
-│   └── UserPathsTest.ts
+│   ├── SLLogicsTest.ts
+│   ├── SLMicroSLotsTest.ts
+│   └── UserPathsTests.ts
 ├── utils /
 │   └── addresses.ts
 ├── .envTemplate
@@ -162,11 +174,12 @@ SomethingLegendary-Smartcontracts/
 ├── package.json
 ├── [README.md](http://readme.md/)
 └── yarn.lock
+```
 
 Start with “Getting Started” to find all the basic information about the project structure and scripts that are required to test and deploy the contracts.
 
-
 <!-- TOC --><a name="quick-overview-"></a>
+
 ### Quick overview 👀
 
 Inside the ./contracts folder, Factory.sol contains the smart contract
@@ -182,8 +195,8 @@ contract. An etherscan key is set to configure its different
 functionalities directly from the repo. More information about this file’s
 configuration can be found in the Hardhat Documentation.
 
-
 <!-- TOC --><a name="architecture-overview-"></a>
+
 ### Architecture Overview 🏛
 
 !https://prod-files-secure.s3.us-west-2.amazonaws.com/5741542a-1f4b-44fa-aeb9-899d9444ff99/4887767a-d260-4d10-b7c5-655a73d5a670/Untitled.png
@@ -193,25 +206,26 @@ Something Legendary Smartcontracts schema
 This schema can be divided into some parts of interest:
 
 - SLCore group:
-    - Responsible for the gamification of the project.
-    - NFTs regarding both levels and puzzles are created and managed here.
+  - Responsible for the gamification of the project.
+  - NFTs regarding both levels and puzzles are created and managed here.
 - Investments Group:
-    - Responsible for the deployment of Investment smartcontracts.
-    - Responsible for holding information regarding user total investment and user total investment per level.
+  - Responsible for the deployment of Investment smartcontracts.
+  - Responsible for holding information regarding user total investment and user total investment per level.
 - Logics groups:
-    - Responsible for payment of membership card
-    - Responsible for holding info (uri/price) of membership card batches
-    - Responsible for ensuring that a user is eligible to claim a puzzle piece.
+  - Responsible for payment of membership card
+  - Responsible for holding info (uri/price) of membership card batches
+  - Responsible for ensuring that a user is eligible to claim a puzzle piece.
 - Permissions group:
-    - Responsible for access control and role management.
-    - CEO and CFO roles are defined here.
+  - Responsible for access control and role management.
+  - CEO and CFO roles are defined here.
 
 <!-- TOC --><a name="dependencies-"></a>
+
 ### Dependencies 🦿
 
 **Package manager**
 
-- [*Yarn](https://yarnpkg.com/)*:
+- [\*Yarn](https://yarnpkg.com/)\*:
 - **Version:** 3.3.0
 - **Description:** Yarn is a popular package manager for JavaScript, often used for managing project dependencies.
 
@@ -219,16 +233,16 @@ These dependencies are crucial for developing, testing, and deploying your Ether
 
 **Development dependencies**
 
-- [*Hardhat](https://hardhat.org/):**
+- [\*Hardhat](https://hardhat.org/):\*\*
 - **Version:** ^2.12.7
 - **Description:** Hardhat is a development environment for Ethereum that makes it easy to compile, deploy, and test your smart contracts.
-- [*Ethers.js](https://docs.ethers.io/v5/):**
+- [\*Ethers.js](https://docs.ethers.io/v5/):\*\*
 - **Version:** ^5.0.0
 - **Description:** Ethers.js is a JavaScript library for interacting with Ethereum. It's widely used for building Ethereum applications, including smart contract interactions.
-- [*Hardhat Ethers](https://hardhat.org/plugins/nomiclabs-hardhat-ethers.html):**
+- [\*Hardhat Ethers](https://hardhat.org/plugins/nomiclabs-hardhat-ethers.html):\*\*
 - **Version:** ^2.2.2
 - **Description:** This plugin allows for seamless integration between Hardhat and the Ethers.js library, making it easier to work with Ethereum in your development environment.
-- [*Hardhat Etherscan](https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html):**
+- [\*Hardhat Etherscan](https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html):\*\*
 - **Version:** ^3.0.0
 - **Description:** This plugin provides Hardhat integration with Etherscan for easy verification of smart contracts on the Ethereum blockchain.
 
@@ -236,39 +250,39 @@ These dependencies are crucial for developing, testing, and deploying your Ether
 
 - **Version:** ^1.0.8
 - **Description:** This plugin is used for generating gas consumption reports, which can help optimize your smart contracts.
-- [*TypeScript](https://www.typescriptlang.org/):**
+- [\*TypeScript](https://www.typescriptlang.org/):\*\*
 - **Version:** >=4.5.0
 - **Description:** TypeScript is a statically typed superset of JavaScript, commonly used for building robust and maintainable smart contracts and applications.
-- [*Typechain](https://github.com/ethereum-ts/TypeChain):**
+- [\*Typechain](https://github.com/ethereum-ts/TypeChain):\*\*
 - **Version:** ^8.1.0
 - **Description:** Typechain generates TypeScript typings for your Ethereum smart contracts, making it easier to work with contracts in a type-safe manner.
-- [*Chai](https://www.chaijs.com/):**
+- [\*Chai](https://www.chaijs.com/):\*\*
 - **Version:** ^4.2.0
 - **Description:** Chai is an assertion library for JavaScript, often used in combination with Mocha for writing tests.
-- [*Mocha](https://mochajs.org/):**
+- [\*Mocha](https://mochajs.org/):\*\*
 - **Version:** ^10.1.0
 - **Description:** Mocha is a popular JavaScript test framework used for writing and running tests for your smart contracts.
 
 **Ethereum Development Dependencies**
 
-- [*OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/4.x/):**
+- [\*OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/4.x/):\*\*
 - **Version:** ^4.8.0
 - **Description:** OpenZeppelin Contracts provides a collection of reusable smart contracts for building secure and audited Ethereum applications.
-- [*Chainlink Contracts](https://chain.link/):**
+- [\*Chainlink Contracts](https://chain.link/):\*\*
 - **Version:** ^0.5.1
 - **Description:** Chainlink Contracts provide decentralized oracles for Ethereum, enabling external data to be accessed by your smart contracts.
 
 **Utility Dependencies**
 
-- [*dotenv](https://www.npmjs.com/package/dotenv):**
+- [\*dotenv](https://www.npmjs.com/package/dotenv):\*\*
 - **Version:** ^16.0.3
 - **Description:** dotenv is a zero-dependency module for loading environment variables from a `.env` file into `process.env`.
-- [*Solidity Coverage](https://github.com/sc-forks/solidity-coverage):**
+- [\*Solidity Coverage](https://github.com/sc-forks/solidity-coverage):\*\*
 - **Version:** ^0.8.0
 - **Description:** Solidity Coverage is a code coverage tool specifically designed for Solidity smart contracts.
 
-
 <!-- TOC --><a name="contract-information-"></a>
+
 ### Contract Information ℹ️
 
 This section contains detailed information (their purpose, assets, functions,
@@ -296,7 +310,7 @@ function deployNew(
 	uint256 _totalInvestment,
 	address _paymentTokenAddress,
 	uint256 _level
-) external isCEO isNotGloballyStoped returns (address) {}
+) external isCEO isNotGloballyStopped returns (address) {}
 
 ```
 
@@ -312,7 +326,7 @@ function deployNew(
 /// @custom:intent If SLCore gets compromised, there's a way to fix the factory without the need of redeploying
 function setSLCoreAddress(
 	address _slCoreAddress
-) external isCEO isNotGloballyStoped {}
+) external isCEO isNotGloballyStopped {}
 
 ```
 
@@ -422,7 +436,7 @@ error NotCEO();
 ```solidity
 /// @notice Verifies if platform is paused.
 /// @dev If platform is paused, the whole contract is stopped
-modifier isNotGloballyStoped() {}
+modifier isNotGloballyStopped() {}
 
 /// @notice Verifies if user is CEO.
 /// @dev CEO has the right to interact with: deployNew() and setSLCoreAddress()
@@ -444,7 +458,7 @@ function deployNew(
     uint256 _totalInvestment,
     address _paymentTokenAddress,
     uint256 _level
-) external isCEO isNotGloballyStoped returns (address) {}
+) external isCEO isNotGloballyStopped returns (address) {}
 
 /// @notice Updates the SLCore address.
 /// @dev The function requires the caller to be a CEO and the platform to be active. It also checks if the _slCoreAddress is not a zero address.
@@ -453,7 +467,7 @@ function deployNew(
 /// @custom:intent If SLCore gets compromised, there's a way to fix the factory without the need of redeploying
 function setSLCoreAddress(
     address _slCoreAddress
-) external isCEO isNotGloballyStoped {}
+) external isCEO isNotGloballyStopped {}
 
 ```
 
@@ -527,7 +541,7 @@ constructor(
 function invest(
     uint256 _amount,
     uint256 _paymentToken
-) public nonReentrant isAllowed isProgress isNotGloballyStoped {}
+) public nonReentrant isAllowed isProgress isNotGloballyStopped {}
 
 ```
 
@@ -547,7 +561,7 @@ function withdraw()
     nonReentrant
     isAllowed
     isWithdrawOrRefunding
-    isNotGloballyStoped
+    isNotGloballyStopped
 {}
 
 ```
@@ -561,7 +575,7 @@ function withdraw()
 ```solidity
 // @notice Allows the CFO to withdraw funds for processing.
 /// @dev The function requires the contract to be in Process status and the platform to be active.
-function withdrawSL() external isProcess isNotGloballyStoped isCFO {}
+function withdrawSL() external isProcess isNotGloballyStopped isCFO {}
 
 // @notice Allows the CFO to refill the contract.
 /// @dev The function requires the contract to be in Process status and the platform to be active.
@@ -570,7 +584,7 @@ function withdrawSL() external isProcess isNotGloballyStoped isCFO {}
 function refill(
     uint256 _amount,
     uint256 _profitRate
-) public nonReentrant isNotGloballyStoped isProcess isCFO {}
+) public nonReentrant isNotGloballyStopped isProcess isCFO {}
 
 ```
 
@@ -779,7 +793,7 @@ error NotCFO();
 ```solidity
 /// @notice Verifies if the platform is paused.
 /// @dev If the platform is paused, the whole contract is stopped.
-modifier isNotGloballyStoped() {}
+modifier isNotGloballyStopped() {}
 
 /// @notice Verifies if the contract is in progress status.
 /// @dev If the contract is in progress, the only available functions are invest() and changeStatus().
@@ -816,16 +830,16 @@ modifier isCFO() {}
 function invest(
     uint256 _amount,
     uint256 _paymentToken
-) public nonReentrant isAllowed isProgress isNotGloballyStoped {}
+) public nonReentrant isAllowed isProgress isNotGloballyStopped {}
 
 /// @notice Allows a user to withdraw their investment.
 /// @dev The function requires the contract to be in Withdraw or Refunding status and the platform to be active.
 /// @custom:logic If the contract is in Refunding status, profit will be 0, and users will withdraw exactly the same amount invested.
-function withdraw() external nonReentrant isAllowed isWithdrawOrRefunding isNotGloballyStoped {}
+function withdraw() external nonReentrant isAllowed isWithdrawOrRefunding isNotGloballyStopped {}
 
 /// @notice Allows the CFO to withdraw funds for processing.
 /// @dev The function requires the contract to be in Process status and the platform to be active.
-function withdrawSL() external isProcess isNotGloballyStoped isCFO {}
+function withdrawSL() external isProcess isNotGloballyStopped isCFO {}
 
 /// @notice Allows the CFO to refill the contract.
 /// @dev The function requires the contract to be in Process status and the platform to be active.
@@ -834,7 +848,7 @@ function withdrawSL() external isProcess isNotGloballyStoped isCFO {}
 function refill(
     uint256 _amount,
     uint256 _profitRate
-) public nonReentrant isNotGloballyStoped isProcess isCFO {}
+) public nonReentrant isNotGloballyStopped isProcess isCFO {}
 
 ```
 
@@ -1501,7 +1515,7 @@ function userAllowedToClaimPiece(
 
 **SLBase.sol**
 
-SLBase is the 2nd contract from the  inheritance schema.
+SLBase is the 2nd contract from the inheritance schema.
 
 - Centralizes information on this contract, making sure that all of the ERC1155 communications and memory writing calls happen through here
 - Implements core functions and instantiates unimplemented functions for later contracts in the line to implement
@@ -1821,7 +1835,7 @@ function _claimPiece(address _receiver, uint256 _puzzleLevel) internal {}
 
 **SLLevels.sol**
 
-SLLevels is the 3rd contract from the  inheritance schema.
+SLLevels is the 3rd contract from the inheritance schema.
 
 - Every level-related function is implemented here, as the modifiers and getters
 - No function can be called externally outside another later created in the schema
@@ -2225,9 +2239,9 @@ function mintEntry() public isEntryMintNotPaused nonReentrant {}
 
 1. Only a user that has a membership card can mint puzzle pieces nfts.
 2. Each puzzle piece requires X investment to be claimed:
-    1. Level 1: 5000$ per piece
-    2. Level 2: 10000$ per piece
-    3. Level 3: 15000$ per piece
+   1. Level 1: 5000$ per piece
+   2. Level 2: 10000$ per piece
+   3. Level 3: 15000$ per piece
 3. The contract computes the user level, meaning the user can only mint puzzle pieces from the level he/she is one.
 4. This function can be externally paused by SLPermissions.sol
 5. This action happens through:
@@ -2243,10 +2257,10 @@ function claimPiece() public isPuzzleMintNotPaused nonReentrant userHasLevel(1) 
 
 1. Only a user that has a membership card can mint level nfts.
 2. Each level requires 10 unique pieces from the previous level:
-    1. Reach/mint level 2 NFT: 10 unique level 1 puzzle pieces
-    2. Reach/mint level 3 NFT: 10 unique level 2 puzzle pieces
-    3. Reach/mint level 3 completion NFT: 10 unique level 3 puzzle pieces
-3. The contract computes the user level, meaning the user can only mint the level he/she is one.
+   1. Reach/mint level 2 NFT: 10 unique level 1 puzzle pieces
+   2. Reach/mint level 3 NFT: 10 unique level 2 puzzle pieces
+   3. Reach/mint FINAL NFT: 10 unique level 3 puzzle pieces
+3. The contract computes the user level, meaning the user can only mint the level they are in.
 4. This function can be externally paused by SLPermissions.sol
 5. This action happens through:
 
@@ -2261,9 +2275,9 @@ function claimLevel() public isPuzzleMintNotPaused nonReentrant userHasLevel(1) 
 
 1. Only the CEO is allowed to generate membership card batches.
 2. To create a new batch the CEO needs to send a valid:
-    1. batch cap - the total amount of membership cards in the collection
-    2. price - the price for each nft of the collection
-    3. token uri - the uri for the collection of membership cards containing the url of the image and some stats
+   1. batch cap - the total amount of membership cards in the collection
+   2. price - the price for each nft of the collection
+   3. token uri - the uri for the collection of membership cards containing the url of the image and some stats
 3. This function can be externally paused by SLPermissions.sol
 4. This action happens through:
 
@@ -2349,7 +2363,7 @@ function claimLevel() public isPuzzleMintNotPaused nonReentrant userHasLevel(1) 
 
 // Generates a new entry batch.
 // This function can only be called by the CEO and when the system is not globally stopped.
-function generateNewEntryBatch(uint256 _cap, uint256 _entryPrice, string memory _tokenUri) public isNotGloballyStoped isCEO {
+function generateNewEntryBatch(uint256 _cap, uint256 _entryPrice, string memory _tokenUri) public isNotGloballyStopped isCEO {
     entryIdsArray.push(mountEntryValue(_cap, 0));
     ISLLogics(slLogicsAddress).setEntryPrice(_entryPrice, _tokenUri);
 }
@@ -2357,16 +2371,19 @@ function generateNewEntryBatch(uint256 _cap, uint256 _entryPrice, string memory 
 ```
 
 <!-- TOC --><a name="getting-started-"></a>
+
 ## Getting started 🚀
 
 Here is a step-by-step guide on how to run the Something Legendary environment on your local machine.
 
 <!-- TOC --><a name="prerequisites-"></a>
+
 ### **Prerequisites 💺**
 
 Before you begin, make sure you have [Yarn](https://yarnpkg.com/) and **`git`** installed on your system. If you don't have Yarn installed, you can download and install it from the [official website](https://yarnpkg.com/). You can install **`git`** from the [official website](https://git-scm.com/downloads).
 
 <!-- TOC --><a name="clone-the-repository-"></a>
+
 ### **Clone the Repository ㊢**
 
 1. Open your terminal or command prompt.
@@ -2381,6 +2398,7 @@ cd SomethingLegendary-Smartcontracts
 ```
 
 <!-- TOC --><a name="install-dependencies-"></a>
+
 ### **Install Dependencies 🧑‍🔧**
 
 1. In the project directory, run the following command to install the project's dependencies using Yarn:
@@ -2393,6 +2411,7 @@ yarn install
 Yarn will fetch and install all the necessary packages and libraries listed in the **`package.json`** file. This may take a moment to complete.
 
 <!-- TOC --><a name="update-the-env-file-"></a>
+
 ### Update the .env file 🚑
 
 The variables are later used in the code, so to have the full experience, feel the .envExample and remove the “Example” part.
@@ -2402,97 +2421,119 @@ The variables are later used in the code, so to have the full experience, feel t
 - Etherscan - https://docs.etherscan.io/getting-started/viewing-api-usage-statistics
 
 ```solidity
-ALCHEMY_API_KEY_URL= 
-PRIVATE_KEY= 
-ETHERSCAN_API_KEY= 
-CEO_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # <- Change this if you are going to deploy outside or hardhat environment 
-CFO_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # <- Change this if you are going to deploy outside or hardhat environment 
+ALCHEMY_API_KEY_URL=
+PRIVATE_KEY=
+ETHERSCAN_API_KEY=
+CEO_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # <- Change this if you are going to deploy outside or hardhat environment
+CFO_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # <- Change this if you are going to deploy outside or hardhat environment
 
 ```
 
 <!-- TOC --><a name="run-the-project-"></a>
+
 ### **Run the Project 🔥**
 
 Now that you've cloned the repository and installed the dependencies, you're ready to run the project. Depending on the specifics of your project, provide instructions for starting or running your project's development environment or scripts.
 
 <!-- TOC --><a name="smart-contract-scripts-"></a>
+
 ## Smart Contract Scripts 💻
 
 This repository contains a set of Hardhat scripts for deploying and interacting with Ethereum smart contracts. Below is a list of available scripts and their explanations.
 
 <!-- TOC --><a name="deploy-smart-contract-localhost-"></a>
+
 ### Deploy Smart Contract (Localhost) 🚓
 
 - **Script Name:** `deploy`
 - **Description:** This script deploys the smart contracts on a local Ethereum network for testing and development purposes.
 
 <!-- TOC --><a name="deploy-smart-contract-mumbai-testnet-"></a>
-### Deploy Smart Contract (Mumbai Testnet)  🚲
+
+### Deploy Smart Contract (Mumbai Testnet) 🚲
 
 - **Script Name:** `deployt`
 - **Description:** This script deploys the smart contracts on the Mumbai testnet, a test network for Polygon (formerly Matic).
 
 <!-- TOC --><a name="mint-tokens-localhost-"></a>
-### Mint Tokens (Localhost) 🥺
+
+### Mint Levels (Localhost) 🥺
 
 - **Script Name:** `mint`
-- **Description:** This script is used to mint the membership card.
+- **Description:** This script is used to mint the membership card and the levels.
 
 <!-- TOC --><a name="mint-payment-token-localhost-"></a>
+
 ### Mint Payment Token (Localhost) 💰
 
 - **Script Name:** `mintPT`
 - **Description:** This script is used to mint payment tokens on a local Ethereum network.
 
 <!-- TOC --><a name="mint-puzzle-token-localhost-"></a>
+
 ### Mint Puzzle Token (Localhost) 🧩
 
 - **Script Name:** `mintPuzzle`
 - **Description:** This script is used to mint puzzle tokens on a local Ethereum network. It will give the 10 unique puzzle pieces nfts from level 1.
 
 <!-- TOC --><a name="mint-puzzle-token-level-2-localhost-"></a>
+
 ### Mint Puzzle Token Level 2 (Localhost) 🧩
 
 - **Script Name:** `mintPuzzlel2`
 - **Description:** This script is used to mint puzzle tokens on a local Ethereum network. It will give the 10 unique puzzle pieces nfts from level 2.
 
+<!-- TOC --><a name="mint-puzzle-token-level-3-localhost-"></a>
+
+### Mint Puzzle Token Level 3 (Localhost) 🧩
+
+- **Script Name:** `mintPuzzlel3`
+- **Description:** This script is used to mint puzzle tokens on a local Ethereum network. It will give the 10 unique puzzle pieces nfts from level 3.
+
 <!-- TOC --><a name="invest-localhost-"></a>
+
 ### Invest (Localhost) 🤑
 
 - **Script Name:** `invest`
 - **Description:** This script allows for investment, typically with a value of 2500, on a local Ethereum network.
 
 <!-- TOC --><a name="invest-5k-with-level-1-contract-localhost-"></a>
+
 ### Invest 5k with Level 1 Contract (Localhost) 🤑💰
 
 - **Script Name:** `invest5kl1`
 - **Description:** This script allows for a 5,000 investment in a level 1 car on a local Ethereum network. This script deploys a Level 1 contract each time it runs.
 
 <!-- TOC --><a name="invest-10k-with-level-2-access-localhost"></a>
+
 ### Invest 10k with Level 2 Access (Localhost)💰💰
 
 - **Script Name:** `invest10kl2`
 - **Description:** This script allows for a 10,000 investment in a level 2 car on an Ethereum network. This script deploys a Level 2 contract each time it runs.
 
 <!-- TOC --><a name="invest-15k-with-level-3-access-localhost"></a>
+
 ### Invest 15k with Level 3 Access (Localhost)💰🤑💰
 
 - **Script Name:** `invest15kl3`
 - **Description:** This script allows for a 15,000 investment in a level 3 car on a local Ethereum network. This script deploys a Level 3 contract each time it runs.
 
 <!-- TOC --><a name="deploy-investment-contract-localhost-"></a>
+
 ### Deploy Investment Contract (Localhost) 🕊
 
 - **Script Name:** `deployInvest`
 - **Description:** This script deploys an investment contract on a local Ethereum network. The investment will be level 1
 
 <!-- TOC --><a name="compile-contracts-"></a>
+
 ### Compile Contracts 📚
 
 - **Script Name:** `compile`
 - **Description:** This script is used to clean and compile the smart contracts.
 
 <!-- TOC --><a name="start-local-hardhat-node-"></a>
+
 ### Start Local Hardhat Node 🕸
 
 - **Script Name:** `bc`

@@ -41,7 +41,7 @@ contract SLPermissions {
     /// @dev When true, the claiming of new pieces or puzzles is disallowed.
     uint256 public pausedPuzzleMint = 0;
     /// @notice The global investment pause.
-    /// @dev When true, ervery investment in the platform is stoped.
+    /// @dev When true, ervery investment in the platform is stopped.
     uint256 public pausedInvestments = 0;
 
     ///
@@ -82,8 +82,9 @@ contract SLPermissions {
     modifier onlyCLevel() {
         if (msg.sender != ceoAddress && msg.sender != cfoAddress) {
             revert NotCLevel();
+        } else {
+            _;
         }
-        _;
     }
 
     /// @notice external function for CEO verification

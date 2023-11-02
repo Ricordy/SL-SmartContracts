@@ -12,13 +12,17 @@ contract SLPuzzles is SLLevels {
     ///
 
     ///Added computation of the user level so user doesnt input his level when claiming
-    /// @inheritdoc	SLBase
+    /// @inheritdoc	ASLBase
     function verifyClaim(
         address _claimer,
         uint256 _tokenIdOrPuzzleLevel
     ) public view override {
         //Check if given piece is a puzzle piece or a level
-        if (_tokenIdOrPuzzleLevel == 31 || _tokenIdOrPuzzleLevel == 30) {
+        if (
+            _tokenIdOrPuzzleLevel == 32 ||
+            _tokenIdOrPuzzleLevel == 31 ||
+            _tokenIdOrPuzzleLevel == 30
+        ) {
             //Check if user has the ability to burn the puzzle piece
             _userAllowedToBurnPuzzle(_claimer, _tokenIdOrPuzzleLevel);
         } else if (
@@ -41,7 +45,7 @@ contract SLPuzzles is SLLevels {
         }
     }
 
-    /// @inheritdoc	SLBase
+    /// @inheritdoc	ASLBase
     function _random() public view override returns (uint8) {
         return
             uint8(
@@ -57,10 +61,10 @@ contract SLPuzzles is SLLevels {
             );
     }
 
-    /// @inheritdoc	SLBase
+    /// @inheritdoc	ASLBase
     function _getPuzzleCollectionIds(
         uint256 level
-    ) public view override returns (uint256[] memory) {
+    ) public pure override returns (uint256[] memory) {
         uint256[] memory ids = new uint256[](10);
         if (level == 1) {
             ids = getMultiplePositionsXInDivisionByY(COLLECTION_IDS, 1, 10, 2);
@@ -74,7 +78,7 @@ contract SLPuzzles is SLLevels {
         return ids;
     }
 
-    /// @inheritdoc	SLBase
+    /// @inheritdoc	ASLBase
     function _dealWithPuzzleClaiming(
         address _receiver,
         uint256 _puzzleLevel

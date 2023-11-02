@@ -8,8 +8,6 @@ import {
   CoinTest__factory,
   Factory,
   Factory__factory,
-  Investment,
-  Investment__factory,
   SLCore,
   SLCore__factory,
   SLLogics,
@@ -18,16 +16,9 @@ import {
   SLPermissions__factory,
 } from "../typechain-types";
 
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
-
-const INVESTMENT_1_AMOUNT = 100000,
-  PAYMENT_TOKEN_AMOUNT = 20000,
-  CONTRACT_NUMBER_ID = 1,
+const PAYMENT_TOKEN_AMOUNT = 20000,
   ENTRY_BATCH_CAP = 1000,
   ENTRY_BATCH_PRICE = 100,
-  INVESTED_LEVEL_1 = 3000,
-  INVESTED_LEVEL_2 = 5000,
-  INVESTED_LEVEL_3 = 7000,
   ENTRY_TOKEN_URI = "TOKEN_URI";
 
 function withDecimals(toConvert: number) {
@@ -39,7 +30,6 @@ describe("Logics Contract Tests", async () => {
   let puzzleContract: SLCore,
     logcisContract: SLLogics,
     paymentTokenContract: CoinTest,
-    paymentTokenContract2: CoinTest,
     factoryContract: Factory,
     permissionsContract: SLPermissions,
     totalAccounts: number,
@@ -180,8 +170,9 @@ describe("Logics Contract Tests", async () => {
       expect(currentEntryPrice).to.not.be.equal(newEntryPrice);
     });
     it("payEntryFee() must only be called by SLCore", async () => {
-      const { logcisContract, paymentTokenContract, investor1, ceo, cfo } =
-        await loadFixture(ownerAndInvestor1AbleToMintFixture);
+      const { logcisContract, investor1 } = await loadFixture(
+        ownerAndInvestor1AbleToMintFixture
+      );
 
       await puzzleContract
         .connect(ceo)
@@ -199,8 +190,9 @@ describe("Logics Contract Tests", async () => {
     });
 
     it("only contract owner(or assigned CEO) can withdraw tokens", async () => {
-      const { logcisContract, paymentTokenContract, investor1 } =
-        await loadFixture(deployContractFixture);
+      const { logcisContract, investor1 } = await loadFixture(
+        deployContractFixture
+      );
 
       await expect(
         logcisContract.connect(investor1).withdrawTokens(investor1.address)
@@ -213,7 +205,7 @@ describe("Logics Contract Tests", async () => {
 
   describe("Token Transfer", async () => {
     it("afetr payEntryFee() contract balance should be previousBalance + entryFee", async () => {
-      const { logcisContract, paymentTokenContract, investor1, ceo } =
+      const { logcisContract, paymentTokenContract, investor1 } =
         await loadFixture(ownerAndInvestor1AbleToMintFixture);
 
       await puzzleContract
