@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./ISLPermissions.sol";
 import "./ISLCore.sol";
 
@@ -11,7 +10,7 @@ import "./ISLCore.sol";
 /// @author Something Legendary
 /// @notice This contract is used for managing an investment.
 /// @dev The contract includes functions for investing, withdrawing, processing, and refilling.
-contract Investment is ERC20, ReentrancyGuard {
+contract Investment is ERC20 {
     using SafeERC20 for IERC20;
 
     /// @notice Enum for the status of the contract.
@@ -218,7 +217,7 @@ contract Investment is ERC20, ReentrancyGuard {
     function invest(
         uint256 _amount,
         uint256 _paymentToken
-    ) public nonReentrant isAllowed isProgress isNotGloballyStopped {
+    ) public isAllowed isProgress isNotGloballyStopped {
         //Check is payment token selection is valid
         if (_paymentToken > 1) {
             revert InvalidPaymentId(_paymentToken, 0, 1);
@@ -278,7 +277,6 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @custom:logic If contract is in Refunding status, profit will be 0 and users will withdraw exactly the same amount invested
     function withdraw()
         external
-        nonReentrant
         isAllowed
         isWithdrawOrRefunding
         isNotGloballyStopped
@@ -338,7 +336,7 @@ contract Investment is ERC20, ReentrancyGuard {
     function refill(
         uint256 _amount,
         uint256 _profitRate
-    ) public nonReentrant isNotGloballyStopped isProcess isCFO {
+    ) public isNotGloballyStopped isProcess isCFO {
         //Verify if _amount is the total needed to fulfill users withdraw
         if (
             TOTAL_INVESTMENT + ((TOTAL_INVESTMENT * _profitRate) / 100) !=
@@ -357,7 +355,7 @@ contract Investment is ERC20, ReentrancyGuard {
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
         // Transfer tokens from caller to contract
-        IERC20(PAYMENT_TOKEN_ADDRESS_0).transferFrom(
+        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransferFrom(
             msg.sender,
             address(this),
             _amount * 10 ** decimals()
@@ -477,7 +475,7 @@ contract Investment is ERC20, ReentrancyGuard {
     /// @notice Changes the status of the contract.
     /// @dev The function requires the caller to be a CEO.
     /// @param _newStatus The new status for the contract.
-    function changeStatus(Status _newStatus) public isCEO nonReentrant {
+    function changeStatus(Status _newStatus) public isCEO {
         _changeStatus(_newStatus);
     }
 

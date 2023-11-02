@@ -147,9 +147,9 @@ contract Factory {
         for (uint256 i = 1; i <= 3; ++i) {
             //Cicle through every investment in every level
             uint256 numberOfContracts = deployedContracts[i].length;
-            for (uint256 j; j < numberOfContracts; j++) {
+            for (uint256 j = 0; j < numberOfContracts; j++) {
                 //sum value to user total
-                userTotal += ERC20(deployedContracts[i][j]).balanceOf(_user);
+                userTotal += IERC20(deployedContracts[i][j]).balanceOf(_user);
             }
         }
     }
@@ -165,9 +165,9 @@ contract Factory {
     ) external view returns (uint256 userTotal) {
         //Cicle through every investment in given level
         uint256 numberOfContracts = deployedContracts[_level].length;
-        for (uint256 i; i < numberOfContracts; ++i) {
+        for (uint256 i = 0; i < numberOfContracts; ++i) {
             //sum value to user total
-            userTotal += ERC20(deployedContracts[_level][i]).balanceOf(_user);
+            userTotal += IERC20(deployedContracts[_level][i]).balanceOf(_user);
         }
     }
 
@@ -179,7 +179,7 @@ contract Factory {
         address _contractAddress
     ) external view returns (uint256 userTotal) {
         //Get balance of caller in contract
-        userTotal = ERC20(_contractAddress).balanceOf(msg.sender);
+        userTotal = IERC20(_contractAddress).balanceOf(msg.sender);
     }
 
     /// @notice Returns the address of the last deployed Investment contract at a specific level.
