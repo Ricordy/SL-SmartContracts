@@ -642,7 +642,7 @@ describe("Investment Contract Tests", async () => {
             paymentTokenContract2.address
           );
       });
-      it("Should mint the exact same value of ERC20 tracker token as the amount investment", async () => {
+      it("Should mint the exact same value of ERC20 tracker token as the amount invested", async () => {
         const { investmentContract, investor1 } = await loadFixture(
           ownerAndInvestorApprovedTokenToSpend
         );
