@@ -922,7 +922,10 @@ describe("Puzzle Contract", async () => {
 
       await expect(
         puzzleContract.connect(investor1).claimLevel()
-      ).to.be.revertedWithCustomError(puzzleContract, "IncorrectUserLevel");
+      ).to.be.revertedWithCustomError(
+        puzzleContract,
+        "UserMustHaveCompletePuzzle"
+      );
     });
   });
   describe("Pre-claim Puzzle NFT Level 3", async () => {
@@ -1057,7 +1060,7 @@ describe("Puzzle Contract", async () => {
         const { puzzleContract } = await loadFixture(deployContractFixture);
         await expect(
           puzzleContract._userAllowedToBurnPuzzle(investor1.address, 10003)
-        ).to.revertedWith("Not a valid level token ID");
+        ).to.revertedWithCustomError(puzzleContract, "InvalidLevel");
       });
     });
     describe("_getLevelTokenIds", () => {
@@ -1091,7 +1094,7 @@ describe("Puzzle Contract", async () => {
         const { puzzleContract } = await loadFixture(deployContractFixture);
         await expect(
           puzzleContract.verifyClaim(investor1.address, 10003)
-        ).to.revertedWith("Not a valid id");
+        ).to.revertedWithCustomError(puzzleContract, "InvalidTokenID");
       });
     });
     describe("_dealWithPuzzleBurning", () => {

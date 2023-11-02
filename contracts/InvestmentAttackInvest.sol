@@ -23,7 +23,7 @@ contract InvestmentAttackInvest {
         mintERC20(_paymentToken, 5_000_000_000);
         approveERC20(_paymentToken, _spender, _amount);
         approveERC20(_paymentToken, _investmentAddress, 5_000_000_000);
-        investment.invest(100, _paymentToken);
+        investment.invest(100, 0);
     }
 
     function approveERC20(

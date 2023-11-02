@@ -1,3 +1,8 @@
 module.exports = {
-  skipFiles: ["CoreAttackEntry.sol"],
+  skipFiles: [
+    "CoreAttackClaimLevel.sol",
+    "CoreAttackClaimPiece.sol",
+    "CoreAttackEntry.sol",
+    "InvestmentAttackInvest.sol",
+  ],
 };
