@@ -1,25 +1,22 @@
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { expect } from "chai";
+import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import {
   CoinTest,
   Factory,
   Factory__factory,
   Investment,
-  SLCore,
   SLCoreTest,
   SLCoreTest__factory,
-  SLCore__factory,
   SLLogics,
   SLLogics__factory,
   SLPermissions,
   SLPermissions__factory,
 } from "../typechain-types";
-import { Investment__factory } from "../typechain-types/factories/contracts/Investment__factory";
 import { CoinTest__factory } from "../typechain-types/factories/contracts/CoinTest__factory";
-import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
-import { expect } from "chai";
-import { BigNumber } from "ethers";
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+import { Investment__factory } from "../typechain-types/factories/contracts/Investment__factory";
 
 const INVESTMENT_1_AMOUNT = 100_000,
   INVES_AMOUNT = 10_000,
@@ -38,7 +35,6 @@ describe("SLLogics", () => {
     paymentTokenContract2: CoinTest,
     factoryContract: Factory,
     permissionsContract: SLPermissions,
-    totalAccounts: number,
     accounts: SignerWithAddress[],
     owner: SignerWithAddress,
     ceo: SignerWithAddress,
@@ -46,15 +42,12 @@ describe("SLLogics", () => {
     investor1: SignerWithAddress,
     investor2: SignerWithAddress,
     investor3: SignerWithAddress,
-    investmentContract: Investment,
-    ownerBalanceBefore: BigNumber,
-    baseUriFromContract: string;
+    investmentContract: Investment;
 
   async function deployContractFixture() {
     // Puzzle contract needs Factory and PaymentToken address to be deployed
     // Get all signers
     accounts = await ethers.getSigners();
-    totalAccounts = accounts.length;
 
     // Assign used accounts from all signers
     [owner, investor1, investor2, investor3] = accounts;
@@ -140,11 +133,6 @@ describe("SLLogics", () => {
 
     await investmentContract.connect(investor1).invest(INVES_AMOUNT, 0);
 
-    console.log(
-      "Investment : ",
-      await investmentContract.balanceOf(investor1.address)
-    );
-
     return {
       owner,
       ceo,
@@ -162,7 +150,7 @@ describe("SLLogics", () => {
   }
 
   describe("Deployment ", async () => {
-    it(" should not accept _factoryAddress as address(0)", async () => {
+    it("Should not accept _factoryAddress as address(0)", async () => {
       const {
         logicsContractFactory,
         paymentTokenContract,

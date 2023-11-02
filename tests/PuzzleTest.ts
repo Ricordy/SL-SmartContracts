@@ -1060,7 +1060,7 @@ describe("Puzzle Contract", async () => {
         const { puzzleContract } = await loadFixture(deployContractFixture);
         await expect(
           puzzleContract._userAllowedToBurnPuzzle(investor1.address, 10003)
-        ).to.revertedWithCustomError(puzzleContract, "InvalidLevel");
+        ).to.revertedWithCustomError(puzzleContract, "InvalidTokenID");
       });
     });
     describe("_getLevelTokenIds", () => {

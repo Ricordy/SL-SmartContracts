@@ -10,10 +10,8 @@ import {
   Factory__factory,
   Investment,
   Investment__factory,
-  SLCore,
   SLCoreTest,
   SLCoreTest__factory,
-  SLCore__factory,
   SLLogics,
   SLLogics__factory,
   SLPermissions,
@@ -304,7 +302,7 @@ describe("Factory Contract Tests", async () => {
       ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
     });
     it("SLCore address must be set only by CEO", async () => {
-      const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
+      const { factoryContract, paymentTokenContract } = await loadFixture(
         deployContractFixture
       );
       await expect(
@@ -325,9 +323,7 @@ describe("Factory Contract Tests", async () => {
       );
     });
     it("setSLCoreAddress should fail when _slCoreAddress is address(0)", async () => {
-      const { factoryContract, puzzleContract } = await loadFixture(
-        deployContractFixture
-      );
+      const { factoryContract } = await loadFixture(deployContractFixture);
       await expect(
         factoryContract
           .connect(ceo)
@@ -343,9 +339,7 @@ describe("Factory Contract Tests", async () => {
       ).to.be.revertedWithCustomError(factoryContract, "PlatformPaused");
     });
     it("PaymentToken0 address must be different than address(0)", async () => {
-      const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
-        slCoreContractSet
-      );
+      const { factoryContract } = await loadFixture(slCoreContractSet);
       await expect(
         factoryContract
           .connect(ceo)
@@ -358,9 +352,7 @@ describe("Factory Contract Tests", async () => {
       ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
     });
     it("PaymentToken1 address must be different than address(0)", async () => {
-      const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
-        slCoreContractSet
-      );
+      const { factoryContract } = await loadFixture(slCoreContractSet);
       await expect(
         factoryContract
           .connect(ceo)
@@ -388,7 +380,7 @@ describe("Factory Contract Tests", async () => {
       ).to.be.revertedWithCustomError(factoryContract, "InvalidLevel");
     });
     it("Level must not be greater than 3", async () => {
-      const { factoryContract, paymentTokenContract, ceo } = await loadFixture(
+      const { factoryContract, paymentTokenContract } = await loadFixture(
         slCoreContractSet
       );
       await expect(

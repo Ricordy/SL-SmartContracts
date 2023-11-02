@@ -17,7 +17,6 @@ import { CoinTest__factory } from "../typechain-types/factories/contracts/CoinTe
 import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
-import { log } from "console";
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 const INVESTMENT_1_AMOUNT = 100000,
@@ -34,7 +33,6 @@ const INVESTMENT_1_AMOUNT = 100000,
   GENERAL_INVEST_AMOUNT_TO_REFUND = 10000,
   LESS_THAN_EXPECTED_INV_AMOUNT = 99,
   MORE_THAN_EXPECTED_INV_AMOUNT = INVESTMENT_1_AMOUNT / 2,
-  ENTRY_LEVEL_NFT_ID = 1000,
   PAYMENT_TOKEN_AMOUNT = 200000,
   PROFIT_RATE = 15,
   REFILL_VALUE =
@@ -750,12 +748,8 @@ describe("Investment Contract Tests", async () => {
     });
     describe("Function WithdrawSL", async () => {
       beforeEach("set state to process", async () => {
-        const {
-          investmentContract,
-          investor1,
-          paymentTokenContract,
-          paymentTokenContract2,
-        } = await loadFixture(oneInvestCallLeftToFill);
+        const { investmentContract, investor1, paymentTokenContract } =
+          await loadFixture(oneInvestCallLeftToFill);
         await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
         return { investmentContract, investor1, paymentTokenContract };
       });
@@ -803,7 +797,7 @@ describe("Investment Contract Tests", async () => {
           cfo.address
         );
 
-        const { paymentToken0Balance, paymentToken1Balance } =
+        const { paymentToken0Balance } =
           await investmentContract.totalContractBalanceForEachPaymentToken();
 
         // Withdraw funds
@@ -820,7 +814,7 @@ describe("Investment Contract Tests", async () => {
         const ownerBalanceBeforeWithdrawStable2 =
           await paymentTokenContract2.balanceOf(cfo.address);
 
-        const { paymentToken0Balance, paymentToken1Balance } =
+        const { paymentToken1Balance } =
           await investmentContract.totalContractBalanceForEachPaymentToken();
 
         // Withdraw funds
@@ -860,11 +854,6 @@ describe("Investment Contract Tests", async () => {
             .refill(REFILL_VALUE, PROFIT_RATE)
         ).to.be.revertedWithCustomError(investmentContract, "NotCFO");
       });
-      // it("Cannot refill while contract still have funds!", async () => { WE TOOK THIS FUNCTIONALITY OF SINCE IT OPENS A BACKDOR FOR A DoS ATTACK
-      //   await expect(
-      //     investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
-      //   ).to.be.revertedWith("Contract still have funds");
-      // });
       it("Cannot call function with wrong amount to refill (totalInvestment * profitRate) == amount(refilled) ", async () => {
         await investmentContract.connect(cfo).withdrawSL();
         await expect(
@@ -885,7 +874,6 @@ describe("Investment Contract Tests", async () => {
           .withArgs(REFILL_VALUE, PROFIT_RATE, anyValue);
       });
       it("should set global variable returnProfit = ProfitRate", async () => {
-        //Talk to Cadu: beforeEach problem (cannot have a clean contract without withdrawing first)
         await investmentContract.connect(cfo).withdrawSL();
         await investmentContract.connect(cfo).refill(REFILL_VALUE, PROFIT_RATE);
         expect(await investmentContract.returnProfit()).to.equal(PROFIT_RATE);
@@ -1002,8 +990,6 @@ describe("Investment Contract Tests", async () => {
         await investmentContract
           .connect(crucialInvestor)
           .invest(amountInvested.toNumber(), 0);
-
-        console.log("passed");
 
         // Change contract status to process
         await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
