@@ -40,6 +40,7 @@ Something Legendary is an investment platform for the purchase, renovation and s
     - [Mint Payment Token (Localhost) 💰](#mint-payment-token-localhost-)
     - [Mint Puzzle Token (Localhost) 🧩](#mint-puzzle-token-localhost-)
     - [Mint Puzzle Token Level 2 (Localhost) 🧩](#mint-puzzle-token-level-2-localhost-)
+    - [Mint Puzzle Token Level 3 (Localhost) 🧩](#mint-puzzle-token-level-3-localhost-)
     - [Invest (Localhost) 🤑](#invest-localhost-)
     - [Invest 5k with Level 1 Contract (Localhost) 🤑💰](#invest-5k-with-level-1-contract-localhost-)
     - [Invest 10k with Level 2 Access (Localhost)💰💰](#invest-10k-with-level-2-access-localhost)
@@ -2456,10 +2457,10 @@ This repository contains a set of Hardhat scripts for deploying and interacting 
 
 <!-- TOC --><a name="mint-tokens-localhost-"></a>
 
-### Mint Tokens (Localhost) 🥺
+### Mint Levels (Localhost) 🥺
 
 - **Script Name:** `mint`
-- **Description:** This script is used to mint the membership card.
+- **Description:** This script is used to mint the membership card and the levels.
 
 <!-- TOC --><a name="mint-payment-token-localhost-"></a>
 
@@ -2481,6 +2482,13 @@ This repository contains a set of Hardhat scripts for deploying and interacting 
 
 - **Script Name:** `mintPuzzlel2`
 - **Description:** This script is used to mint puzzle tokens on a local Ethereum network. It will give the 10 unique puzzle pieces nfts from level 2.
+
+<!-- TOC --><a name="mint-puzzle-token-level-3-localhost-"></a>
+
+### Mint Puzzle Token Level 3 (Localhost) 🧩
+
+- **Script Name:** `mintPuzzlel3`
+- **Description:** This script is used to mint puzzle tokens on a local Ethereum network. It will give the 10 unique puzzle pieces nfts from level 3.
 
 <!-- TOC --><a name="invest-localhost-"></a>
 
