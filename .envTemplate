@@ -1,5 +1,11 @@
 ALCHEMY_API_KEY_URL= 
 PRIVATE_KEY= 
 ETHERSCAN_API_KEY= 
+PAYMENT_TOKEN_ADDRESS_1=
+PAYMENT_TOKEN_ADDRESS_2=
+PERMISSIONS_ADDRESS=
+FACTORY_ADDRESS=
+LOGICS_ADDRESS=
+PUZZLE_ADDRESS=
 CEO_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # <- Change this if you are going to deploy outside or hardhat environment 
 CFO_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # <- Change this if you are going to deploy outside or hardhat environment 
