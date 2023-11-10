@@ -29,18 +29,18 @@ contract Investment is ERC20 {
     /// @notice The status of the contract.
     /// @dev The status is public and can be changed through the changeStatus function.
     Status public status;
+    /// @notice The mapping of allowed payment tokens addresses.
+    /// @dev This value is set at the time of contract deployment.
+    mapping(uint256 => address) public paymentTokenAddresses;
     /// @notice The total investment in the contract.
     /// @dev This value is immutable and set at the time of contract deployment.
     uint256 public immutable TOTAL_INVESTMENT;
     /// @notice The return profit.
     /// @dev This value is set as 0 until contract is refilled.
     uint256 public returnProfit;
-    /// @notice The address of the payment token.
-    /// @dev This value is set at the time of contract deployment.
-    address public immutable PAYMENT_TOKEN_ADDRESS_0;
-    /// @notice The address of the payment token.
-    /// @dev This value is set at the time of contract deployment.
-    address public immutable PAYMENT_TOKEN_ADDRESS_1;
+    /// @notice The mapping of payment tokens and their balances.
+    /// @dev This value is set when user invest.
+    mapping(address => mapping(address => uint256)) public paymentTokenBalances;
     /// @notice The address of SLCore contract.
     /// @dev This value is set at the time of contract deployment.
     address public immutable SLCORE_ADDRESS;
@@ -64,6 +64,7 @@ contract Investment is ERC20 {
     /// @param user The address of the user who invested.
     /// @param amount The amount invested.
     /// @param time The timestamp where action was perfomed.
+    /// @param paymentToken The address of the payment token used for investment.
     event UserInvest(
         address indexed user,
         uint256 indexed amount,
@@ -78,13 +79,18 @@ contract Investment is ERC20 {
     event Withdraw(
         address indexed user,
         uint256 indexed amount,
-        uint256 indexed time
+        uint256 indexed time,
+        address paymentToken
     );
 
     /// @notice An event that is emitted when Something Legendary wtihdraws tokens for processing.
     /// @param amount The amount withdrawn.
     /// @param time The timestamp where action was perfomed.
-    event SLWithdraw(uint256 indexed amount, uint256 indexed time);
+    event SLWithdraw(
+        uint256 indexed amount,
+        uint256 indexed time,
+        address indexed paymentToken
+    );
 
     /// @notice An event that is emitted when Something Legendary refill contract with tokens.
     /// @param amount The amount refilled.
@@ -93,7 +99,8 @@ contract Investment is ERC20 {
     event ContractRefilled(
         uint256 indexed amount,
         uint256 indexed profit,
-        uint256 indexed time
+        uint256 indexed time,
+        address paymentToken
     );
 
     /// @notice An event that is emitted when contract is filled by an investment.
@@ -129,11 +136,11 @@ contract Investment is ERC20 {
     error InvalidContractStatus(Status currentStatus, Status expectedStatus);
 
     /// @notice Reverts if input is not in level range
-    /// @param input the invalid selected coin to pay
-    /// @param firstCoinId the first allowed coin number
-    /// @param secondCoinId the second allowed coin number
+    /// @param paymentToken the invalid address token to pay
+    /// @param firstCoinId the first allowed token number
+    /// @param secondCoinId the second allowed token number
     error InvalidPaymentId(
-        uint256 input,
+        address paymentToken,
         uint256 firstCoinId,
         uint256 secondCoinId
     );
@@ -168,6 +175,9 @@ contract Investment is ERC20 {
     ///Functions that don't allow access to the caller (Overriden functions)
     error NotAccessable();
 
+    /// @notice reverts if user tries to transfer from a non approved ERC20
+    error InvalidERC20();
+
     ///
     //-----CONSTRUCTOR------
     ///
@@ -201,8 +211,8 @@ contract Investment is ERC20 {
         TOTAL_INVESTMENT = _totalInvestment * 10 ** decimals();
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         SLCORE_ADDRESS = _slCoreAddress;
-        PAYMENT_TOKEN_ADDRESS_0 = _paymentTokenAddress0;
-        PAYMENT_TOKEN_ADDRESS_1 = _paymentTokenAddress1;
+        paymentTokenAddresses[0] = _paymentTokenAddress0;
+        paymentTokenAddresses[1] = _paymentTokenAddress1;
         CONTRACT_LEVEL = _contractLevel;
         // Change status to Progress
         _changeStatus(Status.Progress);
@@ -216,12 +226,14 @@ contract Investment is ERC20 {
     /// @param _amount The amount to be invested.
     function invest(
         uint256 _amount,
-        uint256 _paymentToken
-    ) public isAllowed isProgress isNotGloballyStopped {
-        //Check is payment token selection is valid
-        if (_paymentToken > 1) {
-            revert InvalidPaymentId(_paymentToken, 0, 1);
-        }
+        address _paymentToken
+    )
+        public
+        isAllowed
+        isProgress
+        isNotGloballyStopped
+        isPaymentToken(_paymentToken)
+    {
         //Get amount already invested by user
         uint256 userInvested = _amount *
             10 ** decimals() +
@@ -252,24 +264,20 @@ contract Investment is ERC20 {
         //Mint the equivilent amount of investment token to user
         _mint(msg.sender, _amount * 10 ** decimals());
 
-        //check if user wants to pay in token0 or token1
-        address selectedPaymentToken = _paymentToken == 0
-            ? PAYMENT_TOKEN_ADDRESS_0
-            : PAYMENT_TOKEN_ADDRESS_1;
+        // Add amount to payment token balance
+        paymentTokenBalances[_paymentToken][msg.sender] +=
+            _amount *
+            10 ** decimals();
+
         //deal with user payment
-        IERC20(selectedPaymentToken).safeTransferFrom(
+        IERC20(_paymentToken).safeTransferFrom(
             msg.sender,
             address(this),
             _amount * 10 ** decimals()
         );
 
         //Emit event for user investment
-        emit UserInvest(
-            msg.sender,
-            _amount,
-            block.timestamp,
-            selectedPaymentToken
-        );
+        emit UserInvest(msg.sender, _amount, block.timestamp, _paymentToken);
     }
 
     /// @notice Allows a user to withdraw their investment.
@@ -287,11 +295,42 @@ contract Investment is ERC20 {
         }
         //Set user as withdrew
         userWithdrew[msg.sender] = 1;
-        //Calculate final amount to withdraw
-        uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
-        //Transfer final amount to user
-        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(msg.sender, finalAmount);
-        emit Withdraw(msg.sender, finalAmount, block.timestamp);
+        // Calculate final amount to withdraw from payment 1
+        uint256 balanceOnPayment1 = paymentTokenBalances[
+            paymentTokenAddresses[0]
+        ][msg.sender];
+        if (balanceOnPayment1 > 0) {
+            uint256 finalAmount1 = calculateFinalAmount(balanceOnPayment1);
+            // Transfer final amount to user
+            IERC20(paymentTokenAddresses[0]).safeTransfer(
+                msg.sender,
+                finalAmount1
+            );
+            emit Withdraw(
+                msg.sender,
+                finalAmount1,
+                block.timestamp,
+                paymentTokenAddresses[0]
+            );
+        }
+        // Calculate final amount to withdraw from payment 1
+        uint256 balanceOnPayment2 = paymentTokenBalances[
+            paymentTokenAddresses[1]
+        ][msg.sender];
+        if (balanceOnPayment2 > 0) {
+            uint256 finalAmount2 = calculateFinalAmount(balanceOnPayment2);
+            //Transfer final amount to user
+            IERC20(paymentTokenAddresses[1]).safeTransfer(
+                msg.sender,
+                finalAmount2
+            );
+            emit Withdraw(
+                msg.sender,
+                finalAmount2,
+                block.timestamp,
+                paymentTokenAddresses[1]
+            );
+        }
     }
 
     // @notice Allows the CFO to withdraw funds for processing.
@@ -299,8 +338,8 @@ contract Investment is ERC20 {
     function withdrawSL() external isProcess isNotGloballyStopped isCFO {
         //check if total invested is at least 80% of totalInvestment
         if (
-            ERC20(PAYMENT_TOKEN_ADDRESS_0).balanceOf(address(this)) +
-                ERC20(PAYMENT_TOKEN_ADDRESS_1).balanceOf(address(this)) <
+            ERC20(paymentTokenAddresses[0]).balanceOf(address(this)) +
+                ERC20(paymentTokenAddresses[1]).balanceOf(address(this)) <
             (TOTAL_INVESTMENT * 80) / 100
         ) {
             revert NotEnoughForProcess(
@@ -314,18 +353,25 @@ contract Investment is ERC20 {
             uint256 paymentToken1Balance
         ) = totalContractBalanceForEachPaymentToken();
 
-        emit SLWithdraw(
-            paymentToken0Balance + paymentToken1Balance,
-            block.timestamp
-        );
         //Transfer tokens to caller
-        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(
+        IERC20(paymentTokenAddresses[0]).safeTransfer(
             msg.sender,
             paymentToken0Balance
         );
-        IERC20(PAYMENT_TOKEN_ADDRESS_1).safeTransfer(
+        emit SLWithdraw(
+            paymentToken0Balance,
+            block.timestamp,
+            paymentTokenAddresses[0]
+        );
+
+        IERC20(paymentTokenAddresses[1]).safeTransfer(
             msg.sender,
             paymentToken1Balance
+        );
+        emit SLWithdraw(
+            paymentToken1Balance,
+            block.timestamp,
+            paymentTokenAddresses[1]
         );
     }
 
@@ -355,12 +401,29 @@ contract Investment is ERC20 {
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
         // Transfer tokens from caller to contract
-        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransferFrom(
+        IERC20(paymentTokenAddresses[0]).safeTransferFrom(
             msg.sender,
             address(this),
             _amount * 10 ** decimals()
         );
-        emit ContractRefilled(_amount, _profitRate, block.timestamp);
+        emit ContractRefilled(
+            _amount,
+            _profitRate,
+            block.timestamp,
+            paymentTokenAddresses[0]
+        );
+
+        IERC20(paymentTokenAddresses[1]).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amount * 10 ** decimals()
+        );
+        emit ContractRefilled(
+            _amount,
+            _profitRate,
+            block.timestamp,
+            paymentTokenAddresses[1]
+        );
     }
 
     ///
@@ -377,10 +440,10 @@ contract Investment is ERC20 {
         view
         returns (uint256 paymentToken0Balance, uint256 paymentToken1Balance)
     {
-        paymentToken0Balance = IERC20(PAYMENT_TOKEN_ADDRESS_0).balanceOf(
+        paymentToken0Balance = IERC20(paymentTokenAddresses[0]).balanceOf(
             address(this)
         );
-        paymentToken1Balance = IERC20(PAYMENT_TOKEN_ADDRESS_1).balanceOf(
+        paymentToken1Balance = IERC20(paymentTokenAddresses[1]).balanceOf(
             address(this)
         );
     }
@@ -465,6 +528,18 @@ contract Investment is ERC20 {
     modifier isCFO() {
         if (!ISLPermissions(SLPERMISSIONS_ADDRESS).isCFO(msg.sender)) {
             revert NotCFO();
+        }
+        _;
+    }
+
+    /// @notice Verifies if token is a valid Payment Token address
+    /// @dev The Payment Token address should be one of the two set in the constructor
+    modifier isPaymentToken(address _paymentToken) {
+        if (
+            paymentTokenAddresses[0] != _paymentToken &&
+            paymentTokenAddresses[1] != _paymentToken
+        ) {
+            revert InvalidPaymentId(_paymentToken, 0, 1);
         }
         _;
     }

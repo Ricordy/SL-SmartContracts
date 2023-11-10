@@ -260,7 +260,7 @@ describe("Investment Contract Tests", async () => {
       //Make 9500 investment
       await investmentContract
         .connect(accounts[i])
-        .invest(GENERAL_INVEST_AMOUNT, 0);
+        .invest(GENERAL_INVEST_AMOUNT, paymentTokenContract.address);
 
       if (i < 5) {
         //Mint and Approve fake coin spending
@@ -278,7 +278,7 @@ describe("Investment Contract Tests", async () => {
         //Make 9500 investment
         await investmentContract2
           .connect(accounts[i])
-          .invest(GENERAL_INVEST_AMOUNT, 0);
+          .invest(GENERAL_INVEST_AMOUNT, paymentTokenContract.address);
       } else {
         //Mint and Approve fake coin spending
         //Mint fake coin
@@ -295,7 +295,7 @@ describe("Investment Contract Tests", async () => {
         //Make 9500 investment
         await investmentContract2
           .connect(accounts[i])
-          .invest(GENERAL_INVEST_AMOUNT, 1);
+          .invest(GENERAL_INVEST_AMOUNT, paymentTokenContract.address);
       }
     }
 
@@ -370,7 +370,7 @@ describe("Investment Contract Tests", async () => {
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
-      .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST, 0);
+      .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST, paymentTokenContract.address);
 
     return {
       owner,
@@ -414,7 +414,7 @@ describe("Investment Contract Tests", async () => {
 
       await investmentContract
         .connect(accounts[i])
-        .invest(GENERAL_INVEST_AMOUNT_TO_REFUND, 0);
+        .invest(GENERAL_INVEST_AMOUNT_TO_REFUND, paymentTokenContract.address);
     }
 
     return {
@@ -498,7 +498,7 @@ describe("Investment Contract Tests", async () => {
       );
       // Get the PaymentToken address from the Puzzle contract
       const paymentTokenAddressFromContract =
-        await investmentContract.PAYMENT_TOKEN_ADDRESS_0();
+        investmentContract.paymentTokenAddresses(0);
       expect(paymentTokenAddressFromContract).to.be.equal(
         paymentTokenContract.address
       );
@@ -531,7 +531,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(investor1)
-            .invest(LESS_THAN_EXPECTED_INV_AMOUNT, 0)
+            .invest(LESS_THAN_EXPECTED_INV_AMOUNT, paymentTokenContract.address)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "IncorrectUserLevel"
@@ -542,7 +542,9 @@ describe("Investment Contract Tests", async () => {
           ownerAndInvestorApprovedTokenToSpend
         );
         await expect(
-          investmentContract.connect(investor1).invest(INVESTMENT_1_AMOUNT, 2)
+          investmentContract
+            .connect(investor1)
+            .invest(INVESTMENT_1_AMOUNT, factoryContract.address)
         ).to.be.revertedWithCustomError(investmentContract, "InvalidPaymentId");
       });
       it("Investor should not be allowed to invest less than the minimum required", async () => {
@@ -552,7 +554,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(investor1)
-            .invest(LESS_THAN_EXPECTED_INV_AMOUNT, 0)
+            .invest(LESS_THAN_EXPECTED_INV_AMOUNT, paymentTokenContract.address)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "WrongfulInvestmentAmount"
