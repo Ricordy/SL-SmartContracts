@@ -25,6 +25,10 @@ const config: HardhatUserConfig = {
       url: ALCHEMY_API_KEY_URL,
       accounts: [PRIVATE_KEY ?? ""],
     },
+    sepolia: {
+      url: ALCHEMY_API_KEY_URL,
+      accounts: [PRIVATE_KEY ?? ""],
+    },
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY ?? "",
