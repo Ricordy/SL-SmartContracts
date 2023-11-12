@@ -250,7 +250,7 @@ contract Investment is ERC20 {
             );
         }
         //If the amount invested by the user fills the contract, the status is automaticaly changed
-        if (totalSupply() + _amount * 10 ** 6 == TOTAL_INVESTMENT) {
+        if (totalSupply() + amountWithDecimals == TOTAL_INVESTMENT) {
             _changeStatus(Status.Process);
             emit ContractFilled(block.timestamp);
         }
@@ -270,7 +270,7 @@ contract Investment is ERC20 {
         IERC20(_paymentToken).safeTransferFrom(
             msg.sender,
             address(this),
-            amountWithDecimals
+            _amount * 10 ** ERC20(_paymentToken).decimals()
         );
 
         //Emit event for user investment
@@ -343,7 +343,7 @@ contract Investment is ERC20 {
         ) {
             revert NotEnoughForProcess(
                 (TOTAL_INVESTMENT * 80) / 100,
-                totalContractBalance()
+                totalSupply()
             );
         }
 
@@ -419,12 +419,6 @@ contract Investment is ERC20 {
     ///
     //-----GETTERS------
     ///
-    /// @notice returns the total invested by users
-    /// @return totalBalance the total amount invested
-    function totalContractBalance() public view returns (uint256 totalBalance) {
-        totalBalance = totalSupply();
-    }
-
     function totalContractBalanceForEachPaymentToken()
         public
         view
@@ -442,7 +436,7 @@ contract Investment is ERC20 {
     /// @dev Checks if contract is more than 90% full and returns the remaining to fill, if not, returns 10% of total investment
     /// @return maxToInvest max allowed to invest at any time (by a user that didn't invest yet)
     function getMaxToInvest() public view returns (uint256 maxToInvest) {
-        maxToInvest = TOTAL_INVESTMENT - totalContractBalance();
+        maxToInvest = TOTAL_INVESTMENT - totalSupply();
         if (maxToInvest > TOTAL_INVESTMENT / 10) {
             maxToInvest = TOTAL_INVESTMENT / 10;
         }
