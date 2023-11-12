@@ -118,12 +118,6 @@ contract Investment is ERC20 {
     /// @param reason which address is missing
     error InvalidAddress(string reason);
 
-    /// @notice Reverts if input is not in level range
-    /// @param input level inputed
-    /// @param min minimum level value
-    /// @param max maximum level value
-    error InvalidLevel(uint256 input, uint256 min, uint256 max);
-
     /// Investing amount exceeded the maximum allowed
     /// @param amount the amount user is trying to invest
     /// @param minAllowed minimum amount allowed to invest
@@ -154,11 +148,6 @@ contract Investment is ERC20 {
     /// @param userLevel user level
     error IncorrectUserLevel(uint256 expectedLevel, uint256 userLevel);
 
-    /// @notice reverts if refill value is incorrect
-    /// @param expected expected refill amount
-    /// @param input input amount
-    error IncorrectRefillValue(uint256 expected, uint256 input);
-
     /// @notice reverts if paltofrm hasn´t enough investment for starting process
     /// @param expected expected investment total
     /// @param actual actual investment total
@@ -178,9 +167,6 @@ contract Investment is ERC20 {
 
     ///Functions that don't allow access to the caller (Overriden functions)
     error NotAccessable();
-
-    /// @notice reverts if user tries to transfer from a non approved ERC20
-    error InvalidERC20();
 
     ///
     //-----CONSTRUCTOR------
@@ -231,13 +217,13 @@ contract Investment is ERC20 {
     function invest(
         uint256 _amount,
         address _paymentToken
-    )
-        public
-        isAllowed
-        isProgress
-        isNotGloballyStopped
-        isPaymentToken(_paymentToken)
-    {
+    ) public isAllowed isProgress isNotGloballyStopped {
+        if (
+            paymentTokenAddresses[0] != _paymentToken &&
+            paymentTokenAddresses[1] != _paymentToken
+        ) {
+            revert InvalidPaymentId(_paymentToken, 0, 1);
+        }
         //Get amount already invested by user
         uint256 userInvested = _amount *
             10 ** decimals() +
@@ -302,11 +288,12 @@ contract Investment is ERC20 {
         //Set user as withdrew
         userWithdrew[msg.sender] = 1;
         // Calculate final amount to withdraw from payment 1
-        uint256 balanceOnPayment1 = userToPaymentTokenBalances[
-            paymentTokenAddresses[0]
-        ][msg.sender];
-        if (balanceOnPayment1 > 0) {
-            uint256 finalAmount1 = calculateFinalAmount(balanceOnPayment1);
+        if (
+            userToPaymentTokenBalances[paymentTokenAddresses[0]][msg.sender] > 0
+        ) {
+            uint256 finalAmount1 = calculateFinalAmount(
+                userToPaymentTokenBalances[paymentTokenAddresses[0]][msg.sender]
+            );
             // Transfer final amount to user
             IERC20(paymentTokenAddresses[0]).safeTransfer(
                 msg.sender,
@@ -320,11 +307,12 @@ contract Investment is ERC20 {
             );
         }
         // Calculate final amount to withdraw from payment 1
-        uint256 balanceOnPayment2 = userToPaymentTokenBalances[
-            paymentTokenAddresses[1]
-        ][msg.sender];
-        if (balanceOnPayment2 > 0) {
-            uint256 finalAmount2 = calculateFinalAmount(balanceOnPayment2);
+        if (
+            userToPaymentTokenBalances[paymentTokenAddresses[1]][msg.sender] > 0
+        ) {
+            uint256 finalAmount2 = calculateFinalAmount(
+                userToPaymentTokenBalances[paymentTokenAddresses[1]][msg.sender]
+            );
             //Transfer final amount to user
             IERC20(paymentTokenAddresses[1]).safeTransfer(
                 msg.sender,
@@ -529,18 +517,6 @@ contract Investment is ERC20 {
     modifier isCFO() {
         if (!ISLPermissions(SLPERMISSIONS_ADDRESS).isCFO(msg.sender)) {
             revert NotCFO();
-        }
-        _;
-    }
-
-    /// @notice Verifies if token is a valid Payment Token address
-    /// @dev The Payment Token address should be one of the two set in the constructor
-    modifier isPaymentToken(address _paymentToken) {
-        if (
-            paymentTokenAddresses[0] != _paymentToken &&
-            paymentTokenAddresses[1] != _paymentToken
-        ) {
-            revert InvalidPaymentId(_paymentToken, 0, 1);
         }
         _;
     }
