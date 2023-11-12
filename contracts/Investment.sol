@@ -58,7 +58,7 @@ contract Investment is ERC20 {
     address public immutable PAYMENT_TOKEN_ADDRESS_1;
     /// @notice The mapping of the total invested in each one of the payment tokens.
     /// @dev This value is set when user invest.
-    mapping(address => uint256) public paymentTokensBalances;
+    uint256[2] public paymentTokensBalances;
     /// @notice The mapping of user's payment tokens and their balances.
     /// @dev This value is set when user invest.
     mapping(address => mapping(address => uint256))
@@ -220,17 +220,16 @@ contract Investment is ERC20 {
     function invest(
         uint256 _amount,
         address _paymentToken
-    ) public isAllowed isProgress isNotGloballyStopped {
+    ) external isAllowed isProgress isNotGloballyStopped {
         if (
             PAYMENT_TOKEN_ADDRESS_0 != _paymentToken &&
             PAYMENT_TOKEN_ADDRESS_1 != _paymentToken
         ) {
             revert InvalidPaymentId(_paymentToken, 0, 1);
         }
+        uint256 amountWithDecimals = _amount * 10 ** decimals();
         //Get amount already invested by user
-        uint256 userInvested = _amount *
-            10 ** decimals() +
-            balanceOf(msg.sender);
+        uint256 userInvested = amountWithDecimals + balanceOf(msg.sender);
         //Get max to invest
         uint256 maxToInvest = getMaxToInvest();
         //Check if amount invested is at least the minimum amount for investment
@@ -255,20 +254,22 @@ contract Investment is ERC20 {
             emit ContractFilled(block.timestamp);
         }
         //Mint the equivilent amount of investment token to user
-        _mint(msg.sender, _amount * 10 ** decimals());
+        _mint(msg.sender, amountWithDecimals);
 
         // Add amount to payment token balance
-        userToPaymentTokenBalances[_paymentToken][msg.sender] +=
-            _amount *
-            10 ** decimals();
+        userToPaymentTokenBalances[_paymentToken][
+            msg.sender
+        ] += amountWithDecimals;
 
-        paymentTokensBalances[_paymentToken] += _amount;
+        paymentTokensBalances[
+            _paymentToken == PAYMENT_TOKEN_ADDRESS_0 ? 0 : 1
+        ] += _amount;
 
         //deal with user payment
         IERC20(_paymentToken).safeTransferFrom(
             msg.sender,
             address(this),
-            _amount * 10 ** decimals()
+            amountWithDecimals
         );
 
         //Emit event for user investment
@@ -386,32 +387,28 @@ contract Investment is ERC20 {
         IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransferFrom(
             msg.sender,
             address(this),
-            (paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_0] +
-                ((paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_0] *
-                    _profitRate) / 100)) *
+            (paymentTokensBalances[0] +
+                ((paymentTokensBalances[0] * _profitRate) / 100)) *
                 10 ** ERC20(PAYMENT_TOKEN_ADDRESS_0).decimals()
         );
         IERC20(PAYMENT_TOKEN_ADDRESS_1).safeTransferFrom(
             msg.sender,
             address(this),
-            (paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_1] +
-                ((paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_1] *
-                    _profitRate) / 100)) *
+            (paymentTokensBalances[1] +
+                ((paymentTokensBalances[1] * _profitRate) / 100)) *
                 10 ** ERC20(PAYMENT_TOKEN_ADDRESS_1).decimals()
         );
 
         emit ContractRefilled(
-            (paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_0] +
-                ((paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_0] *
-                    _profitRate) / 100)),
+            (paymentTokensBalances[0] +
+                ((paymentTokensBalances[0] * _profitRate) / 100)),
             _profitRate,
             block.timestamp,
             PAYMENT_TOKEN_ADDRESS_0
         );
         emit ContractRefilled(
-            (paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_1] +
-                ((paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_1] *
-                    _profitRate) / 100)),
+            (paymentTokensBalances[1] +
+                ((paymentTokensBalances[1] * _profitRate) / 100)),
             _profitRate,
             block.timestamp,
             PAYMENT_TOKEN_ADDRESS_1
