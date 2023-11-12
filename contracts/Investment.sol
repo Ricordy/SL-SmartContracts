@@ -50,9 +50,12 @@ contract Investment is ERC20 {
     /// @notice Stores if user has withdrawn.
     /// @dev Keeps user from withdrawing twice.
     mapping(address => uint256) public userWithdrew;
-    /// @notice The mapping of allowed payment tokens addresses.
+    /// @notice The address of the payment token.
     /// @dev This value is set at the time of contract deployment.
-    mapping(uint256 => address) public paymentTokenAddresses;
+    address public immutable PAYMENT_TOKEN_ADDRESS_0;
+    /// @notice The address of the payment token.
+    /// @dev This value is set at the time of contract deployment.
+    address public immutable PAYMENT_TOKEN_ADDRESS_1;
     /// @notice The mapping of the total invested in each one of the payment tokens.
     /// @dev This value is set when user invest.
     mapping(address => uint256) public paymentTokensBalances;
@@ -201,8 +204,8 @@ contract Investment is ERC20 {
         TOTAL_INVESTMENT = _totalInvestment * 10 ** decimals();
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
         SLCORE_ADDRESS = _slCoreAddress;
-        paymentTokenAddresses[0] = _paymentTokenAddress0;
-        paymentTokenAddresses[1] = _paymentTokenAddress1;
+        PAYMENT_TOKEN_ADDRESS_0 = _paymentTokenAddress0;
+        PAYMENT_TOKEN_ADDRESS_1 = _paymentTokenAddress1;
         CONTRACT_LEVEL = _contractLevel;
         // Change status to Progress
         _changeStatus(Status.Progress);
@@ -219,8 +222,8 @@ contract Investment is ERC20 {
         address _paymentToken
     ) public isAllowed isProgress isNotGloballyStopped {
         if (
-            paymentTokenAddresses[0] != _paymentToken &&
-            paymentTokenAddresses[1] != _paymentToken
+            PAYMENT_TOKEN_ADDRESS_0 != _paymentToken &&
+            PAYMENT_TOKEN_ADDRESS_1 != _paymentToken
         ) {
             revert InvalidPaymentId(_paymentToken, 0, 1);
         }
@@ -289,13 +292,13 @@ contract Investment is ERC20 {
         userWithdrew[msg.sender] = 1;
         // Calculate final amount to withdraw from payment 1
         if (
-            userToPaymentTokenBalances[paymentTokenAddresses[0]][msg.sender] > 0
+            userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_0][msg.sender] > 0
         ) {
             uint256 finalAmount1 = calculateFinalAmount(
-                userToPaymentTokenBalances[paymentTokenAddresses[0]][msg.sender]
+                userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_0][msg.sender]
             );
             // Transfer final amount to user
-            IERC20(paymentTokenAddresses[0]).safeTransfer(
+            IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(
                 msg.sender,
                 finalAmount1
             );
@@ -303,18 +306,18 @@ contract Investment is ERC20 {
                 msg.sender,
                 finalAmount1,
                 block.timestamp,
-                paymentTokenAddresses[0]
+                PAYMENT_TOKEN_ADDRESS_0
             );
         }
         // Calculate final amount to withdraw from payment 1
         if (
-            userToPaymentTokenBalances[paymentTokenAddresses[1]][msg.sender] > 0
+            userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_1][msg.sender] > 0
         ) {
             uint256 finalAmount2 = calculateFinalAmount(
-                userToPaymentTokenBalances[paymentTokenAddresses[1]][msg.sender]
+                userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_1][msg.sender]
             );
             //Transfer final amount to user
-            IERC20(paymentTokenAddresses[1]).safeTransfer(
+            IERC20(PAYMENT_TOKEN_ADDRESS_1).safeTransfer(
                 msg.sender,
                 finalAmount2
             );
@@ -322,7 +325,7 @@ contract Investment is ERC20 {
                 msg.sender,
                 finalAmount2,
                 block.timestamp,
-                paymentTokenAddresses[1]
+                PAYMENT_TOKEN_ADDRESS_1
             );
         }
     }
@@ -332,8 +335,8 @@ contract Investment is ERC20 {
     function withdrawSL() external isProcess isNotGloballyStopped isCFO {
         //check if total invested is at least 80% of totalInvestment
         if (
-            ERC20(paymentTokenAddresses[0]).balanceOf(address(this)) +
-                ERC20(paymentTokenAddresses[1]).balanceOf(address(this)) <
+            ERC20(PAYMENT_TOKEN_ADDRESS_0).balanceOf(address(this)) +
+                ERC20(PAYMENT_TOKEN_ADDRESS_1).balanceOf(address(this)) <
             (TOTAL_INVESTMENT * 80) / 100
         ) {
             revert NotEnoughForProcess(
@@ -348,11 +351,11 @@ contract Investment is ERC20 {
         ) = totalContractBalanceForEachPaymentToken();
 
         //Transfer tokens to caller
-        IERC20(paymentTokenAddresses[0]).safeTransfer(
+        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(
             msg.sender,
             paymentToken0Balance
         );
-        IERC20(paymentTokenAddresses[1]).safeTransfer(
+        IERC20(PAYMENT_TOKEN_ADDRESS_1).safeTransfer(
             msg.sender,
             paymentToken1Balance
         );
@@ -360,12 +363,12 @@ contract Investment is ERC20 {
         emit SLWithdraw(
             paymentToken0Balance,
             block.timestamp,
-            paymentTokenAddresses[0]
+            PAYMENT_TOKEN_ADDRESS_0
         );
         emit SLWithdraw(
             paymentToken1Balance,
             block.timestamp,
-            paymentTokenAddresses[1]
+            PAYMENT_TOKEN_ADDRESS_1
         );
     }
 
@@ -380,38 +383,38 @@ contract Investment is ERC20 {
         // Change status to withdraw
         _changeStatus(Status.Withdraw);
         // Transfer tokens from caller to contract
-        IERC20(paymentTokenAddresses[0]).safeTransferFrom(
+        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransferFrom(
             msg.sender,
             address(this),
-            (paymentTokensBalances[paymentTokenAddresses[0]] +
-                ((paymentTokensBalances[paymentTokenAddresses[0]] *
+            (paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_0] +
+                ((paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_0] *
                     _profitRate) / 100)) *
-                10 ** ERC20(paymentTokenAddresses[0]).decimals()
+                10 ** ERC20(PAYMENT_TOKEN_ADDRESS_0).decimals()
         );
-        IERC20(paymentTokenAddresses[1]).safeTransferFrom(
+        IERC20(PAYMENT_TOKEN_ADDRESS_1).safeTransferFrom(
             msg.sender,
             address(this),
-            (paymentTokensBalances[paymentTokenAddresses[1]] +
-                ((paymentTokensBalances[paymentTokenAddresses[1]] *
+            (paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_1] +
+                ((paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_1] *
                     _profitRate) / 100)) *
-                10 ** ERC20(paymentTokenAddresses[1]).decimals()
+                10 ** ERC20(PAYMENT_TOKEN_ADDRESS_1).decimals()
         );
 
         emit ContractRefilled(
-            (paymentTokensBalances[paymentTokenAddresses[0]] +
-                ((paymentTokensBalances[paymentTokenAddresses[0]] *
+            (paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_0] +
+                ((paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_0] *
                     _profitRate) / 100)),
             _profitRate,
             block.timestamp,
-            paymentTokenAddresses[0]
+            PAYMENT_TOKEN_ADDRESS_0
         );
         emit ContractRefilled(
-            (paymentTokensBalances[paymentTokenAddresses[1]] +
-                ((paymentTokensBalances[paymentTokenAddresses[1]] *
+            (paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_1] +
+                ((paymentTokensBalances[PAYMENT_TOKEN_ADDRESS_1] *
                     _profitRate) / 100)),
             _profitRate,
             block.timestamp,
-            paymentTokenAddresses[1]
+            PAYMENT_TOKEN_ADDRESS_1
         );
     }
 
@@ -429,10 +432,10 @@ contract Investment is ERC20 {
         view
         returns (uint256 paymentToken0Balance, uint256 paymentToken1Balance)
     {
-        paymentToken0Balance = IERC20(paymentTokenAddresses[0]).balanceOf(
+        paymentToken0Balance = IERC20(PAYMENT_TOKEN_ADDRESS_0).balanceOf(
             address(this)
         );
-        paymentToken1Balance = IERC20(paymentTokenAddresses[1]).balanceOf(
+        paymentToken1Balance = IERC20(PAYMENT_TOKEN_ADDRESS_1).balanceOf(
             address(this)
         );
     }
