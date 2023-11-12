@@ -335,7 +335,7 @@ describe("Puzzle Contract", async () => {
     // Invest an amount on investment1
     await investmentContract
       .connect(investor1)
-      .invest(INVESTOR1_INVESTMENT_AMOUNT, 0);
+      .invest(INVESTOR1_INVESTMENT_AMOUNT, paymentTokenContract.address);
 
     return { paymentTokenContract, puzzleContract, factoryContract, ceo };
   }
@@ -414,7 +414,10 @@ describe("Puzzle Contract", async () => {
     // Invest an amount on investment1
     await investmentContract2
       .connect(investor1)
-      .invest(INVESTOR1_INVESTMENT_LEVEL_2_AMOUNT, 0);
+      .invest(
+        INVESTOR1_INVESTMENT_LEVEL_2_AMOUNT,
+        paymentTokenContract.address
+      );
     return { puzzleContract, paymentTokenContract, factoryContract, ceo };
   }
 
@@ -475,7 +478,10 @@ describe("Puzzle Contract", async () => {
     // Invest an amount on investment1
     await investmentContract2
       .connect(investor1)
-      .invest(INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT, 0);
+      .invest(
+        INVESTOR1_INVESTMENT_LEVEL_3_AMOUNT,
+        paymentTokenContract.address
+      );
     return { puzzleContract, paymentTokenContract, factoryContract, ceo };
   }
 

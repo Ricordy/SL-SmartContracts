@@ -132,8 +132,6 @@ contract Factory {
         } else {
             slCoreAddress = _slCoreAddress;
         }
-        // Update SLCore address
-        slCoreAddress = _slCoreAddress;
     }
 
     /// @notice Returns the total amount invested by the user across all levels.

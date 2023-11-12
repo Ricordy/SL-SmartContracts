@@ -35,12 +35,6 @@ contract Investment is ERC20 {
     /// @notice The return profit.
     /// @dev This value is set as 0 until contract is refilled.
     uint256 public returnProfit;
-    /// @notice The address of the payment token.
-    /// @dev This value is set at the time of contract deployment.
-    address public immutable PAYMENT_TOKEN_ADDRESS_0;
-    /// @notice The address of the payment token.
-    /// @dev This value is set at the time of contract deployment.
-    address public immutable PAYMENT_TOKEN_ADDRESS_1;
     /// @notice The address of SLCore contract.
     /// @dev This value is set at the time of contract deployment.
     address public immutable SLCORE_ADDRESS;
@@ -56,6 +50,19 @@ contract Investment is ERC20 {
     /// @notice Stores if user has withdrawn.
     /// @dev Keeps user from withdrawing twice.
     mapping(address => uint256) public userWithdrew;
+    /// @notice The address of the payment token.
+    /// @dev This value is set at the time of contract deployment.
+    address public immutable PAYMENT_TOKEN_ADDRESS_0;
+    /// @notice The address of the payment token.
+    /// @dev This value is set at the time of contract deployment.
+    address public immutable PAYMENT_TOKEN_ADDRESS_1;
+    /// @notice The mapping of the total invested in each one of the payment tokens.
+    /// @dev This value is set when user invest.
+    uint256[2] public paymentTokensBalances;
+    /// @notice The mapping of user's payment tokens and their balances.
+    /// @dev This value is set when user invest.
+    mapping(address => mapping(address => uint256))
+        public userToPaymentTokenBalances;
 
     ///
     //-----EVENTS------
@@ -64,6 +71,7 @@ contract Investment is ERC20 {
     /// @param user The address of the user who invested.
     /// @param amount The amount invested.
     /// @param time The timestamp where action was perfomed.
+    /// @param paymentToken The address of the payment token used for investment.
     event UserInvest(
         address indexed user,
         uint256 indexed amount,
@@ -78,13 +86,18 @@ contract Investment is ERC20 {
     event Withdraw(
         address indexed user,
         uint256 indexed amount,
-        uint256 indexed time
+        uint256 indexed time,
+        address paymentToken
     );
 
     /// @notice An event that is emitted when Something Legendary wtihdraws tokens for processing.
     /// @param amount The amount withdrawn.
     /// @param time The timestamp where action was perfomed.
-    event SLWithdraw(uint256 indexed amount, uint256 indexed time);
+    event SLWithdraw(
+        uint256 indexed amount,
+        uint256 indexed time,
+        address indexed paymentToken
+    );
 
     /// @notice An event that is emitted when Something Legendary refill contract with tokens.
     /// @param amount The amount refilled.
@@ -93,7 +106,8 @@ contract Investment is ERC20 {
     event ContractRefilled(
         uint256 indexed amount,
         uint256 indexed profit,
-        uint256 indexed time
+        uint256 indexed time,
+        address paymentToken
     );
 
     /// @notice An event that is emitted when contract is filled by an investment.
@@ -106,12 +120,6 @@ contract Investment is ERC20 {
     /// @notice Reverts if a certain address == address(0)
     /// @param reason which address is missing
     error InvalidAddress(string reason);
-
-    /// @notice Reverts if input is not in level range
-    /// @param input level inputed
-    /// @param min minimum level value
-    /// @param max maximum level value
-    error InvalidLevel(uint256 input, uint256 min, uint256 max);
 
     /// Investing amount exceeded the maximum allowed
     /// @param amount the amount user is trying to invest
@@ -129,11 +137,11 @@ contract Investment is ERC20 {
     error InvalidContractStatus(Status currentStatus, Status expectedStatus);
 
     /// @notice Reverts if input is not in level range
-    /// @param input the invalid selected coin to pay
-    /// @param firstCoinId the first allowed coin number
-    /// @param secondCoinId the second allowed coin number
+    /// @param paymentToken the invalid address token to pay
+    /// @param firstCoinId the first allowed token number
+    /// @param secondCoinId the second allowed token number
     error InvalidPaymentId(
-        uint256 input,
+        address paymentToken,
         uint256 firstCoinId,
         uint256 secondCoinId
     );
@@ -142,11 +150,6 @@ contract Investment is ERC20 {
     /// @param expectedLevel expected user minimum level
     /// @param userLevel user level
     error IncorrectUserLevel(uint256 expectedLevel, uint256 userLevel);
-
-    /// @notice reverts if refill value is incorrect
-    /// @param expected expected refill amount
-    /// @param input input amount
-    error IncorrectRefillValue(uint256 expected, uint256 input);
 
     /// @notice reverts if paltofrm hasn´t enough investment for starting process
     /// @param expected expected investment total
@@ -216,16 +219,17 @@ contract Investment is ERC20 {
     /// @param _amount The amount to be invested.
     function invest(
         uint256 _amount,
-        uint256 _paymentToken
-    ) public isAllowed isProgress isNotGloballyStopped {
-        //Check is payment token selection is valid
-        if (_paymentToken > 1) {
+        address _paymentToken
+    ) external isAllowed isProgress isNotGloballyStopped {
+        if (
+            PAYMENT_TOKEN_ADDRESS_0 != _paymentToken &&
+            PAYMENT_TOKEN_ADDRESS_1 != _paymentToken
+        ) {
             revert InvalidPaymentId(_paymentToken, 0, 1);
         }
+        uint256 amountWithDecimals = _amount * 10 ** decimals();
         //Get amount already invested by user
-        uint256 userInvested = _amount *
-            10 ** decimals() +
-            balanceOf(msg.sender);
+        uint256 userInvested = amountWithDecimals + balanceOf(msg.sender);
         //Get max to invest
         uint256 maxToInvest = getMaxToInvest();
         //Check if amount invested is at least the minimum amount for investment
@@ -250,26 +254,26 @@ contract Investment is ERC20 {
             emit ContractFilled(block.timestamp);
         }
         //Mint the equivilent amount of investment token to user
-        _mint(msg.sender, _amount * 10 ** decimals());
+        _mint(msg.sender, amountWithDecimals);
 
-        //check if user wants to pay in token0 or token1
-        address selectedPaymentToken = _paymentToken == 0
-            ? PAYMENT_TOKEN_ADDRESS_0
-            : PAYMENT_TOKEN_ADDRESS_1;
+        // Add amount to payment token balance
+        userToPaymentTokenBalances[_paymentToken][
+            msg.sender
+        ] += amountWithDecimals;
+
+        paymentTokensBalances[
+            _paymentToken == PAYMENT_TOKEN_ADDRESS_0 ? 0 : 1
+        ] += _amount;
+
         //deal with user payment
-        IERC20(selectedPaymentToken).safeTransferFrom(
+        IERC20(_paymentToken).safeTransferFrom(
             msg.sender,
             address(this),
-            _amount * 10 ** decimals()
+            amountWithDecimals
         );
 
         //Emit event for user investment
-        emit UserInvest(
-            msg.sender,
-            _amount,
-            block.timestamp,
-            selectedPaymentToken
-        );
+        emit UserInvest(msg.sender, _amount, block.timestamp, _paymentToken);
     }
 
     /// @notice Allows a user to withdraw their investment.
@@ -287,11 +291,44 @@ contract Investment is ERC20 {
         }
         //Set user as withdrew
         userWithdrew[msg.sender] = 1;
-        //Calculate final amount to withdraw
-        uint256 finalAmount = calculateFinalAmount(balanceOf(msg.sender));
-        //Transfer final amount to user
-        IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(msg.sender, finalAmount);
-        emit Withdraw(msg.sender, finalAmount, block.timestamp);
+        // Calculate final amount to withdraw from payment 1
+        if (
+            userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_0][msg.sender] > 0
+        ) {
+            uint256 finalAmount1 = calculateFinalAmount(
+                userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_0][msg.sender]
+            );
+            // Transfer final amount to user
+            IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(
+                msg.sender,
+                finalAmount1
+            );
+            emit Withdraw(
+                msg.sender,
+                finalAmount1,
+                block.timestamp,
+                PAYMENT_TOKEN_ADDRESS_0
+            );
+        }
+        // Calculate final amount to withdraw from payment 1
+        if (
+            userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_1][msg.sender] > 0
+        ) {
+            uint256 finalAmount2 = calculateFinalAmount(
+                userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_1][msg.sender]
+            );
+            //Transfer final amount to user
+            IERC20(PAYMENT_TOKEN_ADDRESS_1).safeTransfer(
+                msg.sender,
+                finalAmount2
+            );
+            emit Withdraw(
+                msg.sender,
+                finalAmount2,
+                block.timestamp,
+                PAYMENT_TOKEN_ADDRESS_1
+            );
+        }
     }
 
     // @notice Allows the CFO to withdraw funds for processing.
@@ -314,10 +351,6 @@ contract Investment is ERC20 {
             uint256 paymentToken1Balance
         ) = totalContractBalanceForEachPaymentToken();
 
-        emit SLWithdraw(
-            paymentToken0Balance + paymentToken1Balance,
-            block.timestamp
-        );
         //Transfer tokens to caller
         IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(
             msg.sender,
@@ -327,29 +360,25 @@ contract Investment is ERC20 {
             msg.sender,
             paymentToken1Balance
         );
+
+        emit SLWithdraw(
+            paymentToken0Balance,
+            block.timestamp,
+            PAYMENT_TOKEN_ADDRESS_0
+        );
+        emit SLWithdraw(
+            paymentToken1Balance,
+            block.timestamp,
+            PAYMENT_TOKEN_ADDRESS_1
+        );
     }
 
     /// @notice Allows the CFO to refill the contract.
     /// @dev The function requires the contract to be in Process status and the platform to be active.
-    /// @param _amount The amount to be refilled.
     /// @param _profitRate The profit rate for the refill.
     function refill(
-        uint256 _amount,
         uint256 _profitRate
     ) public isNotGloballyStopped isProcess isCFO {
-        //Verify if _amount is the total needed to fulfill users withdraw
-        if (
-            TOTAL_INVESTMENT + ((TOTAL_INVESTMENT * _profitRate) / 100) !=
-            _amount * 10 ** decimals()
-        ) {
-            //calculates the amount expected without the decimals
-            revert IncorrectRefillValue(
-                TOTAL_INVESTMENT +
-                    ((TOTAL_INVESTMENT * _profitRate) / 100) /
-                    10 ** decimals(),
-                _amount
-            );
-        }
         // Set return profit
         returnProfit = _profitRate;
         // Change status to withdraw
@@ -358,9 +387,32 @@ contract Investment is ERC20 {
         IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransferFrom(
             msg.sender,
             address(this),
-            _amount * 10 ** decimals()
+            (paymentTokensBalances[0] +
+                ((paymentTokensBalances[0] * _profitRate) / 100)) *
+                10 ** ERC20(PAYMENT_TOKEN_ADDRESS_0).decimals()
         );
-        emit ContractRefilled(_amount, _profitRate, block.timestamp);
+        IERC20(PAYMENT_TOKEN_ADDRESS_1).safeTransferFrom(
+            msg.sender,
+            address(this),
+            (paymentTokensBalances[1] +
+                ((paymentTokensBalances[1] * _profitRate) / 100)) *
+                10 ** ERC20(PAYMENT_TOKEN_ADDRESS_1).decimals()
+        );
+
+        emit ContractRefilled(
+            (paymentTokensBalances[0] +
+                ((paymentTokensBalances[0] * _profitRate) / 100)),
+            _profitRate,
+            block.timestamp,
+            PAYMENT_TOKEN_ADDRESS_0
+        );
+        emit ContractRefilled(
+            (paymentTokensBalances[1] +
+                ((paymentTokensBalances[1] * _profitRate) / 100)),
+            _profitRate,
+            block.timestamp,
+            PAYMENT_TOKEN_ADDRESS_1
+        );
     }
 
     ///
