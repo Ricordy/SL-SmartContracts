@@ -224,13 +224,13 @@ describe("Factory Contract Tests", async () => {
     // Invest in all contracts
     await investmentContractLevel1
       .connect(investor1)
-      .invest(INVESTED_LEVEL_1, 0);
+      .invest(INVESTED_LEVEL_1, paymentTokenContract.address);
     await investmentContractLevel2
       .connect(investor1)
-      .invest(INVESTED_LEVEL_2, 0);
+      .invest(INVESTED_LEVEL_2, paymentTokenContract.address);
     await investmentContractLevel3
       .connect(investor1)
-      .invest(INVESTED_LEVEL_3, 0);
+      .invest(INVESTED_LEVEL_3, paymentTokenContract.address);
 
     return {
       investmentContractLevel1,
