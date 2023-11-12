@@ -175,19 +175,23 @@ describe("Investment Contract Tests", async () => {
       logcisContract,
       minimunInvestment,
     } = await loadFixture(deployContractFixture);
-    await paymentTokenContract.mint(INVESTOR1_INVESTMENT_AMOUNT);
-    await paymentTokenContract2.mint(INVESTOR1_INVESTMENT_AMOUNT);
+    await paymentTokenContract.mint(
+      INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_AMOUNT
+    );
+    await paymentTokenContract2.mint(
+      INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_AMOUNT
+    );
     await paymentTokenContract.approve(
       investmentContract.address,
-      withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
+      withDecimals(INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_AMOUNT)
     );
     await paymentTokenContract2.approve(
       investmentContract.address,
-      withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
+      withDecimals(INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_AMOUNT)
     );
     await paymentTokenContract.approve(
       logcisContract.address,
-      withDecimals(INVESTOR1_INVESTMENT_AMOUNT)
+      withDecimals(INVESTOR1_INVESTMENT_AMOUNT + INVESTOR1_INVESTMENT_AMOUNT)
     );
     await puzzleContract.mintEntry();
     await paymentTokenContract
@@ -232,6 +236,7 @@ describe("Investment Contract Tests", async () => {
       investor1,
       accounts,
       investmentContract,
+      investmentContract2,
       logcisContract,
       paymentTokenContract,
       paymentTokenContract2,
@@ -295,10 +300,11 @@ describe("Investment Contract Tests", async () => {
         //Make 9500 investment
         await investmentContract2
           .connect(accounts[i])
-          .invest(GENERAL_INVEST_AMOUNT, paymentTokenContract.address);
+          .invest(GENERAL_INVEST_AMOUNT, paymentTokenContract2.address);
       }
     }
 
+    const investor9 = accounts[9];
     crucialInvestor = accounts[11];
 
     return {
@@ -309,6 +315,7 @@ describe("Investment Contract Tests", async () => {
       crucialInvestor,
       puzzleContract,
       logcisContract,
+      investor9,
     };
   }
   async function ownerAndInvestor1AbleToMintFixture() {
@@ -389,36 +396,85 @@ describe("Investment Contract Tests", async () => {
       paymentTokenContract,
       puzzleContract,
       logcisContract,
+      paymentTokenContract2,
     } = await loadFixture(deployContractFixture);
 
     // Make a 10000 investment on 5 accounts (total of 50.000 invested)
     for (let i = 0; i <= 4; i++) {
       //Mint and Approve fake coin spending
       //Mint fake coin
-      await paymentTokenContract
-        .connect(accounts[i])
-        .mint(GENERAL_ACCOUNT_AMOUNT);
-      //Approve fake coin spending
-      await paymentTokenContract
-        .connect(accounts[i])
-        .approve(logcisContract.address, withDecimals(GENERAL_ACCOUNT_AMOUNT));
-      await paymentTokenContract
-        .connect(accounts[i])
-        .approve(
-          investmentContract.address,
-          withDecimals(GENERAL_ACCOUNT_AMOUNT)
-        );
-      //Buy NFT Entry for each user
-      await puzzleContract.connect(accounts[i]).mintEntry();
-      // Make 1000 investment
+      if (i % 2 == 0) {
+        await paymentTokenContract
+          .connect(accounts[i])
+          .mint(GENERAL_ACCOUNT_AMOUNT);
+        //Approve fake coin spending
+        await paymentTokenContract
+          .connect(accounts[i])
+          .approve(
+            logcisContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
+        await paymentTokenContract
+          .connect(accounts[i])
+          .approve(
+            investmentContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
+        //Buy NFT Entry for each user
+        await puzzleContract.connect(accounts[i]).mintEntry();
+        // Make 1000 investment
 
-      await investmentContract
-        .connect(accounts[i])
-        .invest(GENERAL_INVEST_AMOUNT_TO_REFUND, paymentTokenContract.address);
+        await investmentContract
+          .connect(accounts[i])
+          .invest(
+            GENERAL_INVEST_AMOUNT_TO_REFUND,
+            paymentTokenContract.address
+          );
+      } else {
+        await paymentTokenContract
+          .connect(accounts[i])
+          .mint(GENERAL_ACCOUNT_AMOUNT);
+        //Approve fake coin spending
+        await paymentTokenContract
+          .connect(accounts[i])
+          .approve(
+            logcisContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
+
+        await paymentTokenContract
+          .connect(accounts[i])
+          .approve(
+            investmentContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
+        //Buy NFT Entry for each user
+        await puzzleContract.connect(accounts[i]).mintEntry();
+        // Make 1000 investment
+
+        await paymentTokenContract2
+          .connect(accounts[i])
+          .mint(GENERAL_ACCOUNT_AMOUNT);
+        //Approve fake coin spending
+        await paymentTokenContract2
+          .connect(accounts[i])
+          .approve(
+            investmentContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
+
+        await investmentContract
+          .connect(accounts[i])
+          .invest(
+            GENERAL_INVEST_AMOUNT_TO_REFUND,
+            paymentTokenContract2.address
+          );
+      }
     }
 
     return {
       investor1,
+      investor2,
       investmentContract,
       paymentTokenContract,
       puzzleContract,
@@ -492,15 +548,26 @@ describe("Investment Contract Tests", async () => {
       const entryNFTContractAddress = await investmentContract.SLCORE_ADDRESS();
       expect(entryNFTContractAddress).to.be.equal(puzzleContract.address);
     });
-    it("Should set the PaymentToken address", async () => {
+    it("Should set the PaymentToken address 0", async () => {
       const { paymentTokenContract, investmentContract } = await loadFixture(
         deployContractFixture
       );
       // Get the PaymentToken address from the Puzzle contract
       const paymentTokenAddressFromContract =
-        investmentContract.paymentTokenAddresses(0);
+        await investmentContract.PAYMENT_TOKEN_ADDRESS_0();
       expect(paymentTokenAddressFromContract).to.be.equal(
         paymentTokenContract.address
+      );
+    });
+    it("Should set the PaymentToken address 1", async () => {
+      const { paymentTokenContract2, investmentContract } = await loadFixture(
+        deployContractFixture
+      );
+      // Get the PaymentToken address from the Puzzle contract
+      const paymentTokenAddressFromContract =
+        await investmentContract.PAYMENT_TOKEN_ADDRESS_1();
+      expect(paymentTokenAddressFromContract).to.be.equal(
+        paymentTokenContract2.address
       );
     });
     it('Should set the status to "progress"', async () => {
@@ -561,23 +628,22 @@ describe("Investment Contract Tests", async () => {
         );
       });
       it("Investor should not be allowed to invest more than 10% of total investment", async () => {
-        const { investmentContract, investor1 } = await loadFixture(
-          ownerAndInvestorApprovedTokenToSpend
-        );
+        const { investmentContract, investor1, paymentTokenContract } =
+          await loadFixture(ownerAndInvestorApprovedTokenToSpend);
 
         await expect(
           investmentContract
             .connect(investor1)
-            .invest(MORE_THAN_EXPECTED_INV_AMOUNT, 0)
+            .invest(MORE_THAN_EXPECTED_INV_AMOUNT, paymentTokenContract.address)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "WrongfulInvestmentAmount"
         );
       });
       it('Status emit event "ContractFilled" and "UserInvested" when we reach the total investment', async () => {
-        const { investmentContract } = await loadFixture(
-          oneInvestCallLeftToFill
-        );
+        const { investmentContract, paymentTokenContract, crucialInvestor } =
+          await loadFixture(oneInvestCallLeftToFill);
+
         await paymentTokenContract
           .connect(crucialInvestor)
           .mint(GENERAL_ACCOUNT_AMOUNT);
@@ -604,7 +670,9 @@ describe("Investment Contract Tests", async () => {
         const newTimestamp = new Date().getTime();
         await time.setNextBlockTimestamp(newTimestamp);
         await expect(
-          investmentContract.connect(crucialInvestor).invest(maxToInvest, 0)
+          investmentContract
+            .connect(crucialInvestor)
+            .invest(maxToInvest, paymentTokenContract.address)
         )
           .to.emit(investmentContract, "ContractFilled")
           .withArgs(newTimestamp)
@@ -617,10 +685,16 @@ describe("Investment Contract Tests", async () => {
           );
       });
       it("Investor should be allowed to invest using cointest 0 (first stable)", async () => {
-        const { investmentContract, investor1, minimunInvestment } =
-          await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+        const {
+          investmentContract,
+          investor1,
+          minimunInvestment,
+          paymentTokenContract,
+        } = await loadFixture(ownerAndInvestorApprovedTokenToSpend);
         await expect(
-          investmentContract.connect(investor1).invest(minimunInvestment, 0)
+          investmentContract
+            .connect(investor1)
+            .invest(minimunInvestment, paymentTokenContract.address)
         )
           .to.emit(investmentContract, "UserInvest")
           .withArgs(
@@ -631,10 +705,16 @@ describe("Investment Contract Tests", async () => {
           );
       });
       it("Investor should be allowed to invest using cointest 1 (second stable)", async () => {
-        const { investmentContract, investor1, minimunInvestment } =
-          await loadFixture(ownerAndInvestorApprovedTokenToSpend);
+        const {
+          investmentContract,
+          investor1,
+          minimunInvestment,
+          paymentTokenContract2,
+        } = await loadFixture(ownerAndInvestorApprovedTokenToSpend);
         await expect(
-          investmentContract.connect(investor1).invest(minimunInvestment, 1)
+          investmentContract
+            .connect(investor1)
+            .invest(minimunInvestment, paymentTokenContract2.address)
         )
           .to.emit(investmentContract, "UserInvest")
           .withArgs(
@@ -645,12 +725,14 @@ describe("Investment Contract Tests", async () => {
           );
       });
       it("Should mint the exact same value of ERC20 tracker token as the amount invested", async () => {
-        const { investmentContract, investor1 } = await loadFixture(
-          ownerAndInvestorApprovedTokenToSpend
-        );
+        const { investmentContract, investor1, paymentTokenContract } =
+          await loadFixture(ownerAndInvestorApprovedTokenToSpend);
         await investmentContract
           .connect(investor1)
-          .invest(INVESTMENT_1_MAX_ALLOWED_TO_INVEST, 0);
+          .invest(
+            INVESTMENT_1_MAX_ALLOWED_TO_INVEST,
+            paymentTokenContract.address
+          );
         expect(await investmentContract.balanceOf(investor1.address)).to.equal(
           withDecimals(INVESTMENT_1_MAX_ALLOWED_TO_INVEST)
         );
@@ -697,7 +779,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(crucialInvestor)
-            .invest(GENERAL_INVEST_AMOUNT, 0)
+            .invest(GENERAL_INVEST_AMOUNT, paymentTokenContract.address)
         )
           .to.be.revertedWithCustomError(
             investmentContract,
@@ -734,7 +816,7 @@ describe("Investment Contract Tests", async () => {
           ownerAndInvestorApprovedTokenToSpend
         );
         await expect(
-          investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
+          investmentContract.refill(PROFIT_RATE)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "InvalidContractStatus"
@@ -851,38 +933,34 @@ describe("Investment Contract Tests", async () => {
       });
       it("Investors should not be able to call", async () => {
         await expect(
-          investmentContract
-            .connect(investor1)
-            .refill(REFILL_VALUE, PROFIT_RATE)
+          investmentContract.connect(investor1).refill(PROFIT_RATE)
         ).to.be.revertedWithCustomError(investmentContract, "NotCFO");
       });
-      it("Cannot call function with wrong amount to refill (totalInvestment * profitRate) == amount(refilled) ", async () => {
-        await investmentContract.connect(cfo).withdrawSL();
-        await expect(
-          investmentContract
-            .connect(cfo)
-            .refill(REFILL_VALUE - 100, PROFIT_RATE)
-        ).to.be.revertedWithCustomError(
-          investmentContract,
-          "IncorrectRefillValue"
-        );
-      });
+      // it("Cannot call function with wrong amount to refill (totalInvestment * profitRate) == amount(refilled) ", async () => {
+      //   await investmentContract.connect(cfo).withdrawSL();
+      //   await expect(
+      //     investmentContract
+      //       .connect(cfo)
+      //       .refill(REFILL_VALUE - 100, PROFIT_RATE)
+      //   ).to.be.revertedWithCustomError(
+      //     investmentContract,
+      //     "IncorrectRefillValue"
+      //   );
+      // });
       it("Owner should be able to refill contract", async () => {
         await investmentContract.connect(cfo).withdrawSL();
         await expect(
-          investmentContract.connect(cfo).refill(REFILL_VALUE, PROFIT_RATE)
-        )
-          .to.emit(investmentContract, "ContractRefilled")
-          .withArgs(REFILL_VALUE, PROFIT_RATE, anyValue);
+          investmentContract.connect(cfo).refill(PROFIT_RATE)
+        ).to.emit(investmentContract, "ContractRefilled");
       });
       it("should set global variable returnProfit = ProfitRate", async () => {
         await investmentContract.connect(cfo).withdrawSL();
-        await investmentContract.connect(cfo).refill(REFILL_VALUE, PROFIT_RATE);
+        await investmentContract.connect(cfo).refill(PROFIT_RATE);
         expect(await investmentContract.returnProfit()).to.equal(PROFIT_RATE);
       });
       it('Should change the contract status to "withdraw"', async () => {
         await investmentContract.connect(cfo).withdrawSL();
-        await investmentContract.connect(cfo).refill(REFILL_VALUE, PROFIT_RATE);
+        await investmentContract.connect(cfo).refill(PROFIT_RATE);
         expect(await investmentContract.status()).to.equal(STATUS_WITHDRAW);
       });
     });
@@ -910,7 +988,9 @@ describe("Investment Contract Tests", async () => {
       });
       it("Invest function shouldnt be able to be called", async () => {
         await expect(
-          investmentContract.connect(investor1).invest(100, 0)
+          investmentContract
+            .connect(investor1)
+            .invest(100, paymentTokenContract.address)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "InvalidContractStatus"
@@ -952,10 +1032,11 @@ describe("Investment Contract Tests", async () => {
     describe("After Withdraw", async () => {
       let paymentTokenBalanceBeforeWithdraw: BigNumber,
         amountInvested: BigNumber;
-      beforeEach("Make withdraw", async () => {
+      beforeEach("Make withdraw ", async () => {
         const {
           investmentContract,
           crucialInvestor,
+          investor9,
           paymentTokenContract,
           puzzleContract,
           logcisContract,
@@ -991,7 +1072,7 @@ describe("Investment Contract Tests", async () => {
         // Invest the remaining amount to fill the contract
         await investmentContract
           .connect(crucialInvestor)
-          .invest(amountInvested.toNumber(), 0);
+          .invest(amountInvested.toNumber(), paymentTokenContract.address);
 
         // Change contract status to process
         await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
@@ -1020,7 +1101,7 @@ describe("Investment Contract Tests", async () => {
           );
 
         // Owner refill the contract
-        await investmentContract.connect(cfo).refill(REFILL_VALUE, PROFIT_RATE);
+        await investmentContract.connect(cfo).refill(PROFIT_RATE);
 
         // Change state to withdraw
         //await investmentContract.changeStatus(STATUS_WITHDRAW);
@@ -1028,6 +1109,7 @@ describe("Investment Contract Tests", async () => {
         paymentTokenBalanceBeforeWithdraw =
           await paymentTokenContract.balanceOf(crucialInvestor.address);
         await investmentContract.connect(crucialInvestor).withdraw();
+        await investmentContract.connect(investor9).withdraw();
       });
       it("Investor should receive payment tokens invested + profit", async () => {
         const paymentTokenAfterWithdraw = await paymentTokenContract.balanceOf(
@@ -1046,7 +1128,7 @@ describe("Investment Contract Tests", async () => {
         await expect(
           investmentContract
             .connect(crucialInvestor)
-            .invest(minimunInvestment, 0)
+            .invest(minimunInvestment, investmentContract.address)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "InvalidContractStatus"
@@ -1070,7 +1152,7 @@ describe("Investment Contract Tests", async () => {
       });
       it("Owner should not be able to refill again", async () => {
         await expect(
-          investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
+          investmentContract.refill(PROFIT_RATE)
         ).to.be.revertedWithCustomError(
           investmentContract,
           "InvalidContractStatus"
@@ -1096,11 +1178,20 @@ describe("Investment Contract Tests", async () => {
         await investmentContract.connect(ceo).changeStatus(STATUS_REFUNDING);
       });
 
-      it("Investor should receive payment tokens invested", async () => {
+      it("Investor should receive payment tokens invested in payment token 1", async () => {
+        await expect(() =>
+          investmentContract.connect(investor2).withdraw()
+        ).to.changeTokenBalance(
+          paymentTokenContract,
+          investor2.address,
+          withDecimals(GENERAL_INVEST_AMOUNT_TO_REFUND)
+        );
+      });
+      it("Investor should receive payment tokens invested in payment token 2", async () => {
         await expect(() =>
           investmentContract.connect(investor1).withdraw()
         ).to.changeTokenBalance(
-          paymentTokenContract,
+          paymentTokenContract2,
           investor1.address,
           withDecimals(GENERAL_INVEST_AMOUNT_TO_REFUND)
         );
@@ -1114,7 +1205,9 @@ describe("Investment Contract Tests", async () => {
         await loadFixture(ownerAndInvestorApprovedTokenToSpend);
       await permissionsContract.connect(ceo).pausePlatform();
       await expect(
-        investmentContract.connect(investor1).invest(100, 0)
+        investmentContract
+          .connect(investor1)
+          .invest(100, investmentContract.address)
       ).to.be.revertedWithCustomError(investmentContract, "PlatformPaused");
     });
     it("Should not be able to call withdraw function", async function () {
@@ -1141,7 +1234,7 @@ describe("Investment Contract Tests", async () => {
       await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
       await permissionsContract.connect(ceo).pausePlatform();
       await expect(
-        investmentContract.refill(REFILL_VALUE, PROFIT_RATE)
+        investmentContract.refill(PROFIT_RATE)
       ).to.be.revertedWithCustomError(investmentContract, "PlatformPaused");
     });
   });
