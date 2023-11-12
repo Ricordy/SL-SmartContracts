@@ -29,18 +29,12 @@ contract Investment is ERC20 {
     /// @notice The status of the contract.
     /// @dev The status is public and can be changed through the changeStatus function.
     Status public status;
-    /// @notice The mapping of allowed payment tokens addresses.
-    /// @dev This value is set at the time of contract deployment.
-    mapping(uint256 => address) public paymentTokenAddresses;
     /// @notice The total investment in the contract.
     /// @dev This value is immutable and set at the time of contract deployment.
     uint256 public immutable TOTAL_INVESTMENT;
     /// @notice The return profit.
     /// @dev This value is set as 0 until contract is refilled.
     uint256 public returnProfit;
-    /// @notice The mapping of payment tokens and their balances.
-    /// @dev This value is set when user invest.
-    mapping(address => mapping(address => uint256)) public paymentTokenBalances;
     /// @notice The address of SLCore contract.
     /// @dev This value is set at the time of contract deployment.
     address public immutable SLCORE_ADDRESS;
@@ -56,6 +50,16 @@ contract Investment is ERC20 {
     /// @notice Stores if user has withdrawn.
     /// @dev Keeps user from withdrawing twice.
     mapping(address => uint256) public userWithdrew;
+    /// @notice The mapping of allowed payment tokens addresses.
+    /// @dev This value is set at the time of contract deployment.
+    mapping(uint256 => address) public paymentTokenAddresses;
+    /// @notice The mapping of the total invested in each one of the payment tokens.
+    /// @dev This value is set when user invest.
+    mapping(address => uint256) public paymentTokensBalances;
+    /// @notice The mapping of user's payment tokens and their balances.
+    /// @dev This value is set when user invest.
+    mapping(address => mapping(address => uint256))
+        public userToPaymentTokenBalances;
 
     ///
     //-----EVENTS------
@@ -265,9 +269,11 @@ contract Investment is ERC20 {
         _mint(msg.sender, _amount * 10 ** decimals());
 
         // Add amount to payment token balance
-        paymentTokenBalances[_paymentToken][msg.sender] +=
+        userToPaymentTokenBalances[_paymentToken][msg.sender] +=
             _amount *
             10 ** decimals();
+
+        paymentTokensBalances[_paymentToken] += _amount;
 
         //deal with user payment
         IERC20(_paymentToken).safeTransferFrom(
@@ -296,7 +302,7 @@ contract Investment is ERC20 {
         //Set user as withdrew
         userWithdrew[msg.sender] = 1;
         // Calculate final amount to withdraw from payment 1
-        uint256 balanceOnPayment1 = paymentTokenBalances[
+        uint256 balanceOnPayment1 = userToPaymentTokenBalances[
             paymentTokenAddresses[0]
         ][msg.sender];
         if (balanceOnPayment1 > 0) {
@@ -314,7 +320,7 @@ contract Investment is ERC20 {
             );
         }
         // Calculate final amount to withdraw from payment 1
-        uint256 balanceOnPayment2 = paymentTokenBalances[
+        uint256 balanceOnPayment2 = userToPaymentTokenBalances[
             paymentTokenAddresses[1]
         ][msg.sender];
         if (balanceOnPayment2 > 0) {
@@ -358,15 +364,15 @@ contract Investment is ERC20 {
             msg.sender,
             paymentToken0Balance
         );
+        IERC20(paymentTokenAddresses[1]).safeTransfer(
+            msg.sender,
+            paymentToken1Balance
+        );
+
         emit SLWithdraw(
             paymentToken0Balance,
             block.timestamp,
             paymentTokenAddresses[0]
-        );
-
-        IERC20(paymentTokenAddresses[1]).safeTransfer(
-            msg.sender,
-            paymentToken1Balance
         );
         emit SLWithdraw(
             paymentToken1Balance,
@@ -377,25 +383,10 @@ contract Investment is ERC20 {
 
     /// @notice Allows the CFO to refill the contract.
     /// @dev The function requires the contract to be in Process status and the platform to be active.
-    /// @param _amount The amount to be refilled.
     /// @param _profitRate The profit rate for the refill.
     function refill(
-        uint256 _amount,
         uint256 _profitRate
     ) public isNotGloballyStopped isProcess isCFO {
-        //Verify if _amount is the total needed to fulfill users withdraw
-        if (
-            TOTAL_INVESTMENT + ((TOTAL_INVESTMENT * _profitRate) / 100) !=
-            _amount * 10 ** decimals()
-        ) {
-            //calculates the amount expected without the decimals
-            revert IncorrectRefillValue(
-                TOTAL_INVESTMENT +
-                    ((TOTAL_INVESTMENT * _profitRate) / 100) /
-                    10 ** decimals(),
-                _amount
-            );
-        }
         // Set return profit
         returnProfit = _profitRate;
         // Change status to withdraw
@@ -404,22 +395,32 @@ contract Investment is ERC20 {
         IERC20(paymentTokenAddresses[0]).safeTransferFrom(
             msg.sender,
             address(this),
-            _amount * 10 ** decimals()
+            (paymentTokensBalances[paymentTokenAddresses[0]] +
+                ((paymentTokensBalances[paymentTokenAddresses[0]] *
+                    _profitRate) / 100)) *
+                10 ** ERC20(paymentTokenAddresses[0]).decimals()
         );
+        IERC20(paymentTokenAddresses[1]).safeTransferFrom(
+            msg.sender,
+            address(this),
+            (paymentTokensBalances[paymentTokenAddresses[1]] +
+                ((paymentTokensBalances[paymentTokenAddresses[1]] *
+                    _profitRate) / 100)) *
+                10 ** ERC20(paymentTokenAddresses[1]).decimals()
+        );
+
         emit ContractRefilled(
-            _amount,
+            (paymentTokensBalances[paymentTokenAddresses[0]] +
+                ((paymentTokensBalances[paymentTokenAddresses[0]] *
+                    _profitRate) / 100)),
             _profitRate,
             block.timestamp,
             paymentTokenAddresses[0]
         );
-
-        IERC20(paymentTokenAddresses[1]).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _amount * 10 ** decimals()
-        );
         emit ContractRefilled(
-            _amount,
+            (paymentTokensBalances[paymentTokenAddresses[1]] +
+                ((paymentTokensBalances[paymentTokenAddresses[1]] *
+                    _profitRate) / 100)),
             _profitRate,
             block.timestamp,
             paymentTokenAddresses[1]
