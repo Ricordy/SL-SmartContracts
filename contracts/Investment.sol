@@ -207,6 +207,7 @@ contract Investment is ERC20 {
         PAYMENT_TOKEN_ADDRESS_0 = _paymentTokenAddress0;
         PAYMENT_TOKEN_ADDRESS_1 = _paymentTokenAddress1;
         CONTRACT_LEVEL = _contractLevel;
+        returnProfit = 0;
         // Change status to Progress
         _changeStatus(Status.Progress);
     }
