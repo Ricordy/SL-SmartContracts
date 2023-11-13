@@ -59,6 +59,9 @@ contract Factory {
     /// @notice Initializes the contract with the address of the SLPermissions contract.
     /// @param _slPermissionsAddress The address of the SLPermissions contract.
     constructor(address _slPermissionsAddress) {
+        if (_slPermissionsAddress == address(0)) {
+            revert InvalidAddress("SLPermissions");
+        }
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
     }
 

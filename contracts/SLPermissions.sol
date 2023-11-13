@@ -66,6 +66,12 @@ contract SLPermissions {
     /// @param _ceoAddress The address of the CEO
     /// @param _cfoAddress The address of the CFO.
     constructor(address _ceoAddress, address _cfoAddress) {
+        if (_ceoAddress == address(0)) {
+            revert InvalidAddress("CEO");
+        }
+        if (_cfoAddress == address(0)) {
+            revert InvalidAddress("CFO");
+        }
         ceoAddress = _ceoAddress;
         cfoAddress = _cfoAddress;
     }
