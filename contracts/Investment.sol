@@ -86,18 +86,13 @@ contract Investment is ERC20 {
     event Withdraw(
         address indexed user,
         uint256 indexed amount,
-        uint256 indexed time,
-        address paymentToken
+        uint256 indexed time
     );
 
     /// @notice An event that is emitted when Something Legendary wtihdraws tokens for processing.
     /// @param amount The amount withdrawn.
     /// @param time The timestamp where action was perfomed.
-    event SLWithdraw(
-        uint256 indexed amount,
-        uint256 indexed time,
-        address indexed paymentToken
-    );
+    event SLWithdraw(uint256 indexed amount, uint256 indexed time);
 
     /// @notice An event that is emitted when Something Legendary refill contract with tokens.
     /// @param amount The amount refilled.
@@ -228,9 +223,11 @@ contract Investment is ERC20 {
         ) {
             revert InvalidPaymentId(_paymentToken, 0, 1);
         }
-        uint256 amountWithDecimals = _amount * 10 ** decimals();
+        uint256 amountWithInnerDecimals = _amount * 10 ** decimals();
+        uint256 amountWithCoinDecimals = _amount *
+            10 ** ERC20(_paymentToken).decimals();
         //Get amount already invested by user
-        uint256 userInvested = amountWithDecimals + balanceOf(msg.sender);
+        uint256 userInvested = amountWithInnerDecimals + balanceOf(msg.sender);
         //Get max to invest
         uint256 maxToInvest = getMaxToInvest();
         //Check if amount invested is at least the minimum amount for investment
@@ -250,17 +247,17 @@ contract Investment is ERC20 {
             );
         }
         //If the amount invested by the user fills the contract, the status is automaticaly changed
-        if (totalSupply() + _amount * 10 ** 6 == TOTAL_INVESTMENT) {
+        if (totalSupply() + amountWithInnerDecimals == TOTAL_INVESTMENT) {
             _changeStatus(Status.Process);
             emit ContractFilled(block.timestamp);
         }
         //Mint the equivilent amount of investment token to user
-        _mint(msg.sender, amountWithDecimals);
+        _mint(msg.sender, amountWithInnerDecimals);
 
         // Add amount to payment token balance
         userToPaymentTokenBalances[_paymentToken][
             msg.sender
-        ] += amountWithDecimals;
+        ] += amountWithCoinDecimals;
 
         paymentTokensBalances[
             _paymentToken == PAYMENT_TOKEN_ADDRESS_0 ? 0 : 1
@@ -270,7 +267,7 @@ contract Investment is ERC20 {
         IERC20(_paymentToken).safeTransferFrom(
             msg.sender,
             address(this),
-            amountWithDecimals
+            amountWithCoinDecimals
         );
 
         //Emit event for user investment
@@ -293,43 +290,33 @@ contract Investment is ERC20 {
         //Set user as withdrew
         userWithdrew[msg.sender] = 1;
         // Calculate final amount to withdraw from payment 1
-        if (
-            userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_0][msg.sender] > 0
-        ) {
-            uint256 finalAmount1 = calculateFinalAmount(
-                userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_0][msg.sender]
+        (
+            uint256 paymentToken0Amount,
+            uint256 paymentToken1Amount
+        ) = calculateFinalAmount(
+                userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_0][msg.sender],
+                userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_1][msg.sender]
             );
+        if (paymentToken0Amount > 0) {
             // Transfer final amount to user
             IERC20(PAYMENT_TOKEN_ADDRESS_0).safeTransfer(
                 msg.sender,
-                finalAmount1
-            );
-            emit Withdraw(
-                msg.sender,
-                finalAmount1,
-                block.timestamp,
-                PAYMENT_TOKEN_ADDRESS_0
+                paymentToken0Amount
             );
         }
         // Calculate final amount to withdraw from payment 1
-        if (
-            userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_1][msg.sender] > 0
-        ) {
-            uint256 finalAmount2 = calculateFinalAmount(
-                userToPaymentTokenBalances[PAYMENT_TOKEN_ADDRESS_1][msg.sender]
-            );
+        if (paymentToken1Amount > 0) {
             //Transfer final amount to user
             IERC20(PAYMENT_TOKEN_ADDRESS_1).safeTransfer(
                 msg.sender,
-                finalAmount2
-            );
-            emit Withdraw(
-                msg.sender,
-                finalAmount2,
-                block.timestamp,
-                PAYMENT_TOKEN_ADDRESS_1
+                paymentToken1Amount
             );
         }
+        emit Withdraw(
+            msg.sender,
+            paymentToken1Amount + paymentToken0Amount,
+            block.timestamp
+        );
     }
 
     // @notice Allows the CFO to withdraw funds for processing.
@@ -343,7 +330,7 @@ contract Investment is ERC20 {
         ) {
             revert NotEnoughForProcess(
                 (TOTAL_INVESTMENT * 80) / 100,
-                totalContractBalance()
+                totalSupply()
             );
         }
 
@@ -363,14 +350,8 @@ contract Investment is ERC20 {
         );
 
         emit SLWithdraw(
-            paymentToken0Balance,
-            block.timestamp,
-            PAYMENT_TOKEN_ADDRESS_0
-        );
-        emit SLWithdraw(
-            paymentToken1Balance,
-            block.timestamp,
-            PAYMENT_TOKEN_ADDRESS_1
+            paymentToken0Balance + paymentToken1Balance,
+            block.timestamp
         );
     }
 
@@ -419,12 +400,6 @@ contract Investment is ERC20 {
     ///
     //-----GETTERS------
     ///
-    /// @notice returns the total invested by users
-    /// @return totalBalance the total amount invested
-    function totalContractBalance() public view returns (uint256 totalBalance) {
-        totalBalance = totalSupply();
-    }
-
     function totalContractBalanceForEachPaymentToken()
         public
         view
@@ -442,7 +417,7 @@ contract Investment is ERC20 {
     /// @dev Checks if contract is more than 90% full and returns the remaining to fill, if not, returns 10% of total investment
     /// @return maxToInvest max allowed to invest at any time (by a user that didn't invest yet)
     function getMaxToInvest() public view returns (uint256 maxToInvest) {
-        maxToInvest = TOTAL_INVESTMENT - totalContractBalance();
+        maxToInvest = TOTAL_INVESTMENT - totalSupply();
         if (maxToInvest > TOTAL_INVESTMENT / 10) {
             maxToInvest = TOTAL_INVESTMENT / 10;
         }
@@ -450,13 +425,26 @@ contract Investment is ERC20 {
 
     /// @notice calculates the amount that the user has for withdrawal
     /// @dev if profit rate = 0 the amount returned will be as same as the amount invested
-    /// @param _amount amount invested by the user
-    /// @return totalAmount amount that the user has the right to withdraw
-    /// @custom:obs minimum amount returned: [{_amount}]
+    /// @param _amountPaymentToken1 amount invested by the user in payment token 1
+    /// @param _amountPaymentToken2 amount invested by the user in payment token 2
+    /// @return totalAmountPaymentToken1 amount that the user has the right to withdraw
+    /// @return totalAmountPaymentToken2 amount that the user has the right to withdraw
+    /// @custom:obs minimum amount returned: [{_amountPaymentToken1, _amountPaymentToken2}]
     function calculateFinalAmount(
-        uint256 _amount
-    ) internal view returns (uint256 totalAmount) {
-        totalAmount = (_amount + ((_amount * returnProfit) / 100));
+        uint256 _amountPaymentToken1,
+        uint256 _amountPaymentToken2
+    )
+        internal
+        view
+        returns (
+            uint256 totalAmountPaymentToken1,
+            uint256 totalAmountPaymentToken2
+        )
+    {
+        totalAmountPaymentToken1 = (_amountPaymentToken1 +
+            ((_amountPaymentToken1 * returnProfit) / 100));
+        totalAmountPaymentToken2 = (_amountPaymentToken2 +
+            ((_amountPaymentToken2 * returnProfit) / 100));
     }
 
     ///

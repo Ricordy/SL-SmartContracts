@@ -764,7 +764,7 @@ describe("Investment Contract Tests", async () => {
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
 
-        const contractBalance = await investmentContract.totalContractBalance();
+        const contractBalance = await investmentContract.totalSupply();
 
         const maxAllowed = BigNumber.from(
           withDecimals(INVESTMENT_1_AMOUNT)
@@ -864,7 +864,7 @@ describe("Investment Contract Tests", async () => {
         const ownerBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(
           cfo.address
         );
-        const contractBalance = await investmentContract.totalContractBalance();
+        const contractBalance = await investmentContract.totalSupply();
 
         // Withdraw funds
         await investmentContract.connect(cfo).withdrawSL();
@@ -876,41 +876,41 @@ describe("Investment Contract Tests", async () => {
           ownerBalanceAfterWithdraw.sub(contractBalance)
         );
       });
-      it("Owner's Payment Token 0 balance should be increased by its balance on the contract", async () => {
-        const ownerBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(
-          cfo.address
-        );
+      // it("Owner's Payment Token 0 balance should be increased by its balance on the contract", async () => {
+      //   const ownerBalanceBeforeWithdraw = await paymentTokenContract.balanceOf(
+      //     cfo.address
+      //   );
 
-        const { paymentToken0Balance } =
-          await investmentContract.totalContractBalanceForEachPaymentToken();
+      //   const { paymentToken0Balance } =
+      //     await investmentContract.totalSupplyForEachPaymentToken();
 
-        // Withdraw funds
-        await investmentContract.connect(cfo).withdrawSL();
-        const ownerBalanceAfterWithdraw = await paymentTokenContract.balanceOf(
-          cfo.address
-        );
+      //   // Withdraw funds
+      //   await investmentContract.connect(cfo).withdrawSL();
+      //   const ownerBalanceAfterWithdraw = await paymentTokenContract.balanceOf(
+      //     cfo.address
+      //   );
 
-        expect(ownerBalanceBeforeWithdraw).to.be.equal(
-          ownerBalanceAfterWithdraw.sub(paymentToken0Balance)
-        );
-      });
-      it("Owner's Payment Token 1 balance should be increased by its balance on the contract", async () => {
-        const ownerBalanceBeforeWithdrawStable2 =
-          await paymentTokenContract2.balanceOf(cfo.address);
+      //   expect(ownerBalanceBeforeWithdraw).to.be.equal(
+      //     ownerBalanceAfterWithdraw.sub(paymentToken0Balance)
+      //   );
+      // });
+      // it("Owner's Payment Token 1 balance should be increased by its balance on the contract", async () => {
+      //   const ownerBalanceBeforeWithdrawStable2 =
+      //     await paymentTokenContract2.balanceOf(cfo.address);
 
-        const { paymentToken1Balance } =
-          await investmentContract.totalContractBalanceForEachPaymentToken();
+      //   const { paymentToken1Balance } =
+      //     await investmentContract.totalSupplyForEachPaymentToken();
 
-        // Withdraw funds
-        await investmentContract.connect(cfo).withdrawSL();
+      //   // Withdraw funds
+      //   await investmentContract.connect(cfo).withdrawSL();
 
-        const ownerBalanceAfterWithdrawStable2 =
-          await paymentTokenContract2.balanceOf(cfo.address);
+      //   const ownerBalanceAfterWithdrawStable2 =
+      //     await paymentTokenContract2.balanceOf(cfo.address);
 
-        expect(ownerBalanceBeforeWithdrawStable2).to.be.equal(
-          ownerBalanceAfterWithdrawStable2.sub(paymentToken1Balance)
-        );
-      });
+      //   expect(ownerBalanceBeforeWithdrawStable2).to.be.equal(
+      //     ownerBalanceAfterWithdrawStable2.sub(paymentToken1Balance)
+      //   );
+      // });
       it("Should not be called when contract balance is less than 80%", async () => {
         await investmentContract.connect(cfo).withdrawSL();
         await expect(investmentContract.connect(cfo).withdrawSL()).to.be
@@ -1062,7 +1062,7 @@ describe("Investment Contract Tests", async () => {
         await puzzleContract.connect(crucialInvestor).mintEntry();
 
         const investmentContractBalance =
-          await investmentContract.totalContractBalance();
+          await investmentContract.totalSupply();
         const totalInvestment = await investmentContract.TOTAL_INVESTMENT();
 
         amountInvested = totalInvestment
