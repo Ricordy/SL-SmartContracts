@@ -343,15 +343,19 @@ describe("Permissions Contract", async () => {
 
   describe("Setting Roles tests", async () => {
     it("CEO should be able to set CEO", async () => {
-      const { permissionsContract } = await loadFixture(deployContractFixture);
-      expect(await permissionsContract.connect(ceo).setCEO(cfo.address)).to.not
-        .reverted;
+      const { permissionsContract, investor1 } = await loadFixture(
+        deployContractFixture
+      );
+      expect(await permissionsContract.connect(ceo).setCEO(investor1.address))
+        .to.not.reverted;
     });
 
     it("CEO should be able to set CFO", async () => {
-      const { permissionsContract } = await loadFixture(deployContractFixture);
-      expect(await permissionsContract.connect(ceo).setCFO(ceo.address)).to.not
-        .reverted;
+      const { permissionsContract, investor1 } = await loadFixture(
+        deployContractFixture
+      );
+      expect(await permissionsContract.connect(ceo).setCFO(investor1.address))
+        .to.not.reverted;
     });
 
     it("CFO should NOT be able to set new CEO", async () => {
@@ -379,10 +383,24 @@ describe("Permissions Contract", async () => {
       ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
     });
 
+    it("CEO should NOT be able to set new CEO to CFO address", async () => {
+      const { permissionsContract } = await loadFixture(deployContractFixture);
+      await expect(
+        permissionsContract.connect(ceo).setCEO(cfo.address)
+      ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
+    });
+
     it("CEO should NOT be able to set new CFO to zero address", async () => {
       const { permissionsContract } = await loadFixture(deployContractFixture);
       await expect(
         permissionsContract.connect(ceo).setCFO(ethers.constants.AddressZero)
+      ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
+    });
+
+    it("CEO should NOT be able to set new CFO to CEO address", async () => {
+      const { permissionsContract } = await loadFixture(deployContractFixture);
+      await expect(
+        permissionsContract.connect(ceo).setCFO(ceo.address)
       ).to.be.revertedWithCustomError(permissionsContract, "InvalidAddress");
     });
     it("CEO should not be able to set allowed contracts passing the wrong _allowed value", async () => {

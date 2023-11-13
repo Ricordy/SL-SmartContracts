@@ -119,7 +119,9 @@ contract SLPermissions {
         if (_newCEO == address(0)) {
             revert InvalidAddress("CEO");
         }
-
+        if (_newCEO == cfoAddress) {
+            revert InvalidAddress("User is CFO");
+        }
         ceoAddress = _newCEO;
     }
 
@@ -129,7 +131,9 @@ contract SLPermissions {
         if (_newCFO == address(0)) {
             revert InvalidAddress("CFO");
         }
-
+        if (_newCFO == ceoAddress) {
+            revert InvalidAddress("User is CEO");
+        }
         cfoAddress = _newCFO;
     }
 
