@@ -279,6 +279,20 @@ describe("Factory Contract Tests", async () => {
     };
   }
 
+  describe("Deploying contract", () => {
+    it("Should deploy the contract", async () => {
+      const { factoryContract } = await loadFixture(deployContractFixture);
+      expect(factoryContract.address).to.not.equal(
+        ethers.constants.AddressZero
+      );
+    });
+    it("Should not be deployable if SLPErmissions is passeg as address(0)", async () => {
+      const { owner } = await loadFixture(deployContractFixture);
+      const factoryContractFactory = new Factory__factory(owner);
+      await expect(factoryContractFactory.deploy(ethers.constants.AddressZero))
+        .to.be.revertedWithCustomError(factoryContractFactory, "InvalidAddress");
+    });
+  });
   describe("DeployNew function", async () => {
     it("SLCore address must be AddressZero when calling getLastDeployedContract before deploying a new contract", async () => {
       const { factoryContract } = await loadFixture(deployContractFixture);

@@ -139,6 +139,32 @@ describe("Permissions Contract", async () => {
   }
 
   describe("Deployment tests", async () => {
+    it("Should not be deployable if CEO address is passed as address(0)", async () => {
+      const { cfo } = await loadFixture(deployContractFixture);
+      const permissionsContractFacotry = new SLPermissions__factory(owner);
+      await expect(
+        permissionsContractFacotry.deploy(
+          ethers.constants.AddressZero,
+          cfo.address
+        )
+      ).to.be.revertedWithCustomError(
+        permissionsContractFacotry,
+        "InvalidAddress"
+      );
+    });
+    it("Should not be deployable if CFO address is passed as address(0)", async () => {
+      const { ceo } = await loadFixture(deployContractFixture);
+      const permissionsContractFacotry = new SLPermissions__factory(owner);
+      await expect(
+        permissionsContractFacotry.deploy(
+          ceo.address,
+          ethers.constants.AddressZero
+        )
+      ).to.be.revertedWithCustomError(
+        permissionsContractFacotry,
+        "InvalidAddress"
+      );
+    });
     it("Should set the CEO address", async () => {
       const { permissionsContract } = await loadFixture(deployContractFixture);
       expect(await permissionsContract.isCEO(ceo.address)).to.be.true;
