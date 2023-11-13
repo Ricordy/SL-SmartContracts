@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -360,7 +360,7 @@ contract Investment is ERC20 {
     /// @param _profitRate The profit rate for the refill.
     function refill(
         uint256 _profitRate
-    ) public isNotGloballyStopped isProcess isCFO {
+    ) external isNotGloballyStopped isProcess isCFO {
         // Set return profit
         returnProfit = _profitRate;
         // Change status to withdraw
@@ -516,7 +516,7 @@ contract Investment is ERC20 {
     /// @notice Changes the status of the contract.
     /// @dev The function requires the caller to be a CEO.
     /// @param _newStatus The new status for the contract.
-    function changeStatus(Status _newStatus) public isCEO {
+    function changeStatus(Status _newStatus) external isCEO {
         _changeStatus(_newStatus);
     }
 
