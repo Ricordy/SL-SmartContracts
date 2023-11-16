@@ -34,6 +34,10 @@ contract Factory {
         uint256 indexed conLevel
     );
 
+    /// @notice An event that is emitted when the SLCore address is updated.
+    /// @param slCoreAddress The new SLCore address.
+    event SLCoreAddressSet(address indexed slCoreAddress);
+
     ///
     //-----ERRORS------
     ///
@@ -134,6 +138,7 @@ contract Factory {
             revert InvalidAddress("SLCore");
         } else {
             slCoreAddress = _slCoreAddress;
+            emit SLCoreAddressSet(_slCoreAddress);
         }
     }
 
