@@ -185,16 +185,6 @@ contract Investment is ERC20 {
         address _paymentTokenAddress1,
         uint256 _contractLevel
     ) ERC20("InvestmentCurrency", "IC") {
-        // Check if addresses are valid
-        if (_slCoreAddress == address(0)) {
-            revert InvalidAddress("SLCore");
-        }
-        if (_paymentTokenAddress0 == address(0)) {
-            revert InvalidAddress("PaymentToken0");
-        }
-        if (_paymentTokenAddress1 == address(0)) {
-            revert InvalidAddress("PaymentToken1");
-        }
         // Assign values to state variables
         TOTAL_INVESTMENT = _totalInvestment * 10 ** decimals();
         SLPERMISSIONS_ADDRESS = _slPermissionsAddress;
