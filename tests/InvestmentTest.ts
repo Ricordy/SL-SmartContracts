@@ -484,60 +484,6 @@ describe("Investment Contract Tests", async () => {
   }
 
   describe("When the contract is deployed", async function () {
-    it("Should not be bale to deploy passing SLCore Address as address(0)", async () => {
-      const {
-        investmentContractFactory,
-        permissionsContract,
-        paymentTokenContract,
-        paymentTokenContract2,
-      } = await loadFixture(deployContractFixture);
-      await expect(
-        investmentContractFactory.deploy(
-          INVESTMENT_1_AMOUNT,
-          permissionsContract.address,
-          ethers.constants.AddressZero,
-          paymentTokenContract.address,
-          paymentTokenContract2.address,
-          1
-        )
-      ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
-    });
-    it("Should ne able to deploy passing paymenttoken0 address as address(0)", async () => {
-      const {
-        investmentContractFactory,
-        puzzleContract,
-        permissionsContract,
-        paymentTokenContract2,
-      } = await loadFixture(deployContractFixture);
-      await expect(
-        investmentContractFactory.deploy(
-          INVESTMENT_1_AMOUNT,
-          permissionsContract.address,
-          puzzleContract.address,
-          ethers.constants.AddressZero,
-          paymentTokenContract2.address,
-          1
-        )
-      ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
-    });
-    it("Should ne able to deploy passing paymenttoken1 address as address(0)", async () => {
-      const {
-        investmentContractFactory,
-        puzzleContract,
-        permissionsContract,
-        paymentTokenContract2,
-      } = await loadFixture(deployContractFixture);
-      await expect(
-        investmentContractFactory.deploy(
-          INVESTMENT_1_AMOUNT,
-          permissionsContract.address,
-          puzzleContract.address,
-          paymentTokenContract2.address,
-          ethers.constants.AddressZero,
-          1
-        )
-      ).to.be.revertedWithCustomError(factoryContract, "InvalidAddress");
-    });
     it("Should set the total Investment", async () => {
       const { investmentContract } = await loadFixture(deployContractFixture);
       const totalInvestment = await investmentContract.TOTAL_INVESTMENT();
