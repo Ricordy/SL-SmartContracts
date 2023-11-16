@@ -227,19 +227,30 @@ contract Investment is ERC20 {
         uint256 amountWithCoinDecimals = _amount *
             10 ** ERC20(_paymentToken).decimals();
         //Get amount already invested by user
-        uint256 userInvested = amountWithInnerDecimals + balanceOf(msg.sender);
+        uint256 balanceOfUserBeforeInvesting = balanceOf(msg.sender);
+        uint256 userInvested = balanceOfUserBeforeInvesting +
+            amountWithInnerDecimals;
         //Get max to invest
         uint256 maxToInvest = getMaxToInvest();
-        //Check if amount invested is at least the minimum amount for investment
-        if (_amount < MINIMUM_INVESTMENT) {
+
+        if (userInvested > TOTAL_INVESTMENT / 10) {
             revert WrongfulInvestmentAmount(
                 userInvested,
                 MINIMUM_INVESTMENT,
                 maxToInvest
             );
         }
+
+        //Check if amount invested is at least the minimum amount for investment
+        if (_amount < MINIMUM_INVESTMENT) {
+            revert WrongfulInvestmentAmount(
+                _amount,
+                MINIMUM_INVESTMENT,
+                maxToInvest
+            );
+        }
         //If user has invested more than the max to invest, he's not allowed to invest
-        if (userInvested > maxToInvest) {
+        if (amountWithInnerDecimals > maxToInvest) {
             revert WrongfulInvestmentAmount(
                 userInvested,
                 MINIMUM_INVESTMENT,
