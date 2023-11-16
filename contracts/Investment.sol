@@ -320,7 +320,7 @@ contract Investment is ERC20 {
         );
     }
 
-    // @notice Allows the CFO to withdraw funds for processing.
+    /// @notice Allows the CFO to withdraw funds for processing. This means the CFO is allowed to withdraw all user invested funds in the PROCESS phase.
     /// @dev The function requires the contract to be in Process status and the platform to be active.
     function withdrawSL() external isProcess isNotGloballyStopped isCFO {
         //check if total invested is at least 80% of totalInvestment

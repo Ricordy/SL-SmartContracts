@@ -62,6 +62,46 @@ contract SLPermissions {
     ///Function caller is not CEO level
     error NotCLevel();
 
+    ///
+    //-----EVENTS------
+    ///
+    /// @notice An event thats emitted when a new CEO address is set.
+    /// @param previousCEO The address being replaced.
+    /// @param newCEO The new CEO address.
+    event CEOSet(address indexed previousCEO, address indexed newCEO);
+
+    /// @notice An event thats emitted when a new CFO address is set.
+    /// @param previousCFO The address being replaced.
+    /// @param newCFO The new CFO address.
+    event CFOSet(address indexed previousCFO, address indexed newCFO);
+
+    /// @notice An event thats emitted when a new contract is allowed.
+    /// @param contractAddress The address of the contract.
+    /// @param allowed The new status of the contract.
+    event ContractAllowed(
+        address indexed contractAddress,
+        uint256 indexed allowed
+    );
+
+    /// @notice An event thats emitted when the Platform is paused.
+    /// @param paused The new status of the contract.
+    event PlatformPaused(uint256 indexed paused);
+
+    /// @notice An event thats emitted when the Entry Mint is paused.
+    /// @param paused The new status of the contract.
+    event EntryMintPaused(uint256 indexed paused);
+
+    /// @notice An event thats emitted when the Puzzle Mint is paused.
+    /// @param paused The new status of the contract.
+    event PuzzleMintPaused(uint256 indexed paused);
+
+    /// @notice An event thats emitted when the Investments are paused.
+    /// @param paused The new status of the contract.
+    event InvestmentsPaused(uint256 indexed paused);
+
+    ///
+    //-----CONSTRUCTOR------
+    ///
     /// @notice Initializes the Permissions contract
     /// @param _ceoAddress The address of the CEO
     /// @param _cfoAddress The address of the CFO.
@@ -128,6 +168,7 @@ contract SLPermissions {
         if (_newCEO == cfoAddress) {
             revert InvalidAddress("User is CFO");
         }
+        emit CEOSet(ceoAddress, _newCEO);
         ceoAddress = _newCEO;
     }
 
@@ -140,6 +181,7 @@ contract SLPermissions {
         if (_newCFO == ceoAddress) {
             revert InvalidAddress("User is CEO");
         }
+        emit CFOSet(cfoAddress, _newCFO);
         cfoAddress = _newCFO;
     }
 
@@ -153,6 +195,7 @@ contract SLPermissions {
         if (_allowed > 1) {
             revert InvalidNumber(1, _allowed);
         }
+        emit ContractAllowed(_contractAddress, _allowed);
         allowedContracts[_contractAddress] = _allowed;
     }
 
@@ -182,18 +225,22 @@ contract SLPermissions {
     ///  a bug or exploit is detected and we need to limit damage.
     function pausePlatform() external onlyCLevel {
         paused = 1;
+        emit PlatformPaused(paused);
     }
 
     function pauseEntryMint() external onlyCLevel {
         pausedEntryMint = 1;
+        emit EntryMintPaused(pausedEntryMint);
     }
 
     function pausePuzzleMint() external onlyCLevel {
         pausedPuzzleMint = 1;
+        emit PuzzleMintPaused(pausedPuzzleMint);
     }
 
     function pauseInvestments() external onlyCLevel {
         pausedInvestments = 1;
+        emit InvestmentsPaused(pausedInvestments);
     }
 
     /// @dev Unpauses the functionalities. Can only be called by the CEO, since
@@ -201,17 +248,21 @@ contract SLPermissions {
     ///  compromised.
     function unpausePlatform() external onlyCEO {
         paused = 0;
+        emit PlatformPaused(paused);
     }
 
     function unpauseEntryMint() external onlyCEO {
         pausedEntryMint = 0;
+        emit EntryMintPaused(pausedEntryMint);
     }
 
     function unpausePuzzleMint() external onlyCEO {
         pausedPuzzleMint = 0;
+        emit PuzzleMintPaused(pausedPuzzleMint);
     }
 
     function unpauseInvestments() external onlyCEO {
         pausedInvestments = 0;
+        emit InvestmentsPaused(pausedInvestments);
     }
 }
