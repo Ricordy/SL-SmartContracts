@@ -19,9 +19,9 @@ import { expect } from "chai";
 import { BigNumber } from "ethers";
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
-const INVESTMENT_1_AMOUNT = 100000,
+const INVESTMENT_1_AMOUNT = 100_000,
   INVESTMENT_1_MAX_ALLOWED_TO_INVEST = INVESTMENT_1_AMOUNT / 10,
-  INVESTMENT_2_AMOUNT = 150000,
+  INVESTMENT_2_AMOUNT = 150_000,
   STATUS_PAUSE = 0,
   STATUS_PROGRESS = 1,
   STATUS_PROCESS = 2,
@@ -36,6 +36,8 @@ const INVESTMENT_1_AMOUNT = 100000,
   PAYMENT_TOKEN_AMOUNT = 200000,
   PROFIT_RATE = 15,
   REFILL_VALUE =
+    INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE,
+  REFILL_VALUE_2 =
     INVESTMENT_1_AMOUNT + (INVESTMENT_1_AMOUNT / 100) * PROFIT_RATE,
   ENTRY_BATCH_CAP = 1000,
   ENTRY_BATCH_PRICE = 100,
@@ -1030,7 +1032,8 @@ describe("Investment Contract Tests", async () => {
       });
     });
     describe("After Withdraw", async () => {
-      let paymentTokenBalanceBeforeWithdraw: BigNumber,
+      let paymentToken1BalanceBeforeWithdraw: BigNumber,
+        paymentToken2BalanceBeforeWithdraw: BigNumber,
         amountInvested: BigNumber;
       beforeEach("Make withdraw ", async () => {
         const {
@@ -1038,10 +1041,12 @@ describe("Investment Contract Tests", async () => {
           crucialInvestor,
           investor9,
           paymentTokenContract,
+          paymentTokenContract2,
           puzzleContract,
           logcisContract,
         } = await loadFixture(oneInvestCallLeftToFill);
-        //Min and approve crucialInvestor TestCoin
+
+        // Mint and approve crucialInvestor TestCoin1
         await paymentTokenContract
           .connect(crucialInvestor)
           .mint(GENERAL_ACCOUNT_AMOUNT);
@@ -1058,6 +1063,22 @@ describe("Investment Contract Tests", async () => {
             withDecimals(GENERAL_ACCOUNT_AMOUNT)
           );
 
+        // Mint and approve crucialInvestor TestCoin2
+        await paymentTokenContract2
+          .connect(crucialInvestor)
+          .mint(GENERAL_ACCOUNT_AMOUNT);
+        await paymentTokenContract2
+          .connect(crucialInvestor)
+          .approve(
+            logcisContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
+        await paymentTokenContract2
+          .connect(crucialInvestor)
+          .approve(
+            investmentContract.address,
+            withDecimals(GENERAL_ACCOUNT_AMOUNT)
+          );
         //Mint NFTEntry for crucialInvestor
         await puzzleContract.connect(crucialInvestor).mintEntry();
 
@@ -1065,60 +1086,136 @@ describe("Investment Contract Tests", async () => {
           await investmentContract.totalSupply();
         const totalInvestment = await investmentContract.TOTAL_INVESTMENT();
 
-        amountInvested = totalInvestment
-          .sub(investmentContractBalance)
-          .div(10 ** 6);
+        amountInvested = (await investmentContract.getMaxToInvest()).div(
+          10 ** 6
+        );
 
         // Invest the remaining amount to fill the contract
+        // Half Testcoin1
         await investmentContract
           .connect(crucialInvestor)
-          .invest(amountInvested.toNumber(), paymentTokenContract.address);
+          .invest(
+            amountInvested.div(2).toNumber(),
+            paymentTokenContract.address
+          );
+
+        // Half Testcoin2
+        await investmentContract
+          .connect(crucialInvestor)
+          .invest(
+            amountInvested.div(2).toNumber(),
+            paymentTokenContract2.address
+          );
 
         // Change contract status to process
         await investmentContract.connect(ceo).changeStatus(STATUS_PROCESS);
-        // Allow owner to withdraw the totalInvestment from the contract
+
+        const paymentToken1Balance =
+          await investmentContract.paymentTokensBalances(0);
+
+        const paymentToken2Balance =
+          await investmentContract.paymentTokensBalances(1);
+
+        // Allow CFO to withdraw the totalInvestment from the contract
         await paymentTokenContract
           .connect(cfo)
-          .approve(investmentContract.address, totalInvestment);
+          .approve(
+            investmentContract.address,
+            withDecimals(paymentToken1Balance.toNumber())
+          );
 
-        // Owner withdraw contract funds
+        await paymentTokenContract2
+          .connect(cfo)
+          .approve(
+            investmentContract.address,
+            withDecimals(paymentToken2Balance.toNumber())
+          );
+
+        // CFO withdraw contract funds
         await investmentContract.connect(cfo).withdrawSL();
 
         // Allow Investment Contract to transfer the totalInvestment + profit
-        await paymentTokenContract
-          .connect(cfo)
-          .approve(investmentContract.address, withDecimals(REFILL_VALUE));
+        let CFOBalance1 = await paymentTokenContract.balanceOf(cfo.address);
 
-        const ownerBalance = await paymentTokenContract.balanceOf(
-          owner.address
+        let CFOBalance2 = await paymentTokenContract2.balanceOf(cfo.address);
+
+        const amountToRefilToken1 = paymentToken1Balance.mul(10 ** 6).add(
+          paymentToken1Balance
+            .mul(10 ** 6)
+            .div(100)
+            .mul(PROFIT_RATE)
         );
 
-        // Add more funds to the owner account to be able to refill
+        const amountToRefilToken2 = paymentToken2Balance.mul(10 ** 6).add(
+          paymentToken2Balance
+            .mul(10 ** 6)
+            .div(100)
+            .mul(PROFIT_RATE)
+        );
+
+        const paymentToken1ToFund = CFOBalance1.lt(amountToRefilToken1)
+          ? amountToRefilToken1.sub(CFOBalance1)
+          : BigNumber.from(0);
+
+        const paymentToken2ToFund = CFOBalance2.lt(amountToRefilToken2)
+          ? amountToRefilToken2.sub(CFOBalance2)
+          : BigNumber.from(0);
+
+        if (paymentToken1ToFund.gt(0)) {
+          // Add more funds to the owner account to be able to refill
+          await paymentTokenContract.connect(cfo).mint(paymentToken1ToFund);
+        }
+        if (paymentToken2ToFund.gt(0)) {
+          await paymentTokenContract2.connect(cfo).mint(paymentToken2ToFund);
+        }
+
+        CFOBalance1 = await paymentTokenContract.balanceOf(cfo.address);
+        CFOBalance2 = await paymentTokenContract2.balanceOf(cfo.address);
+
         await paymentTokenContract
           .connect(cfo)
-          .mint(
-            ethers.BigNumber.from(REFILL_VALUE).sub(ownerBalance.div(10 ** 6))
-          );
+          .approve(investmentContract.address, amountToRefilToken1);
+        await paymentTokenContract2
+          .connect(cfo)
+          .approve(investmentContract.address, amountToRefilToken2);
 
-        // Owner refill the contract
+        // CFO refill the contract
         await investmentContract.connect(cfo).refill(PROFIT_RATE);
 
-        // Change state to withdraw
-        //await investmentContract.changeStatus(STATUS_WITHDRAW);
-
-        paymentTokenBalanceBeforeWithdraw =
+        paymentToken1BalanceBeforeWithdraw =
           await paymentTokenContract.balanceOf(crucialInvestor.address);
+        paymentToken2BalanceBeforeWithdraw =
+          await paymentTokenContract2.balanceOf(crucialInvestor.address);
         await investmentContract.connect(crucialInvestor).withdraw();
         await investmentContract.connect(investor9).withdraw();
       });
-      it("Investor should receive payment tokens invested + profit", async () => {
-        const paymentTokenAfterWithdraw = await paymentTokenContract.balanceOf(
+      it("Investor should receive payment token 1 invested + profit", async () => {
+        const paymentToken1AfterWithdraw = await paymentTokenContract.balanceOf(
           crucialInvestor.address
         );
-        const investorProfit = amountInvested.mul(PROFIT_RATE).div(100);
-        expect(paymentTokenAfterWithdraw).to.be.equal(
-          paymentTokenBalanceBeforeWithdraw.add(
-            amountInvested.mul(10 ** 6).add(investorProfit.mul(10 ** 6))
+
+        const investorProfit = amountInvested.mul(PROFIT_RATE).div(100).div(2);
+
+        expect(paymentToken1AfterWithdraw).to.be.equal(
+          paymentToken1BalanceBeforeWithdraw.add(
+            amountInvested
+              .div(2)
+              .mul(10 ** 6)
+              .add(investorProfit.mul(10 ** 6))
+          )
+        );
+      });
+      it("Investor should receive payment token 2 invested + profit", async () => {
+        const paymentToken2AfterWithdraw = await paymentTokenContract.balanceOf(
+          crucialInvestor.address
+        );
+        const investorProfit = amountInvested.mul(PROFIT_RATE).div(100).div(2);
+        expect(paymentToken2AfterWithdraw).to.be.equal(
+          paymentToken1BalanceBeforeWithdraw.add(
+            amountInvested
+              .div(2)
+              .mul(10 ** 6)
+              .add(investorProfit.mul(10 ** 6))
           )
         );
       });
