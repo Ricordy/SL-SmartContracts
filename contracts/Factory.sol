@@ -142,6 +142,25 @@ contract Factory {
         }
     }
 
+    /// @notice Returns the total amount invested by all users across all levels.
+    /// @dev The function iterates over all deployed contracts and sums up the totalSupply(representative of the investments) in each contract.
+    /// @return platformTotal The total amount invested by all users in the platform.
+    function getTotalInvestedInPlatform()
+        external
+        view
+        returns (uint256 platformTotal)
+    {
+        //Cicle through every level
+        for (uint256 i = 1; i <= 3; ++i) {
+            //Cicle through every investment in every level
+            uint256 numberOfContracts = deployedContracts[i].length;
+            for (uint256 j; j < numberOfContracts; j++) {
+                //sum the total invested in each of them
+                platformTotal += ERC20(deployedContracts[i][j]).totalSupply();
+            }
+        }
+    }
+
     /// @notice Returns the total amount invested by the user across all levels.
     /// @dev The function iterates over all deployed contracts and sums up the balance of the user in each contract.
     /// @param _user The address of the user.

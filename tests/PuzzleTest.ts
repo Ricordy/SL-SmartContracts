@@ -1061,6 +1061,12 @@ describe("Puzzle Contract", async () => {
     });
   });
   describe("Function calls", async () => {
+    it("Should retrieve te total number of membership cards sold", async () => {
+      const { puzzleContract } = await loadFixture(
+        investor1NotReeadyToClaimNFT
+      );
+      expect(await puzzleContract.getAllSoldEntryNfts()).to.be.eq(2);
+    });
     describe("_userAllowedToBurnPuzzle", () => {
       it("Should revert if the token sent is not valid", async () => {
         const { puzzleContract } = await loadFixture(deployContractFixture);

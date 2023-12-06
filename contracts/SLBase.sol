@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./SLMicroSlots.sol";
 import "./ISLPermissions.sol";
@@ -12,7 +12,12 @@ import "./ISLLogics.sol";
 /// @notice Centralizes information on this contract, making sure that all of the ERC1155 communications and
 /// memory writting calls happens thorugh here!
 /// @dev Extra details about storage: https://app.diagrams.net/#G1Wi7A1SK0y8F9X-XDm65IUdfRJ81Fo7bF
-abstract contract SLBase is ERC1155, ReentrancyGuard, SLMicroSlots, ASLBase {
+abstract contract SLBase is
+    ERC1155Supply,
+    ReentrancyGuard,
+    SLMicroSlots,
+    ASLBase
+{
     ///
     //-----STATE VARIABLES------
     ///

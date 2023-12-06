@@ -289,8 +289,9 @@ describe("Factory Contract Tests", async () => {
     it("Should not be deployable if SLPErmissions is passeg as address(0)", async () => {
       const { owner } = await loadFixture(deployContractFixture);
       const factoryContractFactory = new Factory__factory(owner);
-      await expect(factoryContractFactory.deploy(ethers.constants.AddressZero))
-        .to.be.revertedWithCustomError(factoryContractFactory, "InvalidAddress");
+      await expect(
+        factoryContractFactory.deploy(ethers.constants.AddressZero)
+      ).to.be.revertedWithCustomError(factoryContractFactory, "InvalidAddress");
     });
   });
   describe("DeployNew function", async () => {
@@ -496,6 +497,12 @@ describe("Factory Contract Tests", async () => {
       expect(
         await factoryContract.getAddressTotalInLevel(investor1.address, 3)
       ).to.be.equal(withDecimals(INVESTED_LEVEL_3));
+    });
+    it("Should be able to retrieve the total amount invested in the platform", async () => {
+      const { factoryContract } = await loadFixture(UserInvestedInAllLevels);
+      expect(await factoryContract.getTotalInvestedInPlatform()).to.be.equal(
+        withDecimals(INVESTED_LEVEL_1 + INVESTED_LEVEL_2 + INVESTED_LEVEL_3)
+      );
     });
     it("Should be able to retrieve user investment in all levels", async () => {
       const { factoryContract } = await loadFixture(UserInvestedInAllLevels);

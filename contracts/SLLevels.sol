@@ -199,7 +199,17 @@ abstract contract SLLevels is SLBase {
         return (entryTokenCap - entryTokenCurrentId);
     }
 
-    ////
+    /// @notice get the amount of sold entry nfts
+    /// @dev uses _getLevelTokenIds to get all level1 batchs ids
+    /// @return totalSold all entries sold
+    function getAllSoldEntryNfts() public view returns (uint256 totalSold) {
+        uint256[] memory level1TokenIds = _getLevelTokenIds(1);
+        for (uint i; i < level1TokenIds.length; i++) {
+            totalSold += totalSupply(level1TokenIds[i]);
+        }
+    }
+
+    ///
     //------------------MODIFIERS--------------------
     ///
     /// @notice Verifies if user has the necessary NFT to interact with the function.
